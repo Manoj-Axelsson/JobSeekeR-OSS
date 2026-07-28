@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { evaluateJobMatch, MatchResult } from "@/lib/services/matcher";
 
 interface JobAd {
   id: string;
@@ -57,6 +58,7 @@ export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [selectedJob, setSelectedJob] = useState<JobAd | null>(null);
+  const [modalTab, setModalTab] = useState<"analysis" | "description">("analysis");
 
   // Profile states
   const [minScore, setMinScore] = useState(45);
@@ -180,6 +182,11 @@ export default function Dashboard() {
     if (!selectedMonth) return true;
     return app.monthlyTag === selectedMonth;
   });
+
+  // Calculate live dynamic analysis for the selected job modal
+  const jobAnalysis: MatchResult | null = selectedJob
+    ? evaluateJobMatch(selectedJob.title, selectedJob.description)
+    : null;
 
   return (
     <div
@@ -547,12 +554,15 @@ export default function Dashboard() {
                           {/* Footer Actions */}
                           <div className={`pt-4 border-t flex items-center justify-between gap-2 ${isDark ? "border-slate-800" : "border-slate-100"}`}>
                             <button
-                              onClick={() => setSelectedJob(job)}
+                              onClick={() => {
+                                setSelectedJob(job);
+                                setModalTab("analysis");
+                              }}
                               className={`text-[17px] font-semibold underline underline-offset-4 cursor-pointer ${
-                                isDark ? "text-slate-300 hover:text-white" : "text-slate-700 hover:text-slate-950"
+                                isDark ? "text-emerald-400 hover:text-emerald-300" : "text-emerald-700 hover:text-emerald-800"
                               }`}
                             >
-                              View Full Details
+                              💡 Score Breakdown & Pitch Strategy
                             </button>
 
                             <div className="flex items-center space-x-2">
@@ -851,20 +861,30 @@ export default function Dashboard() {
         )}
       </main>
 
-      {/* Full Job Modal */}
-      {selectedJob && (
+      {/* Full Job & Match Analysis Modal */}
+      {selectedJob && jobAnalysis && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className={`rounded-2xl max-w-2xl w-full max-h-[85vh] overflow-y-auto p-7 space-y-4 border shadow-2xl ${
-            isDark ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200"
-          }`}>
+          <div
+            className={`rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-7 space-y-5 border shadow-2xl ${
+              isDark ? "bg-slate-900 border-slate-800 text-slate-100" : "bg-white border-slate-200 text-slate-900"
+            }`}
+          >
+            {/* Modal Header */}
             <div className="flex items-start justify-between">
               <div>
-                <span className={`px-3 py-1 rounded-full text-[16px] font-bold border ${
-                  isDark ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30" : "bg-emerald-50 text-emerald-700 border-emerald-200"
-                }`}>
-                  {selectedJob.matchScore}% Match Score
-                </span>
-                <h2 className={`text-[23px] font-bold mt-2 ${isDark ? "text-white" : "text-slate-900"}`}>{selectedJob.title}</h2>
+                <div className="flex items-center space-x-2">
+                  <span
+                    className={`px-3 py-1 rounded-full text-[16px] font-bold border ${
+                      selectedJob.matchScore >= 75
+                        ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                        : "bg-amber-50 text-amber-700 border-amber-200"
+                    }`}
+                  >
+                    {selectedJob.matchScore}% Match Score
+                  </span>
+                  <span className="text-[15px] font-semibold text-slate-500">Source: {selectedJob.source}</span>
+                </div>
+                <h2 className={`text-[25px] font-bold mt-2 ${isDark ? "text-white" : "text-slate-900"}`}>{selectedJob.title}</h2>
                 <p className={`text-[17px] font-medium ${isDark ? "text-slate-400" : "text-slate-600"}`}>
                   🏢 {selectedJob.company} • 📍 {selectedJob.location}
                 </p>
@@ -877,16 +897,155 @@ export default function Dashboard() {
               </button>
             </div>
 
-            <div className={`pt-3 border-t space-y-3 ${isDark ? "border-slate-800" : "border-slate-200"}`}>
-              <h3 className={`text-[20px] font-bold uppercase tracking-wider ${isDark ? "text-slate-300" : "text-slate-700"}`}>
-                Full Job Description
-              </h3>
-              <p className={`text-[18px] leading-relaxed whitespace-pre-line ${isDark ? "text-slate-300" : "text-slate-700"}`}>
-                {selectedJob.description}
-              </p>
+            {/* Modal Sub Navigation */}
+            <div className={`border-b flex space-x-6 ${isDark ? "border-slate-800" : "border-slate-200"}`}>
+              <button
+                onClick={() => setModalTab("analysis")}
+                className={`pb-3 text-[17px] font-bold border-b-2 transition cursor-pointer ${
+                  modalTab === "analysis"
+                    ? "border-emerald-600 text-emerald-600"
+                    : isDark
+                    ? "border-transparent text-slate-400 hover:text-slate-200"
+                    : "border-transparent text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                💡 Match Analysis & Cover Letter Strategy
+              </button>
+              <button
+                onClick={() => setModalTab("description")}
+                className={`pb-3 text-[17px] font-bold border-b-2 transition cursor-pointer ${
+                  modalTab === "description"
+                    ? "border-emerald-600 text-emerald-600"
+                    : isDark
+                    ? "border-transparent text-slate-400 hover:text-slate-200"
+                    : "border-transparent text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                📄 Full Job Posting Text
+              </button>
             </div>
 
-            <div className={`pt-4 border-t flex justify-end space-x-3 ${isDark ? "border-slate-800" : "border-slate-200"}`}>
+            {/* MODAL TAB 1: STRATEGIC MATCH ANALYSIS */}
+            {modalTab === "analysis" && (
+              <div className="space-y-6">
+                {/* 1. WHY THIS JOB MATCHED */}
+                <div className={`p-5 rounded-xl border ${isDark ? "bg-slate-950 border-slate-800" : "bg-emerald-50/60 border-emerald-200"}`}>
+                  <h3 className="text-[20px] font-bold text-emerald-700 flex items-center space-x-2">
+                    <span>✓ Why This Job Matched Your Profile</span>
+                  </h3>
+                  <div className="mt-3 space-y-2">
+                    {jobAnalysis.analysis.whyMatched.map((reason, idx) => (
+                      <p key={idx} className={`text-[17px] leading-relaxed ${isDark ? "text-slate-300" : "text-slate-800"}`}>
+                        • {reason}
+                      </p>
+                    ))}
+                  </div>
+                  {/* Matched Skills Tags */}
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {jobAnalysis.matchedSkills.map((skill, idx) => (
+                      <span key={idx} className="px-3 py-1 bg-emerald-100 text-emerald-800 text-[15px] font-semibold rounded-md border border-emerald-300">
+                        ✓ {skill}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 2. WHAT IS LACKING / GAPS */}
+                <div className={`p-5 rounded-xl border ${isDark ? "bg-slate-950 border-slate-800" : "bg-amber-50/60 border-amber-200"}`}>
+                  <h3 className="text-[20px] font-bold text-amber-800 flex items-center space-x-2">
+                    <span>⚠️ Potential Skill Gaps & What Is Missing</span>
+                  </h3>
+                  <div className="mt-3 space-y-2">
+                    {jobAnalysis.analysis.whatLacking.map((gap, idx) => (
+                      <p key={idx} className={`text-[17px] leading-relaxed ${isDark ? "text-slate-300" : "text-slate-800"}`}>
+                        • {gap}
+                      </p>
+                    ))}
+                  </div>
+                  {/* Missing Skills Tags */}
+                  {jobAnalysis.missingSkills.length > 0 && (
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {jobAnalysis.missingSkills.map((skill, idx) => (
+                        <span key={idx} className="px-3 py-1 bg-amber-100 text-amber-900 text-[15px] font-semibold rounded-md border border-amber-300">
+                          ! {skill}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* 3. COVER LETTER PITCH STRATEGY */}
+                <div className={`p-5 rounded-xl border ${isDark ? "bg-slate-950 border-slate-800" : "bg-blue-50/60 border-blue-200"}`}>
+                  <h3 className="text-[20px] font-bold text-blue-800 flex items-center space-x-2">
+                    <span>✍️ Tailored Cover Letter & Application Pitch Strategy</span>
+                  </h3>
+
+                  {/* Opening Hook */}
+                  <div className="mt-4">
+                    <h4 className="text-[17px] font-bold text-slate-900 dark:text-slate-200">Recommended Opening Line for Cover Letter:</h4>
+                    <p className="mt-1.5 p-3.5 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 text-[17px] italic text-slate-800 dark:text-slate-200 leading-relaxed">
+                      "{jobAnalysis.analysis.coverLetterPitch.openingHook}"
+                    </p>
+                  </div>
+
+                  {/* Key Strengths to Lead With */}
+                  <div className="mt-4">
+                    <h4 className="text-[17px] font-bold text-slate-900 dark:text-slate-200">Core Strengths to Emphasize in Your Resume/Letter:</h4>
+                    <ul className="mt-1.5 list-disc list-inside text-[17px] text-slate-800 dark:text-slate-300 space-y-1">
+                      {jobAnalysis.analysis.coverLetterPitch.keyStrengthsToLeadWith.map((str, idx) => (
+                        <li key={idx} className="font-semibold text-emerald-700 dark:text-emerald-400">{str}</li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {/* Gap Mitigation Strategy */}
+                  <div className="mt-4">
+                    <h4 className="text-[17px] font-bold text-slate-900 dark:text-slate-200">How to Frame Missing Qualifications:</h4>
+                    <p className="mt-1 text-[17px] text-slate-800 dark:text-slate-300 leading-relaxed">
+                      {jobAnalysis.analysis.coverLetterPitch.gapMitigationStrategy}
+                    </p>
+                  </div>
+
+                  {/* Suggested Copyable Bullet Points */}
+                  <div className="mt-4">
+                    <h4 className="text-[17px] font-bold text-slate-900 dark:text-slate-200">Suggested Application Bullet Points to Highlight:</h4>
+                    <div className="mt-2 space-y-2">
+                      {jobAnalysis.analysis.coverLetterPitch.suggestedBulletPoints.map((bp, idx) => (
+                        <div key={idx} className="p-3 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 text-[16px] text-slate-800 dark:text-slate-200">
+                          📌 {bp}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* MODAL TAB 2: FULL DESCRIPTION */}
+            {modalTab === "description" && (
+              <div className={`p-5 rounded-xl border space-y-3 ${isDark ? "bg-slate-950 border-slate-800" : "bg-slate-50 border-slate-200"}`}>
+                <h3 className={`text-[20px] font-bold uppercase tracking-wider ${isDark ? "text-slate-300" : "text-slate-700"}`}>
+                  Full Job Description Text
+                </h3>
+                <p className={`text-[18px] leading-relaxed whitespace-pre-line ${isDark ? "text-slate-300" : "text-slate-700"}`}>
+                  {selectedJob.description}
+                </p>
+              </div>
+            )}
+
+            {/* Modal Footer Actions */}
+            <div className={`pt-4 border-t flex justify-between items-center ${isDark ? "border-slate-800" : "border-slate-200"}`}>
+              {selectedJob.status !== "APPLIED" ? (
+                <button
+                  onClick={() => updateJobStatus(selectedJob.id, "APPLIED")}
+                  className="px-5 py-2.5 bg-cyan-600 text-white hover:bg-cyan-500 text-[16px] font-bold rounded-xl transition cursor-pointer shadow-sm"
+                >
+                  Mark as Applied Today
+                </button>
+              ) : (
+                <span className="text-[16px] font-bold text-emerald-600">✓ Marked as Applied</span>
+              )}
+
               {selectedJob.webpageUrl && (
                 <a
                   href={selectedJob.webpageUrl}

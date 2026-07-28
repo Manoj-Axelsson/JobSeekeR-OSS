@@ -8,6 +8,16 @@ export interface MatchResult {
     quality: number;
     industrial: number;
   };
+  analysis: {
+    whyMatched: string[];
+    whatLacking: string[];
+    coverLetterPitch: {
+      openingHook: string;
+      keyStrengthsToLeadWith: string[];
+      gapMitigationStrategy: string;
+      suggestedBulletPoints: string[];
+    };
+  };
 }
 
 const TAXONOMY = {
@@ -34,6 +44,14 @@ const TAXONOMY = {
     "cnc", "cad", "cam", "cad/cam", "preventive maintenance", "uptime", "plant", "factory", "assembly"
   ]
 };
+
+// Common tech keywords to detect missing skills
+const EXTERNAL_TECH = [
+  "docker", "kubernetes", "k8s", "aws", "azure", "gcp", "cloud", "python", "c++", "c#", 
+  "java", "go", "rust", "graphql", "kafka", "redis", "mongodb", "jira", "confluence", 
+  "scrum", "agile", "devops", "ci/cd", "microservices", "cybersecurity", "iso 13485", 
+  "sap", "embedded", "linux", "autosar"
+];
 
 export function evaluateJobMatch(title: string, description: string): MatchResult {
   const text = `${title} ${description}`.toLowerCase();
@@ -68,11 +86,82 @@ export function evaluateJobMatch(title: string, description: string): MatchResul
   const rawScore = Math.round((maxDomainScore * 0.6) + (avgDomainScore * 0.25) + titleBonus);
   const matchScore = Math.min(100, Math.max(20, rawScore));
 
+  // Detect external missing skills mentioned in description
+  for (const tech of EXTERNAL_TECH) {
+    if (text.includes(tech)) {
+      // Check if it's already in matched set
+      const isMatched = Array.from(matchedSet).some(m => m.toLowerCase() === tech);
+      if (!isMatched) {
+        missingSet.add(capitalize(tech));
+      }
+    }
+  }
+
+  const matchedSkills = Array.from(matchedSet).slice(0, 10);
+  const missingSkills = Array.from(missingSet).slice(0, 6);
+
+  // Generate Narrative Analysis for Cover Letter & Pitch Strategy
+  const whyMatched: string[] = [];
+  const whatLacking: string[] = [];
+  const keyStrengthsToLeadWith: string[] = [];
+
+  if (domainScores.software >= 40) {
+    whyMatched.push("Strong alignment with your Fullstack Software Engineering skills (React, TypeScript, Next.js, Node.js, PostgreSQL). You demonstrate hands-on experience building maintainable applications with clean architecture.");
+    keyStrengthsToLeadWith.push("Fullstack development with React, TypeScript & Next.js");
+  }
+  if (domainScores.systems >= 40) {
+    whyMatched.push("Excellent fit for your Systems Engineering & Requirements Management background. The role demands structured systems thinking, specification management, and documentation-as-architecture.");
+    keyStrengthsToLeadWith.push("Systems Engineering, Requirements Management & Lifecycle Thinking");
+  }
+  if (domainScores.quality >= 40) {
+    whyMatched.push("Direct match for your Six Sigma Green Belt (KPMG) and Quality Assurance experience (DMAIC, FMEA, Poka-Yoke, root cause analysis).");
+    keyStrengthsToLeadWith.push("Six Sigma Green Belt & Data-Driven Process Quality Improvement");
+  }
+  if (domainScores.industrial >= 40) {
+    whyMatched.push("Strong relevance to your Industrial & Manufacturing background (Lean production, CNC, CAD/CAM, preventive maintenance, uptime optimization).");
+    keyStrengthsToLeadWith.push("Industrial Digitalization & Production Operations Experience");
+  }
+
+  if (whyMatched.length === 0) {
+    whyMatched.push("General engineering and analytical relevance matching your broad technical background.");
+    keyStrengthsToLeadWith.push("Cross-functional engineering problem solving and analytical adaptability");
+  }
+
+  // What is lacking analysis
+  if (missingSkills.length > 0) {
+    whatLacking.push(`Specific tools or technologies requested in the job posting that are not explicitly highlighted in your primary skill list: ${missingSkills.join(", ")}.`);
+  } else {
+    whatLacking.push("No critical skill gaps identified. Your technical profile covers the core requirements for this position.");
+  }
+
+  // Cover Letter Strategy
+  const openingHook = `As a hybrid Systems Engineer and Fullstack Developer with a Six Sigma Green Belt and background in industrial digitalization, I am drawn to the ${title} role at ${titleLower.includes("inc") || titleLower.includes("ab") ? title : "your organization"} where technical rigor and system architecture drive measurable results.`;
+
+  const gapMitigationStrategy = missingSkills.length > 0
+    ? `For missing competencies (${missingSkills.slice(0, 3).join(", ")}), emphasize your rapid learning curve (evidenced by your Lexicon Fullstack Diploma, YH Production credentials, and hands-on RubberDuckWorks system lab) and how your core engineering foundation accelerates onboarding.`
+    : "Emphasize how your dual software-hardware/quality background allows you to contribute immediately without onboarding delays.";
+
+  const suggestedBulletPoints = [
+    `Software & Systems Architecture: Applied React, TypeScript, Next.js, Node.js, and PostgreSQL within modular application structures (Bulletproof React architecture).`,
+    `Quality & Process Engineering: Utilized Six Sigma Green Belt (DMAIC, FMEA) methodology to eliminate bottlenecks and optimize operational workflows.`,
+    `Cross-Functional Communication: Experienced at translating business, production, and technical requirements into maintainable software and structured documentation.`
+  ];
+
   return {
     matchScore,
-    matchedSkills: Array.from(matchedSet).slice(0, 10),
-    missingSkills: Array.from(missingSet).slice(0, 5),
+    matchedSkills,
+    missingSkills,
     domainScores,
+    analysis: {
+      whyMatched,
+      whatLacking,
+      coverLetterPitch: {
+        openingHook,
+        keyStrengthsToLeadWith,
+        gapMitigationStrategy,
+        suggestedBulletPoints,
+      },
+    },
   };
 }
 
@@ -90,7 +179,6 @@ function calculateDomainScore(
     }
   }
   
-  // Calculate percentage of domain matched
   const ratio = count / Math.min(keywords.length, 8);
   return Math.min(100, Math.round(ratio * 100));
 }
