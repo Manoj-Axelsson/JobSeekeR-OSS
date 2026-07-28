@@ -1,0 +1,23 @@
+{
+  "name": "Atlas Talent Navigator",
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:1-20-bookworm",
+  "forwardPorts": [
+    3000
+  ],
+  "postCreateCommand": "npm install",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "editor.formatOnSave": true,
+        "typescript.tsdk": "node_modules/typescript/lib"
+      },
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "bradlc.vscode-tailwindcss",
+        "dsznajder.es7-react-js-snippets"
+      ]
+    }
+  },
+  "remoteUser": "node"
+}
