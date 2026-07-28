@@ -44,6 +44,9 @@ interface ScanLog {
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<"feed" | "tracker" | "profile" | "logs">("feed");
+  const [themeMode, setThemeMode] = useState<"light" | "dark" | "system">("light");
+  const [isDark, setIsDark] = useState(false);
+
   const [jobs, setJobs] = useState<JobAd[]>([]);
   const [applications, setApplications] = useState<Application[]>([]);
   const [scanLogs, setScanLogs] = useState<ScanLog[]>([]);
@@ -57,7 +60,30 @@ export default function Dashboard() {
 
   // Profile states
   const [minScore, setMinScore] = useState(45);
-  const [profileSaved, setProfileSaved] = useState(false);
+
+  // Handle Theme switching
+  useEffect(() => {
+    const updateTheme = () => {
+      if (themeMode === "dark") {
+        setIsDark(true);
+      } else if (themeMode === "light") {
+        setIsDark(false);
+      } else {
+        // System preference
+        const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        setIsDark(systemPrefersDark);
+      }
+    };
+
+    updateTheme();
+
+    if (themeMode === "system") {
+      const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+      const handleChange = (e: MediaQueryListEvent) => setIsDark(e.matches);
+      mediaQuery.addEventListener("change", handleChange);
+      return () => mediaQuery.removeEventListener("change", handleChange);
+    }
+  }, [themeMode]);
 
   useEffect(() => {
     fetchData();
@@ -157,50 +183,129 @@ export default function Dashboard() {
   });
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans antialiased">
+    <div
+      className={`min-h-screen transition-colors duration-200 font-sans antialiased ${
+        isDark
+          ? "bg-slate-950 text-slate-100"
+          : "bg-slate-50 text-slate-900"
+      }`}
+    >
       {/* Top Header */}
-      <header className="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-40">
+      <header
+        className={`border-b sticky top-0 z-40 backdrop-blur-md transition-colors duration-200 ${
+          isDark
+            ? "border-slate-800 bg-slate-900/80"
+            : "border-slate-200 bg-white/90 shadow-sm"
+        }`}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="flex items-center space-x-3">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-cyan-500 flex items-center justify-center font-bold text-slate-950 text-xl shadow-lg shadow-emerald-500/20">
+            <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center font-bold text-white text-xl shadow-md shadow-emerald-500/20">
               AT
             </div>
             <div>
               <div className="flex items-center space-x-2">
-                <h1 className="text-xl font-bold tracking-tight text-white">Atlas Talent Navigator</h1>
-                <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                <h1 className={`text-xl font-bold tracking-tight ${isDark ? "text-white" : "text-slate-900"}`}>
+                  Atlas Talent Navigator
+                </h1>
+                <span
+                  className={`px-2 py-0.5 text-xs font-semibold rounded-full border ${
+                    isDark
+                      ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                      : "bg-emerald-50 text-emerald-700 border-emerald-200"
+                  }`}
+                >
                   SE Job Scanner
                 </span>
               </div>
-              <p className="text-xs text-slate-400">
-                Automated 12:00 PM Swedish Job Market Scanner • <span className="text-slate-200 font-medium">Manoj John Axelsson</span>
+              <p className={`text-xs ${isDark ? "text-slate-400" : "text-slate-500"}`}>
+                Automated 12:00 PM Swedish Job Market Scanner •{" "}
+                <span className={`font-semibold ${isDark ? "text-slate-200" : "text-slate-800"}`}>
+                  Manoj John Axelsson
+                </span>
               </p>
             </div>
           </div>
 
           <div className="flex items-center space-x-3">
+            {/* Theme Switcher Toggle */}
+            <div
+              className={`p-1 rounded-xl border flex items-center space-x-1 ${
+                isDark ? "bg-slate-950 border-slate-800" : "bg-slate-100 border-slate-200"
+              }`}
+            >
+              <button
+                onClick={() => setThemeMode("light")}
+                title="Light Mode"
+                className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition cursor-pointer ${
+                  themeMode === "light"
+                    ? isDark
+                      ? "bg-slate-800 text-white shadow-sm"
+                      : "bg-white text-slate-900 shadow-sm border border-slate-200"
+                    : isDark
+                    ? "text-slate-400 hover:text-slate-200"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                ☀️ Light
+              </button>
+              <button
+                onClick={() => setThemeMode("dark")}
+                title="Dark Mode"
+                className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition cursor-pointer ${
+                  themeMode === "dark"
+                    ? isDark
+                      ? "bg-slate-800 text-white shadow-sm"
+                      : "bg-white text-slate-900 shadow-sm border border-slate-200"
+                    : isDark
+                    ? "text-slate-400 hover:text-slate-200"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                🌙 Dark
+              </button>
+              <button
+                onClick={() => setThemeMode("system")}
+                title="System Default Mode"
+                className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition cursor-pointer ${
+                  themeMode === "system"
+                    ? isDark
+                      ? "bg-slate-800 text-white shadow-sm"
+                      : "bg-white text-slate-900 shadow-sm border border-slate-200"
+                    : isDark
+                    ? "text-slate-400 hover:text-slate-200"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                💻 System
+              </button>
+            </div>
+
+            {/* Scan Button */}
             <button
               onClick={triggerScan}
               disabled={scanning}
-              className="inline-flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-semibold text-slate-950 bg-gradient-to-r from-emerald-400 to-cyan-400 hover:from-emerald-300 hover:to-cyan-300 transition shadow-md shadow-emerald-500/20 disabled:opacity-50 cursor-pointer"
+              className="inline-flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 transition shadow-md shadow-emerald-600/20 disabled:opacity-50 cursor-pointer"
             >
               <svg className={`w-4 h-4 ${scanning ? "animate-spin" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
-              <span>{scanning ? "Scanning JobTech API..." : "Scan Swedish Jobs Now (12:00 PM)"}</span>
+              <span>{scanning ? "Scanning JobTech API..." : "Scan Jobs (12:00 PM)"}</span>
             </button>
           </div>
         </div>
 
         {/* Navigation Tabs */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-t border-slate-800/60">
+        <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-t ${isDark ? "border-slate-800/60" : "border-slate-200"}`}>
           <nav className="flex space-x-8 -mb-px">
             <button
               onClick={() => setActiveTab("feed")}
               className={`py-3 text-xs font-semibold border-b-2 flex items-center space-x-2 cursor-pointer transition ${
                 activeTab === "feed"
-                  ? "border-emerald-400 text-emerald-400"
-                  : "border-transparent text-slate-400 hover:text-slate-200"
+                  ? "border-emerald-600 text-emerald-600"
+                  : isDark
+                  ? "border-transparent text-slate-400 hover:text-slate-200"
+                  : "border-transparent text-slate-600 hover:text-slate-900"
               }`}
             >
               <span>📌 Daily Feed ({jobs.length})</span>
@@ -209,8 +314,10 @@ export default function Dashboard() {
               onClick={() => setActiveTab("tracker")}
               className={`py-3 text-xs font-semibold border-b-2 flex items-center space-x-2 cursor-pointer transition ${
                 activeTab === "tracker"
-                  ? "border-emerald-400 text-emerald-400"
-                  : "border-transparent text-slate-400 hover:text-slate-200"
+                  ? "border-emerald-600 text-emerald-600"
+                  : isDark
+                  ? "border-transparent text-slate-400 hover:text-slate-200"
+                  : "border-transparent text-slate-600 hover:text-slate-900"
               }`}
             >
               <span>📋 Monthly Application Tracker ({applications.length})</span>
@@ -219,8 +326,10 @@ export default function Dashboard() {
               onClick={() => setActiveTab("profile")}
               className={`py-3 text-xs font-semibold border-b-2 flex items-center space-x-2 cursor-pointer transition ${
                 activeTab === "profile"
-                  ? "border-emerald-400 text-emerald-400"
-                  : "border-transparent text-slate-400 hover:text-slate-200"
+                  ? "border-emerald-600 text-emerald-600"
+                  : isDark
+                  ? "border-transparent text-slate-400 hover:text-slate-200"
+                  : "border-transparent text-slate-600 hover:text-slate-900"
               }`}
             >
               <span>🎯 Competence Profile & Skills</span>
@@ -229,8 +338,10 @@ export default function Dashboard() {
               onClick={() => setActiveTab("logs")}
               className={`py-3 text-xs font-semibold border-b-2 flex items-center space-x-2 cursor-pointer transition ${
                 activeTab === "logs"
-                  ? "border-emerald-400 text-emerald-400"
-                  : "border-transparent text-slate-400 hover:text-slate-200"
+                  ? "border-emerald-600 text-emerald-600"
+                  : isDark
+                  ? "border-transparent text-slate-400 hover:text-slate-200"
+                  : "border-transparent text-slate-600 hover:text-slate-900"
               }`}
             >
               <span>⚡ Scanner Monitor Logs</span>
@@ -243,8 +354,10 @@ export default function Dashboard() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {loading ? (
           <div className="py-20 text-center">
-            <div className="inline-block w-8 h-8 border-4 border-emerald-400 border-t-transparent rounded-full animate-spin"></div>
-            <p className="mt-4 text-xs text-slate-400 font-medium">Loading Swedish Job Scanner Dashboard...</p>
+            <div className="inline-block w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
+            <p className={`mt-4 text-xs font-medium ${isDark ? "text-slate-400" : "text-slate-600"}`}>
+              Loading Swedish Job Scanner Dashboard...
+            </p>
           </div>
         ) : (
           <>
@@ -252,22 +365,34 @@ export default function Dashboard() {
             {activeTab === "feed" && (
               <div className="space-y-6">
                 {/* Search & Filters */}
-                <div className="flex flex-col sm:flex-row gap-4 justify-between items-stretch sm:items-center bg-slate-900/60 p-4 rounded-2xl border border-slate-800">
+                <div
+                  className={`flex flex-col sm:flex-row gap-4 justify-between items-stretch sm:items-center p-4 rounded-2xl border transition ${
+                    isDark ? "bg-slate-900/60 border-slate-800" : "bg-white border-slate-200 shadow-sm"
+                  }`}
+                >
                   <div className="relative flex-1">
                     <input
                       type="text"
                       placeholder="Filter by title, company, or location (e.g. Stockholm, Fullstack, Systems)..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                      className={`w-full border rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-emerald-600 transition ${
+                        isDark
+                          ? "bg-slate-950 border-slate-800 text-slate-200 placeholder-slate-500"
+                          : "bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400"
+                      }`}
                     />
                   </div>
                   <div className="flex items-center space-x-2">
-                    <span className="text-xs text-slate-400 font-medium">Status:</span>
+                    <span className={`text-xs font-medium ${isDark ? "text-slate-400" : "text-slate-600"}`}>Status:</span>
                     <select
                       value={statusFilter}
                       onChange={(e) => setStatusFilter(e.target.value)}
-                      className="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-emerald-500"
+                      className={`border rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-600 ${
+                        isDark
+                          ? "bg-slate-950 border-slate-800 text-slate-200"
+                          : "bg-slate-50 border-slate-300 text-slate-900"
+                      }`}
                     >
                       <option value="ALL">All Statuses</option>
                       <option value="NEW">New (Unreviewed)</option>
@@ -280,12 +405,18 @@ export default function Dashboard() {
 
                 {/* Job List */}
                 {filteredJobs.length === 0 ? (
-                  <div className="text-center py-16 bg-slate-900/40 rounded-2xl border border-slate-800">
-                    <p className="text-sm font-semibold text-slate-300">No matching jobs found</p>
-                    <p className="text-xs text-slate-500 mt-1">Try running the 12:00 PM scanner or adjusting your search filters.</p>
+                  <div
+                    className={`text-center py-16 rounded-2xl border ${
+                      isDark ? "bg-slate-900/40 border-slate-800" : "bg-white border-slate-200 shadow-sm"
+                    }`}
+                  >
+                    <p className={`text-sm font-semibold ${isDark ? "text-slate-300" : "text-slate-700"}`}>No matching jobs found</p>
+                    <p className={`text-xs mt-1 ${isDark ? "text-slate-500" : "text-slate-500"}`}>
+                      Try running the 12:00 PM scanner or adjusting your search filters.
+                    </p>
                     <button
                       onClick={triggerScan}
-                      className="mt-4 px-4 py-2 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-semibold rounded-xl hover:bg-emerald-500/20 transition"
+                      className="mt-4 px-4 py-2 bg-emerald-600 text-white text-xs font-semibold rounded-xl hover:bg-emerald-500 transition shadow-sm"
                     >
                       Scan JobTech API Now
                     </button>
@@ -299,7 +430,11 @@ export default function Dashboard() {
                       return (
                         <div
                           key={job.id}
-                          className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition flex flex-col justify-between space-y-4 shadow-lg shadow-black/40 relative group"
+                          className={`rounded-2xl p-5 border flex flex-col justify-between space-y-4 transition shadow-sm relative group ${
+                            isDark
+                              ? "bg-slate-900/80 border-slate-800 hover:border-slate-700 shadow-black/40"
+                              : "bg-white border-slate-200 hover:border-slate-300 hover:shadow-md"
+                          }`}
                         >
                           <div>
                             {/* Match Badge & Status */}
@@ -307,10 +442,16 @@ export default function Dashboard() {
                               <span
                                 className={`px-2.5 py-1 rounded-full text-xs font-bold ${
                                   job.matchScore >= 75
-                                    ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30"
+                                    ? isDark
+                                      ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30"
+                                      : "bg-emerald-50 text-emerald-700 border border-emerald-200"
                                     : job.matchScore >= 55
-                                    ? "bg-amber-500/10 text-amber-400 border border-amber-500/30"
-                                    : "bg-slate-800 text-slate-400"
+                                    ? isDark
+                                      ? "bg-amber-500/10 text-amber-400 border border-amber-500/30"
+                                      : "bg-amber-50 text-amber-700 border border-amber-200"
+                                    : isDark
+                                    ? "bg-slate-800 text-slate-400"
+                                    : "bg-slate-100 text-slate-600"
                                 }`}
                               >
                                 {job.matchScore}% Match
@@ -319,12 +460,20 @@ export default function Dashboard() {
                               <span
                                 className={`text-[10px] font-semibold uppercase px-2 py-0.5 rounded-md ${
                                   job.status === "APPLIED"
-                                    ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20"
+                                    ? isDark
+                                      ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20"
+                                      : "bg-cyan-50 text-cyan-700 border border-cyan-200"
                                     : job.status === "SAVED"
-                                    ? "bg-purple-500/10 text-purple-400 border border-purple-500/20"
+                                    ? isDark
+                                      ? "bg-purple-500/10 text-purple-400 border border-purple-500/20"
+                                      : "bg-purple-50 text-purple-700 border border-purple-200"
                                     : job.status === "DISCARDED"
-                                    ? "bg-red-500/10 text-red-400 border border-red-500/20"
-                                    : "bg-slate-800 text-slate-400"
+                                    ? isDark
+                                      ? "bg-red-500/10 text-red-400 border border-red-500/20"
+                                      : "bg-red-50 text-red-700 border border-red-200"
+                                    : isDark
+                                    ? "bg-slate-800 text-slate-400"
+                                    : "bg-slate-100 text-slate-600"
                                 }`}
                               >
                                 {job.status}
@@ -332,10 +481,16 @@ export default function Dashboard() {
                             </div>
 
                             {/* Title & Company */}
-                            <h3 className="text-sm font-bold text-white mt-3 line-clamp-2 group-hover:text-emerald-400 transition">
+                            <h3
+                              className={`text-sm font-bold mt-3 line-clamp-2 transition ${
+                                isDark
+                                  ? "text-white group-hover:text-emerald-400"
+                                  : "text-slate-900 group-hover:text-emerald-700"
+                              }`}
+                            >
                               {job.title}
                             </h3>
-                            <p className="text-xs font-medium text-slate-400 mt-1 flex items-center space-x-1">
+                            <p className={`text-xs font-medium mt-1 flex items-center space-x-1 ${isDark ? "text-slate-400" : "text-slate-600"}`}>
                               <span>🏢 {job.company}</span>
                               <span>•</span>
                               <span>📍 {job.location}</span>
@@ -344,22 +499,22 @@ export default function Dashboard() {
                             {/* Domain Breakdown Badges */}
                             <div className="mt-3 flex flex-wrap gap-1.5">
                               {domainScoresObj.software > 0 && (
-                                <span className="text-[10px] px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                                <span className={`text-[10px] px-2 py-0.5 rounded ${isDark ? "bg-blue-500/10 text-blue-400 border border-blue-500/20" : "bg-blue-50 text-blue-700 border border-blue-200"}`}>
                                   Software ({domainScoresObj.software}%)
                                 </span>
                               )}
                               {domainScoresObj.systems > 0 && (
-                                <span className="text-[10px] px-2 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                                <span className={`text-[10px] px-2 py-0.5 rounded ${isDark ? "bg-purple-500/10 text-purple-400 border border-purple-500/20" : "bg-purple-50 text-purple-700 border border-purple-200"}`}>
                                   Systems ({domainScoresObj.systems}%)
                                 </span>
                               )}
                               {domainScoresObj.quality > 0 && (
-                                <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                <span className={`text-[10px] px-2 py-0.5 rounded ${isDark ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-emerald-50 text-emerald-700 border border-emerald-200"}`}>
                                   Quality ({domainScoresObj.quality}%)
                                 </span>
                               )}
                               {domainScoresObj.industrial > 0 && (
-                                <span className="text-[10px] px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                                <span className={`text-[10px] px-2 py-0.5 rounded ${isDark ? "bg-amber-500/10 text-amber-400 border border-amber-500/20" : "bg-amber-50 text-amber-700 border border-amber-200"}`}>
                                   Manufacturing ({domainScoresObj.industrial}%)
                                 </span>
                               )}
@@ -369,7 +524,14 @@ export default function Dashboard() {
                             {matchedSkillsArr.length > 0 && (
                               <div className="mt-3 flex flex-wrap gap-1">
                                 {matchedSkillsArr.slice(0, 5).map((skill, idx) => (
-                                  <span key={idx} className="text-[10px] bg-slate-950 text-slate-300 px-2 py-0.5 rounded border border-slate-800">
+                                  <span
+                                    key={idx}
+                                    className={`text-[10px] px-2 py-0.5 rounded border ${
+                                      isDark
+                                        ? "bg-slate-950 text-slate-300 border-slate-800"
+                                        : "bg-slate-100 text-slate-700 border-slate-200"
+                                    }`}
+                                  >
                                     ✓ {skill}
                                   </span>
                                 ))}
@@ -377,16 +539,18 @@ export default function Dashboard() {
                             )}
 
                             {/* Snippet Description */}
-                            <p className="text-xs text-slate-400 mt-3 line-clamp-3 leading-relaxed">
+                            <p className={`text-xs mt-3 line-clamp-3 leading-relaxed ${isDark ? "text-slate-400" : "text-slate-600"}`}>
                               {job.description}
                             </p>
                           </div>
 
                           {/* Footer Actions */}
-                          <div className="pt-4 border-t border-slate-800 flex items-center justify-between gap-2">
+                          <div className={`pt-4 border-t flex items-center justify-between gap-2 ${isDark ? "border-slate-800" : "border-slate-100"}`}>
                             <button
                               onClick={() => setSelectedJob(job)}
-                              className="text-xs text-slate-300 hover:text-white font-medium underline underline-offset-4 cursor-pointer"
+                              className={`text-xs font-medium underline underline-offset-4 cursor-pointer ${
+                                isDark ? "text-slate-300 hover:text-white" : "text-slate-600 hover:text-slate-900"
+                              }`}
                             >
                               View Full Details
                             </button>
@@ -395,7 +559,7 @@ export default function Dashboard() {
                               {job.status !== "APPLIED" && (
                                 <button
                                   onClick={() => updateJobStatus(job.id, "APPLIED")}
-                                  className="px-2.5 py-1 bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20 border border-cyan-500/20 text-[11px] font-semibold rounded-lg transition cursor-pointer"
+                                  className="px-2.5 py-1 bg-cyan-600 text-white hover:bg-cyan-500 text-[11px] font-semibold rounded-lg transition cursor-pointer shadow-sm"
                                 >
                                   Mark Applied
                                 </button>
@@ -403,7 +567,11 @@ export default function Dashboard() {
                               {job.status === "NEW" && (
                                 <button
                                   onClick={() => updateJobStatus(job.id, "SAVED")}
-                                  className="px-2.5 py-1 bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 border border-purple-500/20 text-[11px] font-semibold rounded-lg transition cursor-pointer"
+                                  className={`px-2.5 py-1 text-[11px] font-semibold rounded-lg transition cursor-pointer border ${
+                                    isDark
+                                      ? "bg-purple-500/10 text-purple-400 border-purple-500/20 hover:bg-purple-500/20"
+                                      : "bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100"
+                                  }`}
                                 >
                                   Save
                                 </button>
@@ -413,7 +581,11 @@ export default function Dashboard() {
                                   href={job.webpageUrl}
                                   target="_blank"
                                   rel="noreferrer"
-                                  className="px-2.5 py-1 bg-slate-800 text-slate-200 hover:bg-slate-700 text-[11px] font-semibold rounded-lg transition cursor-pointer"
+                                  className={`px-2.5 py-1 text-[11px] font-semibold rounded-lg transition cursor-pointer border ${
+                                    isDark
+                                      ? "bg-slate-800 text-slate-200 border-slate-700 hover:bg-slate-700"
+                                      : "bg-slate-100 text-slate-800 border-slate-300 hover:bg-slate-200"
+                                  }`}
                                 >
                                   Apply ↗
                                 </a>
@@ -432,18 +604,30 @@ export default function Dashboard() {
             {activeTab === "tracker" && (
               <div className="space-y-6">
                 {/* Month Tabs Header */}
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-slate-900/60 p-4 rounded-2xl border border-slate-800 gap-4">
+                <div
+                  className={`flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 rounded-2xl border gap-4 transition ${
+                    isDark ? "bg-slate-900/60 border-slate-800" : "bg-white border-slate-200 shadow-sm"
+                  }`}
+                >
                   <div>
-                    <h2 className="text-base font-bold text-white">Monthly Job Application Log</h2>
-                    <p className="text-xs text-slate-400">Track and manage jobs you have searched and applied to each month.</p>
+                    <h2 className={`text-base font-bold ${isDark ? "text-white" : "text-slate-900"}`}>
+                      Monthly Job Application Log
+                    </h2>
+                    <p className={`text-xs ${isDark ? "text-slate-400" : "text-slate-600"}`}>
+                      Track and manage jobs you have searched and applied to each month.
+                    </p>
                   </div>
 
                   <div className="flex items-center space-x-2">
-                    <span className="text-xs text-slate-400 font-medium">Select Month:</span>
+                    <span className={`text-xs font-medium ${isDark ? "text-slate-400" : "text-slate-600"}`}>Select Month:</span>
                     <select
                       value={selectedMonth}
                       onChange={(e) => setSelectedMonth(e.target.value)}
-                      className="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-emerald-500"
+                      className={`border rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-600 ${
+                        isDark
+                          ? "bg-slate-950 border-slate-800 text-slate-200"
+                          : "bg-slate-50 border-slate-300 text-slate-900"
+                      }`}
                     >
                       {months.length === 0 ? (
                         <option value="">No Month Logs Yet</option>
@@ -458,16 +642,34 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                {/* Applications Table / Kanban */}
+                {/* Applications Table */}
                 {filteredApps.length === 0 ? (
-                  <div className="text-center py-16 bg-slate-900/40 rounded-2xl border border-slate-800">
-                    <p className="text-sm font-semibold text-slate-300">No applications logged for {selectedMonth || "this month"}</p>
-                    <p className="text-xs text-slate-500 mt-1">Mark jobs as "Applied" from the Daily Feed tab to start tracking your applications.</p>
+                  <div
+                    className={`text-center py-16 rounded-2xl border ${
+                      isDark ? "bg-slate-900/40 border-slate-800" : "bg-white border-slate-200 shadow-sm"
+                    }`}
+                  >
+                    <p className={`text-sm font-semibold ${isDark ? "text-slate-300" : "text-slate-700"}`}>
+                      No applications logged for {selectedMonth || "this month"}
+                    </p>
+                    <p className={`text-xs mt-1 ${isDark ? "text-slate-500" : "text-slate-500"}`}>
+                      Mark jobs as "Applied" from the Daily Feed tab to start tracking your applications.
+                    </p>
                   </div>
                 ) : (
-                  <div className="overflow-x-auto bg-slate-900/80 border border-slate-800 rounded-2xl shadow-xl">
+                  <div
+                    className={`overflow-x-auto rounded-2xl border shadow-sm transition ${
+                      isDark ? "bg-slate-900/80 border-slate-800" : "bg-white border-slate-200"
+                    }`}
+                  >
                     <table className="w-full text-left text-xs">
-                      <thead className="bg-slate-950 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
+                      <thead
+                        className={`uppercase text-[10px] tracking-wider border-b ${
+                          isDark
+                            ? "bg-slate-950 text-slate-400 border-slate-800"
+                            : "bg-slate-100 text-slate-600 border-slate-200"
+                        }`}
+                      >
                         <tr>
                           <th className="py-3.5 px-4 font-semibold">Job Title & Company</th>
                           <th className="py-3.5 px-4 font-semibold">Location</th>
@@ -478,34 +680,38 @@ export default function Dashboard() {
                           <th className="py-3.5 px-4 font-semibold text-right">Actions</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-800/60">
+                      <tbody className={`divide-y ${isDark ? "divide-slate-800/60" : "divide-slate-200"}`}>
                         {filteredApps.map((app) => (
-                          <tr key={app.id} className="hover:bg-slate-800/40 transition">
+                          <tr key={app.id} className={isDark ? "hover:bg-slate-800/40 transition" : "hover:bg-slate-50 transition"}>
                             <td className="py-4 px-4">
-                              <p className="font-bold text-white">{app.job?.title || "Job Title"}</p>
-                              <p className="text-[11px] text-slate-400">{app.job?.company || "Company"}</p>
+                              <p className={`font-bold ${isDark ? "text-white" : "text-slate-900"}`}>{app.job?.title || "Job Title"}</p>
+                              <p className={`text-[11px] ${isDark ? "text-slate-400" : "text-slate-600"}`}>{app.job?.company || "Company"}</p>
                             </td>
-                            <td className="py-4 px-4 text-slate-300">{app.job?.location || "Sweden"}</td>
+                            <td className={`py-4 px-4 ${isDark ? "text-slate-300" : "text-slate-700"}`}>{app.job?.location || "Sweden"}</td>
                             <td className="py-4 px-4">
-                              <span className="px-2 py-0.5 rounded font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                              <span className={`px-2 py-0.5 rounded font-bold border ${isDark ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-emerald-50 text-emerald-700 border-emerald-200"}`}>
                                 {app.job?.matchScore || 0}%
                               </span>
                             </td>
-                            <td className="py-4 px-4 text-slate-300">
+                            <td className={`py-4 px-4 ${isDark ? "text-slate-300" : "text-slate-700"}`}>
                               {new Date(app.appliedAt).toLocaleDateString("sv-SE")}
                             </td>
                             <td className="py-4 px-4">
                               <select
                                 value={app.status}
                                 onChange={(e) => updateAppStatus(app.id, e.target.value as Application["status"])}
-                                className={`text-[11px] font-semibold px-2 py-1 rounded-md bg-slate-950 border border-slate-800 focus:outline-none ${
+                                className={`text-[11px] font-semibold px-2 py-1 rounded-md border focus:outline-none ${
+                                  isDark
+                                    ? "bg-slate-950 border-slate-800"
+                                    : "bg-slate-50 border-slate-300"
+                                } ${
                                   app.status === "APPLIED"
-                                    ? "text-cyan-400"
+                                    ? "text-cyan-600 font-bold"
                                     : app.status === "INTERVIEWING"
-                                    ? "text-purple-400"
+                                    ? "text-purple-600 font-bold"
                                     : app.status === "OFFER"
-                                    ? "text-emerald-400"
-                                    : "text-red-400"
+                                    ? "text-emerald-600 font-bold"
+                                    : "text-red-600 font-bold"
                                 }`}
                               >
                                 <option value="APPLIED">Applied</option>
@@ -514,14 +720,14 @@ export default function Dashboard() {
                                 <option value="REJECTED">Rejected</option>
                               </select>
                             </td>
-                            <td className="py-4 px-4 text-slate-400">{app.resumeVersion}</td>
+                            <td className={`py-4 px-4 ${isDark ? "text-slate-400" : "text-slate-600"}`}>{app.resumeVersion}</td>
                             <td className="py-4 px-4 text-right">
                               {app.job?.webpageUrl && (
                                 <a
                                   href={app.job.webpageUrl}
                                   target="_blank"
                                   rel="noreferrer"
-                                  className="text-xs text-emerald-400 hover:text-emerald-300 font-medium underline"
+                                  className="text-xs text-emerald-600 hover:text-emerald-500 font-semibold underline"
                                 >
                                   Ad Link ↗
                                 </a>
@@ -539,50 +745,52 @@ export default function Dashboard() {
             {/* TAB 3: COMPETENCE PROFILE */}
             {activeTab === "profile" && (
               <div className="space-y-6 max-w-4xl">
-                <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 space-y-6">
+                <div className={`rounded-2xl p-6 border space-y-6 transition ${isDark ? "bg-slate-900/80 border-slate-800" : "bg-white border-slate-200 shadow-sm"}`}>
                   <div>
-                    <h2 className="text-lg font-bold text-white">Manoj John Axelsson — Competence & CV Profile</h2>
-                    <p className="text-xs text-slate-400 mt-1">
+                    <h2 className={`text-lg font-bold ${isDark ? "text-white" : "text-slate-900"}`}>
+                      Manoj John Axelsson — Competence & CV Profile
+                    </h2>
+                    <p className={`text-xs mt-1 ${isDark ? "text-slate-400" : "text-slate-600"}`}>
                       Target roles and skill taxonomy used to score daily Swedish job ads.
                     </p>
                   </div>
 
                   {/* Competence Domains */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="bg-slate-950 p-4 rounded-xl border border-slate-800">
-                      <h3 className="text-xs font-bold text-blue-400 uppercase tracking-wider mb-2">1. Software Engineering</h3>
-                      <p className="text-xs text-slate-300">
+                    <div className={`p-4 rounded-xl border ${isDark ? "bg-slate-950 border-slate-800" : "bg-slate-50 border-slate-200"}`}>
+                      <h3 className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-2">1. Software Engineering</h3>
+                      <p className={`text-xs ${isDark ? "text-slate-300" : "text-slate-700"}`}>
                         React, TypeScript, Next.js, Node.js, Express, PostgreSQL, SQL, REST APIs, Git/GitHub, Tailwind CSS, Vercel.
                       </p>
                     </div>
 
-                    <div className="bg-slate-950 p-4 rounded-xl border border-slate-800">
-                      <h3 className="text-xs font-bold text-purple-400 uppercase tracking-wider mb-2">2. Systems Engineering & Architecture</h3>
-                      <p className="text-xs text-slate-300">
+                    <div className={`p-4 rounded-xl border ${isDark ? "bg-slate-950 border-slate-800" : "bg-slate-50 border-slate-200"}`}>
+                      <h3 className="text-xs font-bold text-purple-600 uppercase tracking-wider mb-2">2. Systems Engineering & Architecture</h3>
+                      <p className={`text-xs ${isDark ? "text-slate-300" : "text-slate-700"}`}>
                         Systems Thinking, Software Architecture, Requirements Engineering, Validation & Verification, Technical Documentation, PLM.
                       </p>
                     </div>
 
-                    <div className="bg-slate-950 p-4 rounded-xl border border-slate-800">
-                      <h3 className="text-xs font-bold text-emerald-400 uppercase tracking-wider mb-2">3. Quality & Continuous Improvement</h3>
-                      <p className="text-xs text-slate-300">
+                    <div className={`p-4 rounded-xl border ${isDark ? "bg-slate-950 border-slate-800" : "bg-slate-50 border-slate-200"}`}>
+                      <h3 className="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-2">3. Quality & Continuous Improvement</h3>
+                      <p className={`text-xs ${isDark ? "text-slate-300" : "text-slate-700"}`}>
                         Six Sigma Green Belt (KPMG), DMAIC, FMEA, Poka-Yoke, Root Cause Analysis, QA, Process Optimization, Standard Work.
                       </p>
                     </div>
 
-                    <div className="bg-slate-950 p-4 rounded-xl border border-slate-800">
-                      <h3 className="text-xs font-bold text-amber-400 uppercase tracking-wider mb-2">4. Industrial & Manufacturing</h3>
-                      <p className="text-xs text-slate-300">
+                    <div className={`p-4 rounded-xl border ${isDark ? "bg-slate-950 border-slate-800" : "bg-slate-50 border-slate-200"}`}>
+                      <h3 className="text-xs font-bold text-amber-600 uppercase tracking-wider mb-2">4. Industrial & Manufacturing</h3>
+                      <p className={`text-xs ${isDark ? "text-slate-300" : "text-slate-700"}`}>
                         Manufacturing Engineering, Production Development, Lean Manufacturing, Industrial Digitalization, Automation, CNC, CAD/CAM.
                       </p>
                     </div>
                   </div>
 
                   {/* Scanner Threshold Slider */}
-                  <div className="pt-4 border-t border-slate-800 space-y-2">
-                    <label className="text-xs font-semibold text-slate-300 flex justify-between">
+                  <div className={`pt-4 border-t space-y-2 ${isDark ? "border-slate-800" : "border-slate-200"}`}>
+                    <label className={`text-xs font-semibold flex justify-between ${isDark ? "text-slate-300" : "text-slate-700"}`}>
                       <span>Minimum Match Threshold for 12:00 PM Daily Feed:</span>
-                      <span className="text-emerald-400 font-bold">{minScore}% Match</span>
+                      <span className="text-emerald-600 font-bold">{minScore}% Match</span>
                     </label>
                     <input
                       type="range"
@@ -590,9 +798,11 @@ export default function Dashboard() {
                       max="80"
                       value={minScore}
                       onChange={(e) => setMinScore(Number(e.target.value))}
-                      className="w-full accent-emerald-400 cursor-pointer"
+                      className="w-full accent-emerald-600 cursor-pointer"
                     />
-                    <p className="text-[11px] text-slate-500">Only jobs scoring above {minScore}% match score will be saved to your daily feed.</p>
+                    <p className={`text-[11px] ${isDark ? "text-slate-500" : "text-slate-500"}`}>
+                      Only jobs scoring above {minScore}% match score will be saved to your daily feed.
+                    </p>
                   </div>
                 </div>
               </div>
@@ -601,25 +811,32 @@ export default function Dashboard() {
             {/* TAB 4: SCAN LOGS */}
             {activeTab === "logs" && (
               <div className="space-y-6">
-                <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6">
-                  <h2 className="text-base font-bold text-white mb-4">Daily 12:00 PM Scanner Logs</h2>
+                <div className={`rounded-2xl p-6 border transition ${isDark ? "bg-slate-900/80 border-slate-800" : "bg-white border-slate-200 shadow-sm"}`}>
+                  <h2 className={`text-base font-bold mb-4 ${isDark ? "text-white" : "text-slate-900"}`}>
+                    Daily 12:00 PM Scanner Logs
+                  </h2>
                   <div className="space-y-3">
                     {scanLogs.length === 0 ? (
                       <p className="text-xs text-slate-500">No scan executions logged yet.</p>
                     ) : (
                       scanLogs.map((log) => (
-                        <div key={log.id} className="bg-slate-950 p-4 rounded-xl border border-slate-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                        <div
+                          key={log.id}
+                          className={`p-4 rounded-xl border flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 ${
+                            isDark ? "bg-slate-950 border-slate-800" : "bg-slate-50 border-slate-200"
+                          }`}
+                        >
                           <div>
-                            <p className="text-xs font-bold text-slate-200">
+                            <p className={`text-xs font-bold ${isDark ? "text-slate-200" : "text-slate-800"}`}>
                               📅 Scan Execution: {new Date(log.scannedAt).toLocaleString("sv-SE")}
                             </p>
-                            <p className="text-xs text-slate-400 mt-0.5">{log.message}</p>
+                            <p className={`text-xs mt-0.5 ${isDark ? "text-slate-400" : "text-slate-600"}`}>{log.message}</p>
                           </div>
                           <div className="flex items-center space-x-3 text-xs">
-                            <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold">
+                            <span className={`px-2 py-0.5 rounded font-semibold border ${isDark ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-emerald-50 text-emerald-700 border-emerald-200"}`}>
                               {log.totalMatched} Matched
                             </span>
-                            <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-semibold">
+                            <span className={`px-2 py-0.5 rounded font-semibold border ${isDark ? "bg-slate-800 text-slate-300 border-slate-700" : "bg-slate-200 text-slate-700 border-slate-300"}`}>
                               {log.totalFound} Scanned
                             </span>
                           </div>
@@ -636,36 +853,46 @@ export default function Dashboard() {
 
       {/* Full Job Modal */}
       {selectedJob && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full max-h-[85vh] overflow-y-auto p-6 space-y-4">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className={`rounded-2xl max-w-2xl w-full max-h-[85vh] overflow-y-auto p-6 space-y-4 border shadow-2xl ${
+            isDark ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200"
+          }`}>
             <div className="flex items-start justify-between">
               <div>
-                <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${
+                  isDark ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30" : "bg-emerald-50 text-emerald-700 border-emerald-200"
+                }`}>
                   {selectedJob.matchScore}% Match Score
                 </span>
-                <h2 className="text-lg font-bold text-white mt-2">{selectedJob.title}</h2>
-                <p className="text-xs text-slate-400 font-medium">🏢 {selectedJob.company} • 📍 {selectedJob.location}</p>
+                <h2 className={`text-lg font-bold mt-2 ${isDark ? "text-white" : "text-slate-900"}`}>{selectedJob.title}</h2>
+                <p className={`text-xs font-medium ${isDark ? "text-slate-400" : "text-slate-600"}`}>
+                  🏢 {selectedJob.company} • 📍 {selectedJob.location}
+                </p>
               </div>
               <button
                 onClick={() => setSelectedJob(null)}
-                className="text-slate-400 hover:text-white text-lg font-bold p-1 cursor-pointer"
+                className={`text-lg font-bold p-1 cursor-pointer ${isDark ? "text-slate-400 hover:text-white" : "text-slate-400 hover:text-slate-900"}`}
               >
                 ✕
               </button>
             </div>
 
-            <div className="pt-3 border-t border-slate-800 space-y-3">
-              <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">Full Job Description</h4>
-              <p className="text-xs text-slate-300 leading-relaxed whitespace-pre-line">{selectedJob.description}</p>
+            <div className={`pt-3 border-t space-y-3 ${isDark ? "border-slate-800" : "border-slate-200"}`}>
+              <h4 className={`text-xs font-bold uppercase tracking-wider ${isDark ? "text-slate-300" : "text-slate-700"}`}>
+                Full Job Description
+              </h4>
+              <p className={`text-xs leading-relaxed whitespace-pre-line ${isDark ? "text-slate-300" : "text-slate-700"}`}>
+                {selectedJob.description}
+              </p>
             </div>
 
-            <div className="pt-4 border-t border-slate-800 flex justify-end space-x-3">
+            <div className={`pt-4 border-t flex justify-end space-x-3 ${isDark ? "border-slate-800" : "border-slate-200"}`}>
               {selectedJob.webpageUrl && (
                 <a
                   href={selectedJob.webpageUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="px-4 py-2 bg-emerald-400 text-slate-950 text-xs font-bold rounded-xl hover:bg-emerald-300 transition"
+                  className="px-4 py-2 bg-emerald-600 text-white text-xs font-bold rounded-xl hover:bg-emerald-500 transition shadow-sm"
                 >
                   Apply on Platsbanken ↗
                 </a>
