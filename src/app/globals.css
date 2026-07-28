@@ -35,3 +35,8 @@ h3, h4, h5, h6 {
 * {
   font-family: var(--font-cochin) !important;
 }
+
+/* Ensure all italicized text is bold for high contrast and effortless legibility */
+em, i, .italic {
+  font-weight: 700 !important;
+}

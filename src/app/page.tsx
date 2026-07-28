@@ -983,7 +983,7 @@ export default function Dashboard() {
                   {/* Opening Hook */}
                   <div className="mt-4">
                     <h4 className="text-[17px] font-bold text-slate-900 dark:text-slate-200">Recommended Opening Line for Cover Letter:</h4>
-                    <p className="mt-1.5 p-3.5 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 text-[17px] italic text-slate-800 dark:text-slate-200 leading-relaxed">
+                    <p className="mt-1.5 p-3.5 bg-white dark:bg-slate-900 rounded-lg border border-slate-300 dark:border-slate-700 text-[18px] italic font-bold text-slate-950 dark:text-white leading-relaxed">
                       "{jobAnalysis.analysis.coverLetterPitch.openingHook}"
                     </p>
                   </div>
