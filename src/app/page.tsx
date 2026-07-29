@@ -530,6 +530,19 @@ export default function Dashboard() {
                                   {job.status}
                                 </span>
 
+                                {/* Source Badge */}
+                                <span
+                                  className={`text-[13px] font-bold px-2.5 py-0.5 rounded-md border ${
+                                    job.source.includes("LinkedIn")
+                                      ? "bg-blue-600 text-white border-blue-700"
+                                      : isDark
+                                      ? "bg-slate-800 text-emerald-400 border-slate-700"
+                                      : "bg-slate-100 text-slate-700 border-slate-300"
+                                  }`}
+                                >
+                                  {job.source.includes("LinkedIn") ? "💼 LinkedIn Jobs" : "🏛️ JobTech Platsbanken"}
+                                </span>
+
                                 <span className={`text-[15px] ${isDark ? "text-slate-400" : "text-slate-500"}`}>
                                   Published: {new Date(job.publishedAt).toLocaleDateString("sv-SE")}
                                 </span>

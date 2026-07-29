@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { fetchSwedishJobs } from "@/lib/services/jobtech";
+import { fetchLinkedInSwedishJobs } from "@/lib/services/linkedin";
 import { evaluateJobMatch } from "@/lib/services/matcher";
 
 export async function GET() {
@@ -23,7 +24,6 @@ async function handleScrape() {
     const fourteenDaysAgo = new Date();
     fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
 
-    // Update unapplied jobs older than 14 days or past application deadline to EXPIRED
     const expireResult = await db.jobAd.updateMany({
       where: {
         status: { in: ["NEW", "SAVED"] },
@@ -33,20 +33,25 @@ async function handleScrape() {
         ],
       },
       data: {
-        status: "DISCARDED", // Move to discarded so they never show up in active daily feeds
+        status: "DISCARDED",
       },
     });
 
     expiredCount = expireResult.count;
 
     // 2. Fetch fresh Swedish job listings from Arbetsförmedlingen JobTech API
-    const rawAds = await fetchSwedishJobs();
-    totalFound = rawAds.length;
+    const rawJobTechAds = await fetchSwedishJobs();
+    
+    // 3. Fetch fresh Swedish job listings from LinkedIn Jobs
+    const rawLinkedInAds = await fetchLinkedInSwedishJobs();
+
+    totalFound = rawJobTechAds.length + rawLinkedInAds.length;
 
     const userProfile = await db.userProfile.findUnique({ where: { id: "user_manoj" } });
     const minScore = userProfile?.minMatchScore ?? 45;
 
-    for (const ad of rawAds) {
+    // Process JobTech Ads
+    for (const ad of rawJobTechAds) {
       const city = ad.workplace_address?.city || ad.workplace_address?.municipality || "Sweden";
       const descText = ad.description?.text || "";
       const match = evaluateJobMatch(ad.headline, descText);
@@ -82,6 +87,41 @@ async function handleScrape() {
       }
     }
 
+    // Process LinkedIn Ads
+    for (const ad of rawLinkedInAds) {
+      const match = evaluateJobMatch(ad.headline, ad.description);
+
+      if (match.matchScore >= minScore) {
+        totalMatched++;
+
+        const existing = await db.jobAd.findUnique({
+          where: { externalId: ad.id },
+        });
+
+        if (!existing) {
+          newAdded++;
+          await db.jobAd.create({
+            data: {
+              externalId: ad.id,
+              title: ad.headline,
+              company: ad.company,
+              location: ad.location,
+              description: ad.description,
+              webpageUrl: ad.webpageUrl,
+              source: "LinkedIn Jobs",
+              publishedAt: new Date(ad.publicationDate || Date.now()),
+              deadline: null,
+              matchScore: match.matchScore,
+              matchedSkills: JSON.stringify(match.matchedSkills),
+              missingSkills: JSON.stringify(match.missingSkills),
+              domainScores: JSON.stringify(match.domainScores),
+              status: "NEW",
+            },
+          });
+        }
+      }
+    }
+
     const scanLog = await db.scanLog.create({
       data: {
         scannedAt: startTime,
@@ -89,7 +129,7 @@ async function handleScrape() {
         totalMatched,
         newAdded,
         status: "SUCCESS",
-        message: `Scanned ${totalFound} Swedish job ads. ${totalMatched} matched criteria (${newAdded} new added, ${expiredCount} expired after 14-day limit).`,
+        message: `Scanned ${totalFound} Swedish jobs (${rawJobTechAds.length} JobTech + ${rawLinkedInAds.length} LinkedIn). ${totalMatched} matched criteria (${newAdded} new added, ${expiredCount} expired after 14-day limit).`,
       },
     });
 
