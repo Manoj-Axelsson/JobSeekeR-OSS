@@ -60,6 +60,10 @@ export default function Dashboard() {
   const [selectedJob, setSelectedJob] = useState<JobAd | null>(null);
   const [modalTab, setModalTab] = useState<"analysis" | "description">("analysis");
 
+  // Aktivitetsrapport State
+  const [showAktivitetsrapport, setShowAktivitetsrapport] = useState(false);
+  const [copiedReport, setCopiedReport] = useState(false);
+
   // Track expanded accordion cards by Job ID
   const [expandedJobIds, setExpandedJobIds] = useState<Set<string>>(new Set());
 
@@ -190,7 +194,6 @@ export default function Dashboard() {
       job.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
       job.location.toLowerCase().includes(searchQuery.toLowerCase());
 
-    // By default ("ALL"), hide DISCARDED jobs so they never show up again
     const matchesStatus =
       statusFilter === "ALL"
         ? job.status !== "DISCARDED"
@@ -208,6 +211,23 @@ export default function Dashboard() {
   const jobAnalysis: MatchResult | null = selectedJob
     ? evaluateJobMatch(selectedJob.title, selectedJob.description)
     : null;
+
+  function copyTextReport() {
+    const lines = [
+      `AKTIVITETSRAPPORT — ARBETSFÖRMEDLINGEN`,
+      `Sökande: Manoj John Axelsson`,
+      `Rapporteringsmånad: ${selectedMonth || "Juli 2026"}`,
+      `Antal sökta arbeten: ${filteredApps.length}`,
+      `--------------------------------------------------`,
+      ...filteredApps.map(
+        (app, idx) =>
+          `${idx + 1}. ${app.job?.title || "Sökt roll"} — ${app.job?.company || "Arbetsgivare"} (${app.job?.location || "Sverige"})\n   Ansökningsdatum: ${new Date(app.appliedAt).toLocaleDateString("sv-SE")}\n   Länk: ${app.job?.webpageUrl || "Direct application"}`
+      ),
+    ];
+    navigator.clipboard.writeText(lines.join("\n\n"));
+    setCopiedReport(true);
+    setTimeout(() => setCopiedReport(false), 3000);
+  }
 
   return (
     <div
@@ -702,42 +722,52 @@ export default function Dashboard() {
             {/* TAB 2: MONTHLY APPLICATION TRACKER */}
             {activeTab === "tracker" && (
               <div className="space-y-6">
-                {/* Month Tabs Header */}
+                {/* Month Tabs Header & Aktivitetsrapport Export */}
                 <div
-                  className={`flex flex-col sm:flex-row justify-between items-start sm:items-center p-5 rounded-2xl border gap-4 transition ${
+                  className={`flex flex-col md:flex-row justify-between items-start md:items-center p-6 rounded-2xl border gap-4 transition ${
                     isDark ? "bg-slate-900/60 border-slate-800" : "bg-white border-slate-200 shadow-sm"
                   }`}
                 >
                   <div>
                     <h2 className={`text-[23px] font-bold ${isDark ? "text-white" : "text-slate-900"}`}>
-                      Monthly Job Application Log
+                      Monthly Job Application Log & Arbetsförmedlingen Compliance
                     </h2>
                     <p className={`text-[17px] mt-0.5 ${isDark ? "text-slate-400" : "text-slate-600"}`}>
-                      Track and manage jobs you have searched and applied to each month.
+                      Track jobs applied each month and generate your official Swedish **Aktivitetsrapport**.
                     </p>
                   </div>
 
-                  <div className="flex items-center space-x-2">
-                    <span className={`text-[17px] font-medium ${isDark ? "text-slate-400" : "text-slate-600"}`}>Select Month:</span>
-                    <select
-                      value={selectedMonth}
-                      onChange={(e) => setSelectedMonth(e.target.value)}
-                      className={`border rounded-xl px-4 py-2.5 text-[17px] focus:outline-none focus:border-emerald-600 ${
-                        isDark
-                          ? "bg-slate-950 border-slate-800 text-slate-200"
-                          : "bg-slate-50 border-slate-300 text-slate-900"
-                      }`}
+                  <div className="flex flex-wrap items-center gap-3">
+                    <div className="flex items-center space-x-2">
+                      <span className={`text-[17px] font-medium ${isDark ? "text-slate-400" : "text-slate-600"}`}>Select Month:</span>
+                      <select
+                        value={selectedMonth}
+                        onChange={(e) => setSelectedMonth(e.target.value)}
+                        className={`border rounded-xl px-4 py-2.5 text-[17px] focus:outline-none focus:border-emerald-600 ${
+                          isDark
+                            ? "bg-slate-950 border-slate-800 text-slate-200"
+                            : "bg-slate-50 border-slate-300 text-slate-900"
+                        }`}
+                      >
+                        {months.length === 0 ? (
+                          <option value="">No Month Logs Yet</option>
+                        ) : (
+                          months.map((m) => (
+                            <option key={m} value={m}>
+                              📅 {m}
+                            </option>
+                          ))
+                        )}
+                      </select>
+                    </div>
+
+                    {/* AKTIVITETSRAPPORT EXPORT BUTTON */}
+                    <button
+                      onClick={() => setShowAktivitetsrapport(true)}
+                      className="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-[16px] font-bold rounded-xl transition cursor-pointer shadow-md shadow-emerald-600/20 flex items-center space-x-2"
                     >
-                      {months.length === 0 ? (
-                        <option value="">No Month Logs Yet</option>
-                      ) : (
-                        months.map((m) => (
-                          <option key={m} value={m}>
-                            📅 {m}
-                          </option>
-                        ))
-                      )}
-                    </select>
+                      <span>📄 Export Swedish Aktivitetsrapport (PDF / Print)</span>
+                    </button>
                   </div>
                 </div>
 
@@ -950,7 +980,7 @@ export default function Dashboard() {
         )}
       </main>
 
-      {/* Full Job & Match Analysis Modal */}
+      {/* FULL JOB & MATCH ANALYSIS MODAL */}
       {selectedJob && jobAnalysis && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div
@@ -1158,6 +1188,102 @@ export default function Dashboard() {
                   Apply on Platsbanken ↗
                 </a>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* SWEDISH AKTIVITETSRAPPORT (ARBETSFÖRMEDLINGEN COMPLIANCE) MODAL */}
+      {showAktivitetsrapport && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white text-slate-900 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto p-8 space-y-6 shadow-2xl border border-slate-300">
+            {/* Report Header */}
+            <div className="border-b-2 border-slate-900 pb-4 flex justify-between items-start">
+              <div>
+                <span className="text-[14px] font-bold uppercase tracking-wider text-emerald-700">Official Swedish Compliance Export</span>
+                <h1 className="text-[28px] font-bold text-slate-950 mt-1">AKTIVITETSRAPPORT — ARBETSFÖRMEDLINGEN</h1>
+                <p className="text-[16px] text-slate-600">Månadssammanställning över sökta arbeten för redovisning till Arbetsförmedlingen</p>
+              </div>
+              <button
+                onClick={() => setShowAktivitetsrapport(false)}
+                className="text-[24px] font-bold text-slate-500 hover:text-slate-900 p-1 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Applicant Summary Meta */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-100 p-4 rounded-xl border border-slate-300 text-[16px]">
+              <div>
+                <span className="font-bold text-slate-600 block text-[14px]">SÖKANDE / CANDIDATE:</span>
+                <span className="font-bold text-slate-950">Manoj John Axelsson</span>
+              </div>
+              <div>
+                <span className="font-bold text-slate-600 block text-[14px]">RAPPORTERINGSMÅNAD:</span>
+                <span className="font-bold text-emerald-800">{selectedMonth || "Juli 2026"}</span>
+              </div>
+              <div>
+                <span className="font-bold text-slate-600 block text-[14px]">TOTALT SÖKTA ARBETEN:</span>
+                <span className="font-bold text-slate-950">{filteredApps.length} stycken</span>
+              </div>
+            </div>
+
+            {/* Official Activity Table */}
+            <div>
+              <h2 className="text-[20px] font-bold text-slate-900 mb-3">Redovisning av sökta arbeten</h2>
+              {filteredApps.length === 0 ? (
+                <p className="text-[16px] text-slate-600 italic">Inga sökta arbeten registrerade för denna månad ännu.</p>
+              ) : (
+                <div className="overflow-x-auto border border-slate-300 rounded-xl">
+                  <table className="w-full text-left text-[15px]">
+                    <thead className="bg-slate-200 text-slate-800 uppercase text-[13px] font-bold border-b border-slate-300">
+                      <tr>
+                        <th className="py-3 px-4">#</th>
+                        <th className="py-3 px-4">Yrkesbenämning (Roll)</th>
+                        <th className="py-3 px-4">Arbetsgivare</th>
+                        <th className="py-3 px-4">Ort / Kommun</th>
+                        <th className="py-3 px-4">Ansökningsdatum</th>
+                        <th className="py-3 px-4">Länk / Referens</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-200">
+                      {filteredApps.map((app, idx) => (
+                        <tr key={app.id} className="hover:bg-slate-50">
+                          <td className="py-3.5 px-4 font-bold">{idx + 1}</td>
+                          <td className="py-3.5 px-4 font-bold text-slate-950">{app.job?.title || "Sökt roll"}</td>
+                          <td className="py-3.5 px-4 font-semibold text-slate-800">{app.job?.company || "Arbetsgivare"}</td>
+                          <td className="py-3.5 px-4 text-slate-700">{app.job?.location || "Sverige"}</td>
+                          <td className="py-3.5 px-4 font-bold text-emerald-800">
+                            {new Date(app.appliedAt).toLocaleDateString("sv-SE")}
+                          </td>
+                          <td className="py-3.5 px-4 text-xs font-mono text-slate-600 truncate max-w-[200px]">
+                            {app.job?.webpageUrl || "Direct Application"}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Controls & Export Actions */}
+            <div className="pt-4 border-t border-slate-300 flex flex-wrap justify-between items-center gap-3">
+              <button
+                onClick={copyTextReport}
+                className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-900 border border-slate-300 text-[16px] font-bold rounded-xl transition cursor-pointer flex items-center space-x-2"
+              >
+                <span>{copiedReport ? "✓ Kopierat till urklipp!" : "📋 Kopiera text för Arbetsförmedlingen Portal"}</span>
+              </button>
+
+              <div className="flex items-center space-x-3">
+                <button
+                  onClick={() => window.print()}
+                  className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-[16px] font-bold rounded-xl transition cursor-pointer shadow-md flex items-center space-x-2"
+                >
+                  <span>🖨️ Skriv ut / Spara som PDF (Print)</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>

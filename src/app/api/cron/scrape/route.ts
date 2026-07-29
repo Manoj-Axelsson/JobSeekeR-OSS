@@ -16,8 +16,30 @@ async function handleScrape() {
   let totalFound = 0;
   let totalMatched = 0;
   let newAdded = 0;
+  let expiredCount = 0;
 
   try {
+    // 1. Enforce 14-Day Strict Cutoff Policy on existing NEW and SAVED jobs
+    const fourteenDaysAgo = new Date();
+    fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
+
+    // Update unapplied jobs older than 14 days or past application deadline to EXPIRED
+    const expireResult = await db.jobAd.updateMany({
+      where: {
+        status: { in: ["NEW", "SAVED"] },
+        OR: [
+          { publishedAt: { lt: fourteenDaysAgo } },
+          { deadline: { lt: startTime } },
+        ],
+      },
+      data: {
+        status: "DISCARDED", // Move to discarded so they never show up in active daily feeds
+      },
+    });
+
+    expiredCount = expireResult.count;
+
+    // 2. Fetch fresh Swedish job listings from Arbetsförmedlingen JobTech API
     const rawAds = await fetchSwedishJobs();
     totalFound = rawAds.length;
 
@@ -67,7 +89,7 @@ async function handleScrape() {
         totalMatched,
         newAdded,
         status: "SUCCESS",
-        message: `Successfully scanned ${totalFound} Swedish job ads. ${totalMatched} matched criteria (${newAdded} new added).`,
+        message: `Scanned ${totalFound} Swedish job ads. ${totalMatched} matched criteria (${newAdded} new added, ${expiredCount} expired after 14-day limit).`,
       },
     });
 
@@ -77,6 +99,7 @@ async function handleScrape() {
       totalFound,
       totalMatched,
       newAdded,
+      expiredCount,
       scanLog,
     });
   } catch (error: any) {
