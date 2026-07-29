@@ -60,6 +60,9 @@ export default function Dashboard() {
   const [selectedJob, setSelectedJob] = useState<JobAd | null>(null);
   const [modalTab, setModalTab] = useState<"analysis" | "description">("analysis");
 
+  // Track expanded accordion cards by Job ID
+  const [expandedJobIds, setExpandedJobIds] = useState<Set<string>>(new Set());
+
   // Profile states
   const [minScore, setMinScore] = useState(45);
 
@@ -169,12 +172,30 @@ export default function Dashboard() {
     }
   }
 
+  function toggleAccordion(jobId: string) {
+    setExpandedJobIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(jobId)) {
+        next.delete(jobId);
+      } else {
+        next.add(jobId);
+      }
+      return next;
+    });
+  }
+
   const filteredJobs = jobs.filter((job) => {
     const matchesSearch =
       job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       job.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
       job.location.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === "ALL" || job.status === statusFilter;
+
+    // By default ("ALL"), hide DISCARDED jobs so they never show up again
+    const matchesStatus =
+      statusFilter === "ALL"
+        ? job.status !== "DISCARDED"
+        : job.status === statusFilter;
+
     return matchesSearch && matchesStatus;
   });
 
@@ -315,7 +336,7 @@ export default function Dashboard() {
                   : "border-transparent text-slate-600 hover:text-slate-900"
               }`}
             >
-              <span>📌 Daily Feed ({jobs.length})</span>
+              <span>📌 Daily Feed ({jobs.filter(j => j.status !== "DISCARDED").length})</span>
             </button>
             <button
               onClick={() => setActiveTab("tracker")}
@@ -401,16 +422,16 @@ export default function Dashboard() {
                           : "bg-slate-50 border-slate-300 text-slate-900"
                       }`}
                     >
-                      <option value="ALL">All Statuses</option>
+                      <option value="ALL">Active Jobs (Hide Discarded)</option>
                       <option value="NEW">New (Unreviewed)</option>
-                      <option value="SAVED">Saved</option>
-                      <option value="APPLIED">Applied</option>
-                      <option value="DISCARDED">Discarded</option>
+                      <option value="SAVED">Saved Jobs</option>
+                      <option value="APPLIED">Applied Jobs</option>
+                      <option value="DISCARDED">Discarded Jobs</option>
                     </select>
                   </div>
                 </div>
 
-                {/* Job List */}
+                {/* Job List Accordions */}
                 {filteredJobs.length === 0 ? (
                   <div
                     className={`text-center py-16 rounded-2xl border ${
@@ -429,179 +450,247 @@ export default function Dashboard() {
                     </button>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className="space-y-4">
                     {filteredJobs.map((job) => {
                       const matchedSkillsArr: string[] = JSON.parse(job.matchedSkills || "[]");
                       const domainScoresObj = JSON.parse(job.domainScores || "{}");
+                      const isExpanded = expandedJobIds.has(job.id);
 
                       return (
                         <div
                           key={job.id}
-                          className={`rounded-2xl p-6 border flex flex-col justify-between space-y-4 transition shadow-sm relative group ${
+                          className={`rounded-2xl border transition shadow-sm overflow-hidden ${
                             isDark
-                              ? "bg-slate-900/80 border-slate-800 hover:border-slate-700 shadow-black/40"
-                              : "bg-white border-slate-200 hover:border-slate-300 hover:shadow-md"
+                              ? "bg-slate-900/80 border-slate-800 hover:border-slate-700"
+                              : "bg-white border-slate-200 hover:border-slate-300"
                           }`}
                         >
-                          <div>
-                            {/* Match Badge & Status */}
-                            <div className="flex items-center justify-between">
-                              <span
-                                className={`px-3 py-1 rounded-full text-[16px] font-bold ${
-                                  job.matchScore >= 75
-                                    ? isDark
-                                      ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30"
-                                      : "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                                    : job.matchScore >= 55
-                                    ? isDark
-                                      ? "bg-amber-500/10 text-amber-400 border border-amber-500/30"
-                                      : "bg-amber-50 text-amber-700 border border-amber-200"
-                                    : isDark
-                                    ? "bg-slate-800 text-slate-400"
-                                    : "bg-slate-100 text-slate-600"
-                                }`}
-                              >
-                                {job.matchScore}% Match
-                              </span>
-
-                              <span
-                                className={`text-[14px] font-semibold uppercase px-3 py-0.5 rounded-md ${
-                                  job.status === "APPLIED"
-                                    ? isDark
-                                      ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20"
-                                      : "bg-cyan-50 text-cyan-700 border border-cyan-200"
-                                    : job.status === "SAVED"
-                                    ? isDark
-                                      ? "bg-purple-500/10 text-purple-400 border border-purple-500/20"
-                                      : "bg-purple-50 text-purple-700 border border-purple-200"
-                                    : job.status === "DISCARDED"
-                                    ? isDark
-                                      ? "bg-red-500/10 text-red-400 border border-red-500/20"
-                                      : "bg-red-50 text-red-700 border border-red-200"
-                                    : isDark
-                                    ? "bg-slate-800 text-slate-400"
-                                    : "bg-slate-100 text-slate-600"
-                                }`}
-                              >
-                                {job.status}
-                              </span>
-                            </div>
-
-                            {/* Title & Company */}
-                            <h2
-                              className={`text-[22px] font-bold mt-3 line-clamp-2 leading-snug transition ${
-                                isDark
-                                  ? "text-white group-hover:text-emerald-400"
-                                  : "text-slate-900 group-hover:text-emerald-700"
-                              }`}
-                            >
-                              {job.title}
-                            </h2>
-                            <p className={`text-[16px] font-medium mt-1.5 flex items-center space-x-1.5 ${isDark ? "text-slate-400" : "text-slate-600"}`}>
-                              <span>🏢 {job.company}</span>
-                              <span>•</span>
-                              <span>📍 {job.location}</span>
-                            </p>
-
-                            {/* Domain Breakdown Badges */}
-                            <div className="mt-3.5 flex flex-wrap gap-1.5">
-                              {domainScoresObj.software > 0 && (
-                                <span className={`text-[15px] px-2.5 py-0.5 rounded ${isDark ? "bg-blue-500/10 text-blue-400 border border-blue-500/20" : "bg-blue-50 text-blue-700 border border-blue-200"}`}>
-                                  Software ({domainScoresObj.software}%)
+                          {/* ACCORDION COLLAPSED HEADER */}
+                          <div className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div className="flex-1 space-y-2">
+                              {/* Top Row: Score Badge + Status */}
+                              <div className="flex items-center space-x-3">
+                                <span
+                                  className={`px-3.5 py-1 rounded-full text-[16px] font-bold shadow-sm ${
+                                    job.matchScore >= 75
+                                      ? isDark
+                                        ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30"
+                                        : "bg-emerald-50 text-emerald-700 border border-emerald-300"
+                                      : job.matchScore >= 55
+                                      ? isDark
+                                        ? "bg-amber-500/10 text-amber-400 border border-amber-500/30"
+                                        : "bg-amber-50 text-amber-700 border border-amber-300"
+                                      : isDark
+                                      ? "bg-slate-800 text-slate-400"
+                                      : "bg-slate-100 text-slate-600"
+                                  }`}
+                                >
+                                  {job.matchScore}% Match
                                 </span>
-                              )}
-                              {domainScoresObj.systems > 0 && (
-                                <span className={`text-[15px] px-2.5 py-0.5 rounded ${isDark ? "bg-purple-500/10 text-purple-400 border border-purple-500/20" : "bg-purple-50 text-purple-700 border border-purple-200"}`}>
-                                  Systems ({domainScoresObj.systems}%)
-                                </span>
-                              )}
-                              {domainScoresObj.quality > 0 && (
-                                <span className={`text-[15px] px-2.5 py-0.5 rounded ${isDark ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-emerald-50 text-emerald-700 border border-emerald-200"}`}>
-                                  Quality ({domainScoresObj.quality}%)
-                                </span>
-                              )}
-                              {domainScoresObj.industrial > 0 && (
-                                <span className={`text-[15px] px-2.5 py-0.5 rounded ${isDark ? "bg-amber-500/10 text-amber-400 border border-amber-500/20" : "bg-amber-50 text-amber-700 border border-amber-200"}`}>
-                                  Manufacturing ({domainScoresObj.industrial}%)
-                                </span>
-                              )}
-                            </div>
 
-                            {/* Matched Skill Tags */}
-                            {matchedSkillsArr.length > 0 && (
-                              <div className="mt-3.5 flex flex-wrap gap-1.5">
-                                {matchedSkillsArr.slice(0, 5).map((skill, idx) => (
-                                  <span
-                                    key={idx}
-                                    className={`text-[15px] px-2.5 py-0.5 rounded border ${
-                                      isDark
-                                        ? "bg-slate-950 text-slate-300 border-slate-800"
-                                        : "bg-slate-100 text-slate-700 border-slate-200"
-                                    }`}
-                                  >
-                                    ✓ {skill}
-                                  </span>
-                                ))}
+                                <span
+                                  className={`text-[14px] font-semibold uppercase px-3 py-0.5 rounded-md ${
+                                    job.status === "APPLIED"
+                                      ? isDark
+                                        ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20"
+                                        : "bg-cyan-50 text-cyan-700 border border-cyan-200"
+                                      : job.status === "SAVED"
+                                      ? isDark
+                                        ? "bg-purple-500/10 text-purple-400 border border-purple-500/20"
+                                        : "bg-purple-50 text-purple-700 border border-purple-200"
+                                      : job.status === "DISCARDED"
+                                      ? isDark
+                                        ? "bg-red-500/10 text-red-400 border border-red-500/20"
+                                        : "bg-red-50 text-red-700 border border-red-200"
+                                      : isDark
+                                      ? "bg-slate-800 text-slate-400"
+                                      : "bg-slate-100 text-slate-600"
+                                  }`}
+                                >
+                                  {job.status}
+                                </span>
+
+                                <span className={`text-[15px] ${isDark ? "text-slate-400" : "text-slate-500"}`}>
+                                  Published: {new Date(job.publishedAt).toLocaleDateString("sv-SE")}
+                                </span>
                               </div>
-                            )}
 
-                            {/* Snippet Description */}
-                            <p className={`text-[18px] mt-4 line-clamp-3 leading-relaxed ${isDark ? "text-slate-400" : "text-slate-600"}`}>
-                              {job.description}
-                            </p>
-                          </div>
+                              {/* Title & Company */}
+                              <div>
+                                <h2 className={`text-[22px] font-bold ${isDark ? "text-white" : "text-slate-900"}`}>
+                                  {job.title}
+                                </h2>
+                                <p className={`text-[16px] font-medium mt-0.5 flex items-center space-x-2 ${isDark ? "text-slate-400" : "text-slate-600"}`}>
+                                  <span>🏢 {job.company}</span>
+                                  <span>•</span>
+                                  <span>📍 {job.location}</span>
+                                </p>
+                              </div>
+                            </div>
 
-                          {/* Footer Actions */}
-                          <div className={`pt-4 border-t flex items-center justify-between gap-2 ${isDark ? "border-slate-800" : "border-slate-100"}`}>
-                            <button
-                              onClick={() => {
-                                setSelectedJob(job);
-                                setModalTab("analysis");
-                              }}
-                              className={`text-[17px] font-semibold underline underline-offset-4 cursor-pointer ${
-                                isDark ? "text-emerald-400 hover:text-emerald-300" : "text-emerald-700 hover:text-emerald-800"
-                              }`}
-                            >
-                              💡 Score Breakdown & Pitch Strategy
-                            </button>
-
-                            <div className="flex items-center space-x-2">
+                            {/* Accordion Toggle & Quick Primary Actions */}
+                            <div className="flex items-center space-x-3">
+                              {/* Primary Action Button */}
                               {job.status !== "APPLIED" && (
                                 <button
                                   onClick={() => updateJobStatus(job.id, "APPLIED")}
-                                  className="px-3.5 py-2 bg-cyan-600 text-white hover:bg-cyan-500 text-[15px] font-semibold rounded-xl transition cursor-pointer shadow-sm"
+                                  className="px-4 py-2 bg-cyan-600 text-white hover:bg-cyan-500 text-[15px] font-bold rounded-xl transition cursor-pointer shadow-sm"
                                 >
                                   Mark Applied
                                 </button>
                               )}
-                              {job.status === "NEW" && (
-                                <button
-                                  onClick={() => updateJobStatus(job.id, "SAVED")}
-                                  className={`px-3.5 py-2 text-[15px] font-semibold rounded-xl transition cursor-pointer border ${
-                                    isDark
-                                      ? "bg-purple-500/10 text-purple-400 border-purple-500/20 hover:bg-purple-500/20"
-                                      : "bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100"
-                                  }`}
-                                >
-                                  Save
-                                </button>
-                              )}
-                              {job.webpageUrl && (
-                                <a
-                                  href={job.webpageUrl}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className={`px-3.5 py-2 text-[15px] font-semibold rounded-xl transition cursor-pointer border ${
-                                    isDark
-                                      ? "bg-slate-800 text-slate-200 border-slate-700 hover:bg-slate-700"
-                                      : "bg-slate-100 text-slate-800 border-slate-300 hover:bg-slate-200"
-                                  }`}
-                                >
-                                  Apply ↗
-                                </a>
-                              )}
+
+                              {/* Accordion Menu Toggle Button */}
+                              <button
+                                onClick={() => toggleAccordion(job.id)}
+                                className={`px-4 py-2 text-[16px] font-bold rounded-xl border transition flex items-center space-x-2 cursor-pointer ${
+                                  isExpanded
+                                    ? isDark
+                                      ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/40"
+                                      : "bg-emerald-50 text-emerald-700 border-emerald-300"
+                                    : isDark
+                                    ? "bg-slate-800 text-slate-200 border-slate-700 hover:bg-slate-700"
+                                    : "bg-slate-100 text-slate-800 border-slate-300 hover:bg-slate-200"
+                                }`}
+                              >
+                                <span>{isExpanded ? "▲ Hide Menu" : "▼ Breakdown & Options"}</span>
+                              </button>
                             </div>
                           </div>
+
+                          {/* ACCORDION EXPANDED DROPDOWN MENU PANEL */}
+                          {isExpanded && (
+                            <div className={`p-6 border-t space-y-6 transition-all ${isDark ? "border-slate-800 bg-slate-950/60" : "border-slate-200 bg-slate-50/70"}`}>
+                              {/* 1. ACCORDION ACTION BUTTONS DROPDOWN MENU */}
+                              <div>
+                                <h3 className={`text-[17px] font-bold uppercase tracking-wider mb-3 ${isDark ? "text-slate-400" : "text-slate-600"}`}>
+                                  ⚡ Accordion Menu Options
+                                </h3>
+                                <div className="flex flex-wrap items-center gap-3">
+                                  {/* Breakdown & Analysis */}
+                                  <button
+                                    onClick={() => {
+                                      setSelectedJob(job);
+                                      setModalTab("analysis");
+                                    }}
+                                    className="px-4 py-2.5 bg-emerald-600 text-white hover:bg-emerald-500 text-[15px] font-bold rounded-xl transition cursor-pointer shadow-sm flex items-center space-x-1.5"
+                                  >
+                                    <span>💡 Match Breakdown & Pitch Strategy</span>
+                                  </button>
+
+                                  {/* Save Job */}
+                                  {job.status !== "SAVED" && (
+                                    <button
+                                      onClick={() => updateJobStatus(job.id, "SAVED")}
+                                      className={`px-4 py-2.5 text-[15px] font-bold rounded-xl transition cursor-pointer border flex items-center space-x-1.5 ${
+                                        isDark
+                                          ? "bg-purple-500/10 text-purple-400 border-purple-500/30 hover:bg-purple-500/20"
+                                          : "bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100"
+                                      }`}
+                                    >
+                                      <span>🔖 Save Job</span>
+                                    </button>
+                                  )}
+
+                                  {/* Mark Applied */}
+                                  {job.status !== "APPLIED" && (
+                                    <button
+                                      onClick={() => updateJobStatus(job.id, "APPLIED")}
+                                      className="px-4 py-2.5 bg-cyan-600 text-white hover:bg-cyan-500 text-[15px] font-bold rounded-xl transition cursor-pointer shadow-sm flex items-center space-x-1.5"
+                                    >
+                                      <span>✉️ Mark as Applied</span>
+                                    </button>
+                                  )}
+
+                                  {/* Direct Apply Web Link */}
+                                  {job.webpageUrl && (
+                                    <a
+                                      href={job.webpageUrl}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className={`px-4 py-2.5 text-[15px] font-bold rounded-xl transition cursor-pointer border flex items-center space-x-1.5 ${
+                                        isDark
+                                          ? "bg-slate-800 text-slate-200 border-slate-700 hover:bg-slate-700"
+                                          : "bg-slate-100 text-slate-800 border-slate-300 hover:bg-slate-200"
+                                      }`}
+                                    >
+                                      <span>↗️ Apply on Platsbanken</span>
+                                    </a>
+                                  )}
+
+                                  {/* DISCARD / DELETE BUTTON */}
+                                  <button
+                                    onClick={() => updateJobStatus(job.id, "DISCARDED")}
+                                    className="px-4 py-2.5 bg-red-600/10 text-red-600 border border-red-200 dark:border-red-500/30 hover:bg-red-600 text-[15px] hover:text-white font-bold rounded-xl transition cursor-pointer flex items-center space-x-1.5"
+                                  >
+                                    <span>🗑️ Discard & Delete (Never Show Again)</span>
+                                  </button>
+                                </div>
+                              </div>
+
+                              {/* 2. DOMAIN BREAKDOWN BADGES */}
+                              <div>
+                                <h4 className={`text-[16px] font-bold mb-2 ${isDark ? "text-slate-300" : "text-slate-700"}`}>
+                                  Domain Match Fit:
+                                </h4>
+                                <div className="flex flex-wrap gap-2">
+                                  {domainScoresObj.software > 0 && (
+                                    <span className={`text-[14px] px-3 py-1 rounded-md font-semibold ${isDark ? "bg-blue-500/10 text-blue-400 border border-blue-500/20" : "bg-blue-50 text-blue-800 border border-blue-200"}`}>
+                                      Software ({domainScoresObj.software}%)
+                                    </span>
+                                  )}
+                                  {domainScoresObj.systems > 0 && (
+                                    <span className={`text-[14px] px-3 py-1 rounded-md font-semibold ${isDark ? "bg-purple-500/10 text-purple-400 border border-purple-500/20" : "bg-purple-50 text-purple-800 border border-purple-200"}`}>
+                                      Systems ({domainScoresObj.systems}%)
+                                    </span>
+                                  )}
+                                  {domainScoresObj.quality > 0 && (
+                                    <span className={`text-[14px] px-3 py-1 rounded-md font-semibold ${isDark ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-emerald-50 text-emerald-800 border border-emerald-200"}`}>
+                                      Quality ({domainScoresObj.quality}%)
+                                    </span>
+                                  )}
+                                  {domainScoresObj.industrial > 0 && (
+                                    <span className={`text-[14px] px-3 py-1 rounded-md font-semibold ${isDark ? "bg-amber-500/10 text-amber-400 border border-amber-500/20" : "bg-amber-50 text-amber-800 border border-amber-200"}`}>
+                                      Manufacturing ({domainScoresObj.industrial}%)
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* 3. MATCHED SKILL TAGS */}
+                              {matchedSkillsArr.length > 0 && (
+                                <div>
+                                  <h4 className={`text-[16px] font-bold mb-2 ${isDark ? "text-slate-300" : "text-slate-700"}`}>
+                                    Matched Skills & Keywords:
+                                  </h4>
+                                  <div className="flex flex-wrap gap-2">
+                                    {matchedSkillsArr.map((skill, idx) => (
+                                      <span
+                                        key={idx}
+                                        className={`text-[14px] px-3 py-1 rounded-md border font-semibold ${
+                                          isDark
+                                            ? "bg-slate-950 text-slate-300 border-slate-800"
+                                            : "bg-slate-100 text-slate-800 border-slate-200"
+                                        }`}
+                                      >
+                                        ✓ {skill}
+                                      </span>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* 4. DESCRIPTION PREVIEW */}
+                              <div>
+                                <h4 className={`text-[16px] font-bold mb-2 ${isDark ? "text-slate-300" : "text-slate-700"}`}>
+                                  Job Overview:
+                                </h4>
+                                <p className={`text-[17px] leading-relaxed whitespace-pre-line ${isDark ? "text-slate-400" : "text-slate-600"}`}>
+                                  {job.description}
+                                </p>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       );
                     })}
@@ -1035,16 +1124,29 @@ export default function Dashboard() {
 
             {/* Modal Footer Actions */}
             <div className={`pt-4 border-t flex justify-between items-center ${isDark ? "border-slate-800" : "border-slate-200"}`}>
-              {selectedJob.status !== "APPLIED" ? (
+              <div className="flex items-center space-x-3">
+                {selectedJob.status !== "APPLIED" ? (
+                  <button
+                    onClick={() => updateJobStatus(selectedJob.id, "APPLIED")}
+                    className="px-5 py-2.5 bg-cyan-600 text-white hover:bg-cyan-500 text-[16px] font-bold rounded-xl transition cursor-pointer shadow-sm"
+                  >
+                    Mark as Applied Today
+                  </button>
+                ) : (
+                  <span className="text-[16px] font-bold text-emerald-600">✓ Marked as Applied</span>
+                )}
+
+                {/* DISCARD BUTTON INSIDE MODAL */}
                 <button
-                  onClick={() => updateJobStatus(selectedJob.id, "APPLIED")}
-                  className="px-5 py-2.5 bg-cyan-600 text-white hover:bg-cyan-500 text-[16px] font-bold rounded-xl transition cursor-pointer shadow-sm"
+                  onClick={() => {
+                    updateJobStatus(selectedJob.id, "DISCARDED");
+                    setSelectedJob(null);
+                  }}
+                  className="px-4 py-2.5 bg-red-600/10 text-red-600 border border-red-200 dark:border-red-500/30 hover:bg-red-600 hover:text-white text-[16px] font-bold rounded-xl transition cursor-pointer"
                 >
-                  Mark as Applied Today
+                  🗑️ Discard & Delete
                 </button>
-              ) : (
-                <span className="text-[16px] font-bold text-emerald-600">✓ Marked as Applied</span>
-              )}
+              </div>
 
               {selectedJob.webpageUrl && (
                 <a
