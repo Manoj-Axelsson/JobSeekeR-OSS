@@ -372,7 +372,7 @@ export default function Dashboard() {
       />
 
       {/* Main Content Area with Vertical Left Sidebar Navigation */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="w-full max-w-[98%] mx-auto px-2 sm:px-4 py-3">
         <OnboardingWizard
           isOpen={showOnboarding}
           onClose={() => setShowOnboarding(false)}
@@ -416,12 +416,12 @@ export default function Dashboard() {
                 {/* APPLICATION SUMMARY */}
                 <section
                   aria-label="Monthly application summary"
-                  className={`mb-8 rounded-2xl border p-6 transition ${isDark ? "bg-slate-900/80 border-slate-800" : "bg-white border-slate-200 shadow-sm"
+                  className={`mb-5 rounded-2xl border p-3.5 sm:p-4 transition ${isDark ? "bg-slate-900/80 border-slate-800" : "bg-white border-slate-200 shadow-sm"
                     }`}
                 >
-                  <div className="flex flex-col lg:flex-row lg:items-center gap-5">
+                  <div className="flex flex-col lg:flex-row lg:items-center gap-4">
                     <div
-                      className={`min-w-55 rounded-xl border p-5 ${isDark
+                      className={`min-w-55 rounded-xl border p-3.5 ${isDark
                         ? "bg-cyan-500/10 border-cyan-500/30"
                         : "bg-cyan-50 border-cyan-200"
                         }`}
@@ -487,9 +487,9 @@ export default function Dashboard() {
 
                 {/* TAB 1: DAILY FEED */}
                 {activeTab === "feed" && (
-                  <div className="space-y-7">
+                  <div className="space-y-5">
                     {/* External Job URL Importer Bar (LinkedIn, Teamtailor, Workday, ATS Portals) */}
-                    <div className="bg-[#381f09]/90 border-2 border-amber-400/50 rounded-2xl p-5 shadow-xl text-amber-100">
+                    <div className="bg-[#5c3612]/90 border-2 border-amber-300/60 rounded-2xl p-3.5 sm:p-4 shadow-xl text-amber-100">
                       <div className="flex items-center justify-between mb-2">
                         <h3 className="text-sm sm:text-base font-extrabold text-amber-300 uppercase tracking-wider flex items-center space-x-2">
                           <span>🔗 Importera Direkt Jobblänk</span>
@@ -502,12 +502,12 @@ export default function Dashboard() {
                           placeholder="Klistra in jobb-URL (t.ex. LinkedIn, Teamtailor, Workday, karriärsida)..."
                           value={importUrlInput}
                           onChange={(e) => setImportUrlInput(e.target.value)}
-                          className="flex-1 bg-[#241203] border border-amber-500/40 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-semibold text-amber-100 placeholder:opacity-50 focus:outline-none focus:ring-1 focus:ring-amber-400 transition"
+                          className="flex-1 bg-[#241203] border border-amber-500/40 rounded-xl px-4 py-2 text-xs sm:text-sm font-semibold text-amber-100 placeholder:opacity-50 focus:outline-none focus:ring-1 focus:ring-amber-400 transition"
                         />
                         <button
                           type="submit"
                           disabled={importingUrl || !importUrlInput.trim()}
-                          className="px-5 py-2.5 bg-linear-to-r from-amber-400 to-orange-400 hover:from-amber-300 hover:to-orange-300 text-amber-950 font-black text-xs sm:text-sm rounded-xl transition cursor-pointer shadow-md disabled:opacity-50 flex items-center justify-center space-x-2 shrink-0"
+                          className="px-5 py-2 bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-300 hover:to-orange-300 text-amber-950 font-black text-xs sm:text-sm rounded-xl transition cursor-pointer shadow-md disabled:opacity-50 flex items-center justify-center space-x-2 shrink-0"
                         >
                           <span>{importingUrl ? "⏳ Importerar..." : "🚀 Importera & Matcha"}</span>
                         </button>
@@ -521,7 +521,7 @@ export default function Dashboard() {
 
                     {/* Search & Filters */}
                     <div
-                      className={`flex flex-col sm:flex-row gap-4 justify-between items-stretch sm:items-center p-5 rounded-2xl border transition ${isDark ? "bg-slate-900/60 border-slate-800" : "bg-white border-slate-200 shadow-sm"
+                      className={`flex flex-col sm:flex-row gap-4 justify-between items-stretch sm:items-center p-3.5 sm:p-4 rounded-2xl border transition ${isDark ? "bg-slate-900/60 border-slate-800" : "bg-white border-slate-200 shadow-sm"
                         }`}
                     >
                       <div className="relative flex-1">

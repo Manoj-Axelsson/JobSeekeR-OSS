@@ -75,7 +75,7 @@ export function Navbar({
 
   return (
     <nav className="sticky top-0 z-40 backdrop-blur-xl bg-gradient-to-r from-[#5c3510] via-[#7a4816] to-[#5c3510] border-b-2 border-amber-300/60 text-amber-50 shadow-2xl transition-colors duration-200">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="w-full max-w-[98%] mx-auto px-2 sm:px-4">
         <div className="flex items-center justify-between h-24">
           {/* Brand & Identity (Enlarged for prominent display) */}
           <div className="flex items-center space-x-3.5 sm:space-x-5">
