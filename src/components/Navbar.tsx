@@ -85,13 +85,9 @@ export function Navbar({
                   <span className="text-4xl sm:text-5xl font-black tracking-tight text-white drop-shadow-xl">
                     JobseekeR<span className="text-amber-400 text-lg sm:text-2xl align-super font-extrabold ml-0.5">™</span>
                   </span>
-                  <div className="hidden sm:flex flex-col space-y-1">
-                    <span className="px-3 py-0.5 text-xs font-extrabold rounded-md bg-amber-950/95 text-amber-300 border border-amber-400/60 shadow-md text-center">
-                      Open Source Scanner
-                    </span>
-                    <span className="px-3 py-0.5 text-[11px] font-bold rounded-md bg-[#3c1d06] text-amber-200 border border-amber-500/40 shadow-sm text-center">
-                      SE Job Tech API
-                    </span>
+                  <div className="hidden sm:inline-flex flex-col px-3.5 py-1.5 rounded-xl bg-[#361804]/90 border border-amber-400/60 shadow-md text-left">
+                    <span className="text-xs font-extrabold tracking-wide text-amber-300">Open Source Scanner</span>
+                    <span className="text-[11px] font-semibold text-amber-200/90 border-t border-amber-500/30 pt-0.5 mt-0.5">SE Job Tech API</span>
                   </div>
                 </div>
                 {currentUser?.name || (profileName && profileName !== "JobseekeR User") ? (
