@@ -24,7 +24,18 @@ export function SidebarNav({
     <aside className="w-full lg:w-72 shrink-0 space-y-4 lg:sticky lg:top-28 self-start z-30">
       {/* Warm Rich Golden Amber Sidebar Navigation Panel */}
       <div className="bg-[#5c3612]/95 backdrop-blur-xl border-2 border-amber-300/60 rounded-2xl p-3 shadow-2xl space-y-2 text-amber-100">
-        <div className="px-3 py-2 border-b border-amber-500/30 mb-2 flex items-center justify-between">
+        {/* Official Mascot Logo Card Header */}
+        <div className="p-2.5 mb-2 bg-[#442509]/90 border border-amber-400/50 rounded-xl flex items-center space-x-3 shadow-inner">
+          <div className="w-11 h-11 rounded-xl bg-amber-400/20 border border-amber-300/40 p-0.5 flex items-center justify-center shrink-0">
+            <img src="/logo.png" alt="JobseekeR Mascot" className="w-full h-full object-contain filter drop-shadow" />
+          </div>
+          <div>
+            <p className="text-xs font-black text-amber-300 uppercase tracking-wider">JobseekeR™ OS</p>
+            <p className="text-[11px] text-amber-200/80 font-medium">Talent Navigator</p>
+          </div>
+        </div>
+
+        <div className="px-3 py-1.5 border-b border-amber-500/30 mb-2 flex items-center justify-between">
           <span className="text-xs font-bold uppercase tracking-wider text-amber-400">
             Navigation Menu
           </span>

@@ -697,10 +697,7 @@ export default function Dashboard() {
                                 <div className={`p-6 border-t space-y-6 transition-all ${isDark ? "border-slate-800 bg-slate-950/60" : "border-slate-200 bg-slate-50/70"}`}>
                                   {/* 1. ACCORDION ACTION BUTTONS DROPDOWN MENU */}
                                   <div>
-                                    <h3 className={`text-[17px] font-bold uppercase tracking-wider mb-3 ${isDark ? "text-slate-400" : "text-slate-600"}`}>
-                                      ⚡ Accordion Menu Options
-                                    </h3>
-                                    <div className="flex flex-wrap items-center gap-3">
+                                    <div className="flex flex-wrap items-center gap-3 mb-2">
                                       {/* Breakdown & Analysis */}
                                       <button
                                         onClick={() => {

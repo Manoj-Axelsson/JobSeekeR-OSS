@@ -80,8 +80,12 @@ export function Navbar({
           {/* Brand & Identity (Enlarged for prominent display) */}
           <div className="flex items-center space-x-3.5 sm:space-x-5">
             <Link href="/" className="flex items-center space-x-3.5 group">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-amber-400 via-amber-500 to-orange-400 flex items-center justify-center font-black text-amber-950 text-3xl shadow-xl shadow-amber-950/70 border-2 border-amber-200/70 group-hover:scale-105 transition-transform duration-200 shrink-0">
-                J
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-amber-400 via-amber-500 to-orange-400 p-1 flex items-center justify-center shadow-xl shadow-amber-950/70 border-2 border-amber-200/80 group-hover:scale-105 transition-transform duration-200 shrink-0 overflow-hidden">
+                <img
+                  src="/logo.png"
+                  alt="JobseekeR Logo"
+                  className="w-full h-full object-contain filter drop-shadow"
+                />
               </div>
               <div>
                 <div className="flex items-center space-x-2.5">
