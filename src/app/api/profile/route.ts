@@ -10,7 +10,7 @@ export async function GET() {
       profile = await db.userProfile.create({
         data: {
           id: "user_main",
-          name: "JobseekeR User",
+          name: "Candidate",
           headline: "Software & Systems Engineer",
           location: "Sweden",
           languages: "English, Swedish",

@@ -77,27 +77,20 @@ export function Navbar({
     <nav className="sticky top-0 z-40 backdrop-blur-xl bg-gradient-to-r from-[#5c3510] via-[#7a4816] to-[#5c3510] border-b-2 border-amber-300/60 text-amber-50 shadow-2xl transition-colors duration-200">
       <div className="w-full max-w-[98%] mx-auto px-2 sm:px-4">
         <div className="flex items-center justify-between h-24">
-          {/* Brand & Identity (Enlarged for prominent display) */}
+          {/* Brand & Identity (Enlarged JobseekeR text without left button) */}
           <div className="flex items-center space-x-3.5 sm:space-x-5">
             <Link href="/" className="flex items-center space-x-3.5 group">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-amber-400 via-amber-500 to-orange-400 p-1 flex items-center justify-center shadow-xl shadow-amber-950/70 border-2 border-amber-200/80 group-hover:scale-105 transition-transform duration-200 shrink-0 overflow-hidden">
-                <img
-                  src="/logo.png"
-                  alt="JobseekeR Logo"
-                  className="w-full h-full object-contain filter drop-shadow"
-                />
-              </div>
               <div>
-                <div className="flex items-center space-x-2.5">
-                  <span className="text-3xl sm:text-4xl font-black tracking-tight text-white drop-shadow-lg">
-                    JobseekeR<span className="text-amber-400 text-base sm:text-xl align-super font-extrabold ml-0.5">™</span>
+                <div className="flex items-center space-x-3">
+                  <span className="text-4xl sm:text-5xl font-black tracking-tight text-white drop-shadow-xl">
+                    JobseekeR<span className="text-amber-400 text-lg sm:text-2xl align-super font-extrabold ml-0.5">™</span>
                   </span>
                   <span className="hidden sm:inline-flex px-3.5 py-1 text-xs sm:text-sm font-extrabold rounded-full bg-amber-950/95 text-amber-300 border border-amber-400/60 shadow-md">
                     Open Source Scanner
                   </span>
                 </div>
-                <p className="text-sm sm:text-base text-amber-200/90 font-medium truncate max-w-[240px] sm:max-w-none mt-0.5">
-                  SE Job Tech API • <span className="font-extrabold text-amber-400">{currentUser ? currentUser.name : profileName}</span>
+                <p className="text-xs sm:text-sm text-amber-200/90 font-medium truncate max-w-[240px] sm:max-w-none mt-0.5">
+                  SE Job Tech API {currentUser?.name ? `• ${currentUser.name}` : profileName && profileName !== "JobseekeR User" ? `• ${profileName}` : ""}
                 </p>
               </div>
             </Link>

@@ -11,7 +11,7 @@ interface OnboardingWizardProps {
 
 export function OnboardingWizard({ isOpen, onClose, onComplete }: OnboardingWizardProps) {
   const [step, setStep] = useState(1);
-  const [name, setName] = useState("JobseekeR User");
+  const [name, setName] = useState("Manoj John Axelsson");
   const [headline, setHeadline] = useState("Software & Systems Engineer");
   const [location, setLocation] = useState("Sweden");
   const [targetRolesText, setTargetRolesText] = useState("Fullstack Developer, Systems Engineer, Software Architect, Quality Engineer");

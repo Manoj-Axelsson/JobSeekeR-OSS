@@ -23,18 +23,7 @@ export function SidebarNav({
   return (
     <aside className="w-full lg:w-72 shrink-0 space-y-4 lg:sticky lg:top-28 self-start z-30">
       {/* Warm Rich Golden Amber Sidebar Navigation Panel */}
-      <div className="bg-[#5c3612]/95 backdrop-blur-xl border-2 border-amber-300/60 rounded-2xl p-3 shadow-2xl space-y-2 text-amber-100">
-        {/* Official Mascot Logo Card Header */}
-        <div className="p-2.5 mb-2 bg-[#442509]/90 border border-amber-400/50 rounded-xl flex items-center space-x-3 shadow-inner">
-          <div className="w-11 h-11 rounded-xl bg-amber-400/20 border border-amber-300/40 p-0.5 flex items-center justify-center shrink-0">
-            <img src="/logo.png" alt="JobseekeR Mascot" className="w-full h-full object-contain filter drop-shadow" />
-          </div>
-          <div>
-            <p className="text-xs font-black text-amber-300 uppercase tracking-wider">JobseekeR™ OS</p>
-            <p className="text-[11px] text-amber-200/80 font-medium">Talent Navigator</p>
-          </div>
-        </div>
-
+      <div className="bg-[#5c3612]/95 backdrop-blur-xl border-2 border-amber-300/60 rounded-2xl p-3.5 shadow-2xl space-y-2 text-amber-100">
         <div className="px-3 py-1.5 border-b border-amber-500/30 mb-2 flex items-center justify-between">
           <span className="text-xs font-bold uppercase tracking-wider text-amber-400">
             Navigation Menu
@@ -45,7 +34,7 @@ export function SidebarNav({
         {/* 📌 Daily Feed Tab */}
         <button
           onClick={() => setActiveTab("feed")}
-          className={`w-full p-3.5 rounded-2xl font-bold text-sm transition-all duration-200 cursor-pointer flex items-center justify-between group ${
+          className={`w-full p-3 rounded-xl font-bold text-sm transition-all duration-200 cursor-pointer flex items-center justify-between group ${
             activeTab === "feed"
               ? "bg-gradient-to-r from-amber-300 via-amber-400 to-orange-400 text-amber-950 shadow-xl shadow-amber-950/60 border border-amber-200/50 font-black scale-[1.02]"
               : "bg-[#4e2c0e]/80 hover:bg-[#613712] text-amber-200 border border-amber-500/30"
@@ -69,7 +58,7 @@ export function SidebarNav({
         {/* 📋 Monthly Application Tracker Tab */}
         <button
           onClick={() => setActiveTab("tracker")}
-          className={`w-full p-3.5 rounded-2xl font-bold text-sm transition-all duration-200 cursor-pointer flex items-center justify-between group ${
+          className={`w-full p-3 rounded-xl font-bold text-sm transition-all duration-200 cursor-pointer flex items-center justify-between group ${
             activeTab === "tracker"
               ? "bg-gradient-to-r from-amber-300 via-amber-400 to-orange-400 text-amber-950 shadow-xl shadow-amber-950/60 border border-amber-200/50 font-black scale-[1.02]"
               : "bg-[#4e2c0e]/80 hover:bg-[#613712] text-amber-200 border border-amber-500/30"
@@ -93,7 +82,7 @@ export function SidebarNav({
         {/* 🎯 Competence Profile & Skills Tab */}
         <button
           onClick={() => setActiveTab("profile")}
-          className={`w-full p-3.5 rounded-2xl font-bold text-sm transition-all duration-200 cursor-pointer flex items-center justify-between ${
+          className={`w-full p-3 rounded-xl font-bold text-sm transition-all duration-200 cursor-pointer flex items-center justify-between ${
             activeTab === "profile"
               ? "bg-gradient-to-r from-amber-300 via-amber-400 to-orange-400 text-amber-950 shadow-xl shadow-amber-950/60 border border-amber-200/50 font-black scale-[1.02]"
               : "bg-[#4e2c0e]/80 hover:bg-[#613712] text-amber-200 border border-amber-500/30"
@@ -108,7 +97,7 @@ export function SidebarNav({
         {/* ⚡ Monitor Logs Tab */}
         <button
           onClick={() => setActiveTab("logs")}
-          className={`w-full p-3.5 rounded-2xl font-bold text-sm transition-all duration-200 cursor-pointer flex items-center justify-between ${
+          className={`w-full p-3 rounded-xl font-bold text-sm transition-all duration-200 cursor-pointer flex items-center justify-between ${
             activeTab === "logs"
               ? "bg-gradient-to-r from-amber-300 via-amber-400 to-orange-400 text-amber-950 shadow-xl shadow-amber-950/60 border border-amber-200/50 font-black scale-[1.02]"
               : "bg-[#4e2c0e]/80 hover:bg-[#613712] text-amber-200 border border-amber-500/30"
@@ -124,7 +113,7 @@ export function SidebarNav({
         <div className="pt-2 border-t border-amber-500/30">
           <Link
             href="/landing"
-            className="w-full p-3.5 rounded-2xl font-bold text-sm bg-gradient-to-r from-amber-900/80 to-orange-950/80 hover:from-amber-800 hover:to-orange-900 text-amber-200 border border-amber-500/40 flex items-center justify-between transition-all"
+            className="w-full p-3 rounded-xl font-bold text-sm bg-gradient-to-r from-amber-900/80 to-orange-950/80 hover:from-amber-800 hover:to-orange-900 text-amber-200 border border-amber-500/40 flex items-center justify-between transition-all"
           >
             <div className="flex items-center space-x-3">
               <span className="text-lg">🏠</span>
@@ -132,6 +121,23 @@ export function SidebarNav({
             </div>
             <span className="text-xs font-semibold text-amber-400">↗</span>
           </Link>
+        </div>
+
+        {/* Official Mascot Logo Card — Fixed & Visible Below Navigation Menu */}
+        <div className="pt-3 border-t border-amber-500/40 text-center">
+          <div className="p-3.5 bg-[#442509]/95 border-2 border-amber-400/60 rounded-xl shadow-xl flex flex-col items-center justify-center space-y-2">
+            <div className="w-28 h-28 relative flex items-center justify-center">
+              <img
+                src="/logo.png"
+                alt="JobseekeR Platform Logo"
+                className="w-full h-full object-contain filter drop-shadow-xl hover:scale-105 transition-transform duration-300"
+              />
+            </div>
+            <div>
+              <p className="text-xs font-black text-amber-300 uppercase tracking-widest">JobseekeR™ OS</p>
+              <p className="text-[11px] text-amber-200/80 font-semibold mt-0.5">Talent Navigator Platform</p>
+            </div>
+          </div>
         </div>
       </div>
     </aside>

@@ -78,12 +78,9 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           {/* Logo & Prominent Title */}
           <Link href="/" className="flex items-center gap-3.5 group">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500 via-orange-600 to-amber-300 flex items-center justify-center font-black text-amber-950 text-2xl shadow-xl shadow-amber-900/50 border border-amber-200/50 group-hover:scale-105 transition-transform duration-200">
-              J
-            </div>
             <div>
-              <span className="text-2xl md:text-3xl font-extrabold tracking-tight text-white drop-shadow-md">
-                JobseekeR<span className="text-amber-400 text-base align-super font-semibold">™</span>
+              <span className="text-3xl md:text-4xl font-black tracking-tight text-white drop-shadow-md">
+                JobseekeR<span className="text-amber-400 text-lg align-super font-bold">™</span>
               </span>
               <p className="text-xs text-amber-300/90 font-medium tracking-wide">
                 Open Source Swedish Job Scanner
@@ -189,9 +186,19 @@ export default function LandingPage() {
       </nav>
 
       {/* Main Hero Section */}
-      <section className="relative z-10 pt-16 pb-24 px-4 md:px-8 max-w-6xl mx-auto text-center flex-1 flex flex-col justify-center items-center">
+      <section className="relative z-10 pt-10 pb-20 px-4 md:px-8 max-w-6xl mx-auto text-center flex-1 flex flex-col justify-center items-center">
+        {/* Prominent Official Mascot Logo Illustration Displayed Proportionately */}
+        <div className="mb-6 relative w-36 h-36 sm:w-48 sm:h-48 mx-auto flex items-center justify-center">
+          <div className="absolute inset-0 bg-gradient-to-tr from-amber-400/20 to-orange-500/20 rounded-full blur-2xl animate-pulse pointer-events-none"></div>
+          <img
+            src="/logo.png"
+            alt="JobseekeR Platform Logo"
+            className="w-full h-full object-contain filter drop-shadow-2xl hover:scale-105 transition-transform duration-300 relative z-10"
+          />
+        </div>
+
         {/* Pulsing Badge */}
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#3d1803]/90 border border-amber-400/50 text-amber-300 text-xs font-bold tracking-wider uppercase mb-8 shadow-xl">
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#3d1803]/90 border border-amber-400/50 text-amber-300 text-xs font-bold tracking-wider uppercase mb-6 shadow-xl">
           <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping"></span>
           Direct API Connection to Arbetsförmedlingen JobTech
         </div>
