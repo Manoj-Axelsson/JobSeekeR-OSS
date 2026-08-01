@@ -78,13 +78,18 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           {/* Logo & Prominent Title */}
           <Link href="/" className="flex items-center gap-3.5 group">
-            <div>
+            <div className="flex items-center space-x-3">
               <span className="text-3xl md:text-4xl font-black tracking-tight text-white drop-shadow-md">
                 JobseekeR<span className="text-amber-400 text-lg align-super font-bold">™</span>
               </span>
-              <p className="text-xs text-amber-300/90 font-medium tracking-wide">
-                Open Source Swedish Job Scanner
-              </p>
+              <div className="hidden sm:flex flex-col space-y-1">
+                <span className="px-2.5 py-0.5 text-[11px] font-extrabold rounded-md bg-amber-950/95 text-amber-300 border border-amber-400/60 shadow-md text-center">
+                  Open Source Scanner
+                </span>
+                <span className="px-2.5 py-0.5 text-[10px] font-bold rounded-md bg-[#3c1d06] text-amber-200 border border-amber-500/40 shadow-sm text-center">
+                  SE Job Tech API
+                </span>
+              </div>
             </div>
           </Link>
 
