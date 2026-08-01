@@ -1,7 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { evaluateJobMatch, MatchResult } from "@/lib/services/matcher";
+import { OnboardingWizard } from "@/components/OnboardingWizard";
+import { AuthModal } from "@/components/AuthModal";
+import { DocumentUploader } from "@/components/DocumentUploader";
+import { Navbar } from "@/components/Navbar";
+import { SidebarNav } from "@/components/SidebarNav";
+import { speakText, stopSpeaking } from "@/lib/services/tts";
+import { translations, Language } from "@/lib/services/i18n";
 
 interface JobAd {
   id: string;
@@ -47,6 +55,9 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<"feed" | "tracker" | "profile" | "logs">("feed");
   const [themeMode, setThemeMode] = useState<"light" | "dark" | "system">("light");
   const [isDark, setIsDark] = useState(false);
+  const [currentLang, setCurrentLang] = useState<Language>("sv");
+
+  const t = translations[currentLang] || translations.sv;
 
   const [jobs, setJobs] = useState<JobAd[]>([]);
   const [applications, setApplications] = useState<Application[]>([]);
@@ -60,15 +71,53 @@ export default function Dashboard() {
   const [selectedJob, setSelectedJob] = useState<JobAd | null>(null);
   const [modalTab, setModalTab] = useState<"analysis" | "description">("analysis");
 
+  // Onboarding & Auth Modals state
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [currentUser, setCurrentUser] = useState<{ name: string; email: string } | null>(null);
+  const [showDocUploader, setShowDocUploader] = useState(false);
+
   // Aktivitetsrapport State
   const [showAktivitetsrapport, setShowAktivitetsrapport] = useState(false);
   const [copiedReport, setCopiedReport] = useState(false);
+
+  // Import Job URL state
+  const [importUrlInput, setImportUrlInput] = useState("");
+  const [importingUrl, setImportingUrl] = useState(false);
+  const [importMessage, setImportMessage] = useState<string | null>(null);
+
+  const handleImportJobUrl = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!importUrlInput.trim()) return;
+    setImportingUrl(true);
+    setImportMessage(null);
+    try {
+      const res = await fetch("/api/jobs/import-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: importUrlInput.trim() }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setImportMessage(`✓ ${data.message || "Job ad imported and matched successfully!"}`);
+        setImportUrlInput("");
+        fetchData();
+      } else {
+        setImportMessage(`❌ ${data.error || "Failed to import job URL."}`);
+      }
+    } catch (err: any) {
+      setImportMessage(`❌ Error: ${err.message || "Import failed"}`);
+    } finally {
+      setImportingUrl(false);
+    }
+  };
 
   // Track expanded accordion cards by Job ID
   const [expandedJobIds, setExpandedJobIds] = useState<Set<string>>(new Set());
 
   // Profile states
   const [minScore, setMinScore] = useState(45);
+  const [profileName, setProfileName] = useState("JobseekeR Candidate");
 
   // Handle Theme switching
   useEffect(() => {
@@ -97,45 +146,90 @@ export default function Dashboard() {
     fetchData();
   }, []);
 
+  // Excluded Companies Blacklist state
+  const [excludedCompanies, setExcludedCompanies] = useState<string[]>([]);
+  const [newCompanyToBlock, setNewCompanyToBlock] = useState("");
+
+  const handleToggleCompanyExclusion = async (companyName: string) => {
+    const trimmed = companyName.trim();
+    if (!trimmed) return;
+    let updated: string[];
+    if (excludedCompanies.some(c => c.toLowerCase() === trimmed.toLowerCase())) {
+      updated = excludedCompanies.filter(c => c.toLowerCase() !== trimmed.toLowerCase());
+    } else {
+      updated = [...excludedCompanies, trimmed];
+    }
+    setExcludedCompanies(updated);
+    try {
+      await fetch("/api/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ excludedCompanies: updated }),
+      });
+    } catch (e) {
+      console.error("Error updating excluded companies:", e);
+    }
+  };
+
   async function fetchData() {
     setLoading(true);
     try {
-      const [jobsRes, appsRes, logsRes] = await Promise.all([
-        fetch("/api/jobs"),
-        fetch("/api/applications"),
-        fetch("/api/scans"),
-      ]);
+      // Fetch profile
+      const profRes = await fetch("/api/profile");
+      if (profRes.ok) {
+        const profData = await profRes.json();
+        if (profData.name) setProfileName(profData.name);
+        if (profData.minMatchScore) setMinScore(profData.minMatchScore);
+        if (Array.isArray(profData.excludedCompanies)) setExcludedCompanies(profData.excludedCompanies);
+      }
 
-      const jobsData = await jobsRes.json();
-      const appsData = await appsRes.json();
-      const logsData = await logsRes.json();
+      // Fetch jobs
+      const jobsRes = await fetch("/api/jobs");
+      if (jobsRes.ok) {
+        const jobsData = await jobsRes.json();
+        const jobsList = Array.isArray(jobsData.jobs) ? jobsData.jobs : (Array.isArray(jobsData) ? jobsData : []);
+        setJobs(jobsList);
+      }
 
-      if (jobsData.success) setJobs(jobsData.jobs);
-      if (appsData.success) {
-        setApplications(appsData.applications);
-        setMonths(appsData.months);
-        if (appsData.months.length > 0 && !selectedMonth) {
-          setSelectedMonth(appsData.months[0]);
+      // Fetch applications
+      const appsRes = await fetch("/api/applications");
+      if (appsRes.ok) {
+        const appsData = await appsRes.json();
+        const appsList: Application[] = Array.isArray(appsData.applications) ? appsData.applications : (Array.isArray(appsData) ? appsData : []);
+        setApplications(appsList);
+
+        const sortedMonths = Array.isArray(appsData.months)
+          ? appsData.months
+          : Array.from(new Set(appsList.map((a) => a.monthlyTag).filter(Boolean))).sort().reverse();
+        setMonths(sortedMonths);
+        if (sortedMonths.length > 0 && !selectedMonth) {
+          setSelectedMonth(sortedMonths[0]);
         }
       }
-      if (logsData.success) setScanLogs(logsData.scanLogs);
-    } catch (error) {
-      console.error("Error fetching data:", error);
+
+      // Fetch scan logs
+      const logsRes = await fetch("/api/scans");
+      if (logsRes.ok) {
+        const logsData = await logsRes.json();
+        const logsList = Array.isArray(logsData.scanLogs) ? logsData.scanLogs : (Array.isArray(logsData) ? logsData : []);
+        setScanLogs(logsList);
+      }
+    } catch (err) {
+      console.error("fetchData error:", err);
     } finally {
       setLoading(false);
     }
   }
 
-  async function triggerScan() {
+  async function triggerJobScan() {
     setScanning(true);
     try {
       const res = await fetch("/api/cron/scrape", { method: "POST" });
-      const data = await res.json();
-      if (data.success) {
+      if (res.ok) {
         await fetchData();
       }
-    } catch (error) {
-      console.error("Scan error:", error);
+    } catch (err) {
+      console.error(err);
     } finally {
       setScanning(false);
     }
@@ -188,7 +282,15 @@ export default function Dashboard() {
     });
   }
 
-  const filteredJobs = jobs.filter((job) => {
+  const jobsList = Array.isArray(jobs) ? jobs : [];
+  const appsList = Array.isArray(applications) ? applications : [];
+  const logsList = Array.isArray(scanLogs) ? scanLogs : [];
+
+  const filteredJobs = jobsList.filter((job) => {
+    // 0. Excluded Companies Blacklist Check
+    const isExcluded = excludedCompanies.some((c) => c && job.company.toLowerCase().includes(c.toLowerCase()));
+    if (isExcluded) return false;
+
     const matchesSearch =
       job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       job.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -196,16 +298,30 @@ export default function Dashboard() {
 
     const matchesStatus =
       statusFilter === "ALL"
-        ? job.status !== "DISCARDED"
+        ? job.status !== "DISCARDED" && job.status !== "APPLIED"
         : job.status === statusFilter;
 
     return matchesSearch && matchesStatus;
   });
 
-  const filteredApps = applications.filter((app) => {
+  const filteredApps = appsList.filter((app) => {
     if (!selectedMonth) return true;
     return app.monthlyTag === selectedMonth;
   });
+
+  const currentMonthTag = (() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  })();
+  const currentMonthLabel = new Date().toLocaleDateString("sv-SE", {
+    month: "long",
+    year: "numeric",
+  });
+  const applicationsByMonth = appsList.reduce<Record<string, number>>((counts, app) => {
+    counts[app.monthlyTag] = (counts[app.monthlyTag] || 0) + 1;
+    return counts;
+  }, {});
+  const applicationMonths = Array.from(new Set([currentMonthTag, ...months])).sort().reverse();
 
   // Calculate live dynamic analysis for the selected job modal
   const jobAnalysis: MatchResult | null = selectedJob
@@ -231,790 +347,832 @@ export default function Dashboard() {
 
   return (
     <div
-      style={{ fontFamily: 'Cochin, Georgia, serif', fontSize: '19px' }}
-      className={`min-h-screen transition-colors duration-200 antialiased ${
-        isDark
-          ? "bg-slate-950 text-slate-100"
-          : "bg-slate-50 text-slate-900"
-      }`}
+      style={{ fontFamily: 'Cochin, Georgia, Garamond, "Times New Roman", serif' }}
+      className="min-h-screen bg-gradient-to-br from-[#2c1706] via-[#3e230b] to-[#4e2d10] text-amber-50 selection:bg-amber-400 selection:text-amber-950 transition-colors duration-200 antialiased"
     >
-      {/* Top Header */}
-      <header
-        className={`border-b sticky top-0 z-40 backdrop-blur-md transition-colors duration-200 ${
-          isDark
-            ? "border-slate-800 bg-slate-900/80"
-            : "border-slate-200 bg-white/90 shadow-sm"
-        }`}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div className="flex items-center space-x-3">
-            <div className="h-12 w-12 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center font-bold text-white text-[22px] shadow-md shadow-emerald-500/20">
-              AT
-            </div>
-            <div>
-              <div className="flex items-center space-x-2">
-                <h1 className={`text-[28px] font-bold tracking-tight ${isDark ? "text-white" : "text-slate-900"}`}>
-                  Atlas Talent Navigator
-                </h1>
-                <span
-                  className={`px-3 py-0.5 text-[15px] font-semibold rounded-full border ${
-                    isDark
-                      ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                      : "bg-emerald-50 text-emerald-700 border-emerald-200"
-                  }`}
-                >
-                  SE Job Scanner
-                </span>
-              </div>
-              <p className={`text-[17px] ${isDark ? "text-slate-400" : "text-slate-600"}`}>
-                Automated 12:00 PM Swedish Job Market Scanner •{" "}
-                <span className={`font-semibold ${isDark ? "text-slate-200" : "text-slate-800"}`}>
-                  Manoj John Axelsson
-                </span>
-              </p>
-            </div>
-          </div>
+      {/* Modern Responsive Navbar with Landing Page Warm Amber Theme */}
+      <Navbar
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        profileName={profileName}
+        jobCount={filteredJobs.length}
+        appCount={appsList.length}
+        scanning={scanning}
+        onTriggerScan={triggerJobScan}
+        onToggleDocUploader={() => setShowDocUploader(!showDocUploader)}
+        onOpenOnboarding={() => setShowOnboarding(true)}
+        onOpenAuth={() => setShowAuthModal(true)}
+        onLogout={() => setCurrentUser(null)}
+        currentUser={currentUser}
+        themeMode={themeMode}
+        setThemeMode={setThemeMode}
+        isDark={isDark}
+        currentLang={currentLang}
+        onLanguageChange={setCurrentLang}
+      />
 
-          <div className="flex items-center space-x-3">
-            {/* Theme Switcher Toggle */}
-            <div
-              className={`p-1 rounded-xl border flex items-center space-x-1 ${
-                isDark ? "bg-slate-950 border-slate-800" : "bg-slate-100 border-slate-200"
-              }`}
-            >
-              <button
-                onClick={() => setThemeMode("light")}
-                title="Light Mode"
-                className={`px-3.5 py-1.5 rounded-lg text-[16px] font-semibold transition cursor-pointer ${
-                  themeMode === "light"
-                    ? isDark
-                      ? "bg-slate-800 text-white shadow-sm"
-                      : "bg-white text-slate-900 shadow-sm border border-slate-200"
-                    : isDark
-                    ? "text-slate-400 hover:text-slate-200"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                ☀️ Light
-              </button>
-              <button
-                onClick={() => setThemeMode("dark")}
-                title="Dark Mode"
-                className={`px-3.5 py-1.5 rounded-lg text-[16px] font-semibold transition cursor-pointer ${
-                  themeMode === "dark"
-                    ? isDark
-                      ? "bg-slate-800 text-white shadow-sm"
-                      : "bg-white text-slate-900 shadow-sm border border-slate-200"
-                    : isDark
-                    ? "text-slate-400 hover:text-slate-200"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                🌙 Dark
-              </button>
-              <button
-                onClick={() => setThemeMode("system")}
-                title="System Default Mode"
-                className={`px-3.5 py-1.5 rounded-lg text-[16px] font-semibold transition cursor-pointer ${
-                  themeMode === "system"
-                    ? isDark
-                      ? "bg-slate-800 text-white shadow-sm"
-                      : "bg-white text-slate-900 shadow-sm border border-slate-200"
-                    : isDark
-                    ? "text-slate-400 hover:text-slate-200"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                💻 System
-              </button>
-            </div>
-
-            {/* Scan Button */}
-            <button
-              onClick={triggerScan}
-              disabled={scanning}
-              className="inline-flex items-center space-x-2 px-4.5 py-2.5 rounded-xl text-[17px] font-bold text-white bg-emerald-600 hover:bg-emerald-500 transition shadow-md shadow-emerald-600/20 disabled:opacity-50 cursor-pointer"
-            >
-              <svg className={`w-5 h-5 ${scanning ? "animate-spin" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-              <span>{scanning ? "Scanning JobTech API..." : "Scan Jobs (12:00 PM)"}</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Navigation Tabs */}
-        <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-t ${isDark ? "border-slate-800/60" : "border-slate-200"}`}>
-          <nav className="flex space-x-8 -mb-px">
-            <button
-              onClick={() => setActiveTab("feed")}
-              className={`py-4 text-[18px] font-semibold border-b-2 flex items-center space-x-2 cursor-pointer transition ${
-                activeTab === "feed"
-                  ? "border-emerald-600 text-emerald-600 font-bold"
-                  : isDark
-                  ? "border-transparent text-slate-400 hover:text-slate-200"
-                  : "border-transparent text-slate-600 hover:text-slate-900"
-              }`}
-            >
-              <span>📌 Daily Feed ({jobs.filter(j => j.status !== "DISCARDED").length})</span>
-            </button>
-            <button
-              onClick={() => setActiveTab("tracker")}
-              className={`py-4 text-[18px] font-semibold border-b-2 flex items-center space-x-2 cursor-pointer transition ${
-                activeTab === "tracker"
-                  ? "border-emerald-600 text-emerald-600 font-bold"
-                  : isDark
-                  ? "border-transparent text-slate-400 hover:text-slate-200"
-                  : "border-transparent text-slate-600 hover:text-slate-900"
-              }`}
-            >
-              <span>📋 Monthly Application Tracker ({applications.length})</span>
-            </button>
-            <button
-              onClick={() => setActiveTab("profile")}
-              className={`py-4 text-[18px] font-semibold border-b-2 flex items-center space-x-2 cursor-pointer transition ${
-                activeTab === "profile"
-                  ? "border-emerald-600 text-emerald-600 font-bold"
-                  : isDark
-                  ? "border-transparent text-slate-400 hover:text-slate-200"
-                  : "border-transparent text-slate-600 hover:text-slate-900"
-              }`}
-            >
-              <span>🎯 Competence Profile & Skills</span>
-            </button>
-            <button
-              onClick={() => setActiveTab("logs")}
-              className={`py-4 text-[18px] font-semibold border-b-2 flex items-center space-x-2 cursor-pointer transition ${
-                activeTab === "logs"
-                  ? "border-emerald-600 text-emerald-600 font-bold"
-                  : isDark
-                  ? "border-transparent text-slate-400 hover:text-slate-200"
-                  : "border-transparent text-slate-600 hover:text-slate-900"
-              }`}
-            >
-              <span>⚡ Scanner Monitor Logs</span>
-            </button>
-          </nav>
-        </div>
-      </header>
-
-      {/* Main Content */}
+      {/* Main Content Area with Vertical Left Sidebar Navigation */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {loading ? (
-          <div className="py-20 text-center">
-            <div className="inline-block w-10 h-10 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
-            <p className={`mt-4 text-[18px] font-medium ${isDark ? "text-slate-400" : "text-slate-600"}`}>
-              Loading Swedish Job Scanner Dashboard...
-            </p>
+        <OnboardingWizard
+          isOpen={showOnboarding}
+          onClose={() => setShowOnboarding(false)}
+          onComplete={fetchData}
+        />
+
+        <AuthModal
+          isOpen={showAuthModal}
+          onClose={() => setShowAuthModal(false)}
+          onSuccess={(u) => setCurrentUser(u)}
+        />
+
+        {showDocUploader && (
+          <div className="mb-8">
+            <DocumentUploader onUploadSuccess={fetchData} />
           </div>
-        ) : (
-          <>
-            {/* TAB 1: DAILY FEED */}
-            {activeTab === "feed" && (
-              <div className="space-y-7">
-                {/* Search & Filters */}
-                <div
-                  className={`flex flex-col sm:flex-row gap-4 justify-between items-stretch sm:items-center p-5 rounded-2xl border transition ${
-                    isDark ? "bg-slate-900/60 border-slate-800" : "bg-white border-slate-200 shadow-sm"
-                  }`}
-                >
-                  <div className="relative flex-1">
-                    <input
-                      type="text"
-                      placeholder="Filter by title, company, or location (e.g. Stockholm, Fullstack, Systems)..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className={`w-full border rounded-xl px-4 py-3 text-[17px] focus:outline-none focus:border-emerald-600 transition ${
-                        isDark
-                          ? "bg-slate-950 border-slate-800 text-slate-200 placeholder-slate-500"
-                          : "bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400"
-                      }`}
-                    />
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <span className={`text-[17px] font-medium ${isDark ? "text-slate-400" : "text-slate-600"}`}>Status:</span>
-                    <select
-                      value={statusFilter}
-                      onChange={(e) => setStatusFilter(e.target.value)}
-                      className={`border rounded-xl px-4 py-3 text-[17px] focus:outline-none focus:border-emerald-600 ${
-                        isDark
-                          ? "bg-slate-950 border-slate-800 text-slate-200"
-                          : "bg-slate-50 border-slate-300 text-slate-900"
-                      }`}
-                    >
-                      <option value="ALL">Active Jobs (Hide Discarded)</option>
-                      <option value="NEW">New (Unreviewed)</option>
-                      <option value="SAVED">Saved Jobs</option>
-                      <option value="APPLIED">Applied Jobs</option>
-                      <option value="DISCARDED">Discarded Jobs</option>
-                    </select>
-                  </div>
-                </div>
+        )}
 
-                {/* Job List Accordions */}
-                {filteredJobs.length === 0 ? (
-                  <div
-                    className={`text-center py-16 rounded-2xl border ${
-                      isDark ? "bg-slate-900/40 border-slate-800" : "bg-white border-slate-200 shadow-sm"
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Vertical Left Navigation Sidebar */}
+          <SidebarNav
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            jobCount={filteredJobs.length}
+            appCount={appsList.length}
+            currentLang={currentLang}
+          />
+
+          {/* Main Dashboard Content Area */}
+          <div className="flex-1 min-w-0">
+
+            {loading ? (
+              <div className="py-20 text-center">
+                <div className="inline-block w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+                <p className={`mt-4 text-[18px] font-medium ${isDark ? "text-slate-400" : "text-slate-600"}`}>
+                  Loading JobseekeR™ Dashboard...
+                </p>
+              </div>
+            ) : (
+              <>
+                {/* APPLICATION SUMMARY */}
+                <section
+                  aria-label="Monthly application summary"
+                  className={`mb-8 rounded-2xl border p-6 transition ${isDark ? "bg-slate-900/80 border-slate-800" : "bg-white border-slate-200 shadow-sm"
                     }`}
-                  >
-                    <h3 className={`text-[23px] font-semibold ${isDark ? "text-slate-300" : "text-slate-700"}`}>No matching jobs found</h3>
-                    <p className={`text-[17px] mt-1 ${isDark ? "text-slate-500" : "text-slate-500"}`}>
-                      Try running the 12:00 PM scanner or adjusting your search filters.
-                    </p>
-                    <button
-                      onClick={triggerScan}
-                      className="mt-4 px-5 py-3 bg-emerald-600 text-white text-[17px] font-semibold rounded-xl hover:bg-emerald-500 transition shadow-sm"
+                >
+                  <div className="flex flex-col lg:flex-row lg:items-center gap-5">
+                    <div
+                      className={`min-w-55 rounded-xl border p-5 ${isDark
+                        ? "bg-cyan-500/10 border-cyan-500/30"
+                        : "bg-cyan-50 border-cyan-200"
+                        }`}
                     >
-                      Scan JobTech API Now
-                    </button>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {filteredJobs.map((job) => {
-                      const matchedSkillsArr: string[] = JSON.parse(job.matchedSkills || "[]");
-                      const domainScoresObj = JSON.parse(job.domainScores || "{}");
-                      const isExpanded = expandedJobIds.has(job.id);
+                      <p className={`text-[16px] font-bold uppercase tracking-wide ${isDark ? "text-cyan-300" : "text-cyan-700"}`}>
+                        Applied this month
+                      </p>
+                      <p className={`mt-1 text-[38px] font-bold leading-none ${isDark ? "text-cyan-200" : "text-cyan-800"}`}>
+                        {applicationsByMonth[currentMonthTag] || 0}
+                      </p>
+                      <p className={`mt-2 text-[16px] capitalize ${isDark ? "text-cyan-200/70" : "text-cyan-700/80"}`}>
+                        {currentMonthLabel}
+                      </p>
+                    </div>
 
-                      return (
-                        <div
-                          key={job.id}
-                          className={`rounded-2xl border transition shadow-sm overflow-hidden ${
-                            isDark
-                              ? "bg-slate-900/80 border-slate-800 hover:border-slate-700"
-                              : "bg-white border-slate-200 hover:border-slate-300"
-                          }`}
+                    <div className="flex-1">
+                      <div className="flex flex-wrap items-baseline justify-between gap-2">
+                        <div>
+                          <h2 className={`text-[23px] font-bold ${isDark ? "text-white" : "text-slate-900"}`}>
+                            Applications by calendar month
+                          </h2>
+                          <p className={`text-[17px] ${isDark ? "text-slate-400" : "text-slate-600"}`}>
+                            Your applied jobs are kept in the Monthly Application Tracker.
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => setActiveTab("tracker")}
+                          className="text-[16px] font-bold text-emerald-600 hover:text-emerald-500 underline cursor-pointer"
                         >
-                          {/* ACCORDION COLLAPSED HEADER */}
-                          <div className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                            <div className="flex-1 space-y-2">
-                              {/* Top Row: Score Badge + Status */}
-                              <div className="flex items-center space-x-3">
-                                <span
-                                  className={`px-3.5 py-1 rounded-full text-[16px] font-bold shadow-sm ${
-                                    job.matchScore >= 75
-                                      ? isDark
-                                        ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30"
-                                        : "bg-emerald-50 text-emerald-700 border border-emerald-300"
-                                      : job.matchScore >= 55
-                                      ? isDark
-                                        ? "bg-amber-500/10 text-amber-400 border border-amber-500/30"
-                                        : "bg-amber-50 text-amber-700 border border-amber-300"
-                                      : isDark
-                                      ? "bg-slate-800 text-slate-400"
-                                      : "bg-slate-100 text-slate-600"
-                                  }`}
-                                >
-                                  {job.matchScore}% Match
-                                </span>
-
-                                <span
-                                  className={`text-[14px] font-semibold uppercase px-3 py-0.5 rounded-md ${
-                                    job.status === "APPLIED"
-                                      ? isDark
-                                        ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20"
-                                        : "bg-cyan-50 text-cyan-700 border border-cyan-200"
-                                      : job.status === "SAVED"
-                                      ? isDark
-                                        ? "bg-purple-500/10 text-purple-400 border border-purple-500/20"
-                                        : "bg-purple-50 text-purple-700 border border-purple-200"
-                                      : job.status === "DISCARDED"
-                                      ? isDark
-                                        ? "bg-red-500/10 text-red-400 border border-red-500/20"
-                                        : "bg-red-50 text-red-700 border border-red-200"
-                                      : isDark
-                                      ? "bg-slate-800 text-slate-400"
-                                      : "bg-slate-100 text-slate-600"
-                                  }`}
-                                >
-                                  {job.status}
-                                </span>
-
-                                {/* Source Badge */}
-                                <span
-                                  className={`text-[13px] font-bold px-2.5 py-0.5 rounded-md border ${
-                                    job.source.includes("LinkedIn")
-                                      ? "bg-blue-600 text-white border-blue-700"
-                                      : isDark
-                                      ? "bg-slate-800 text-emerald-400 border-slate-700"
-                                      : "bg-slate-100 text-slate-700 border-slate-300"
-                                  }`}
-                                >
-                                  {job.source.includes("LinkedIn") ? "💼 LinkedIn Jobs" : "🏛️ JobTech Platsbanken"}
-                                </span>
-
-                                <span className={`text-[15px] ${isDark ? "text-slate-400" : "text-slate-500"}`}>
-                                  Published: {new Date(job.publishedAt).toLocaleDateString("sv-SE")}
-                                </span>
-                              </div>
-
-                              {/* Title & Company */}
-                              <div>
-                                <h2 className={`text-[22px] font-bold ${isDark ? "text-white" : "text-slate-900"}`}>
-                                  {job.title}
-                                </h2>
-                                <p className={`text-[16px] font-medium mt-0.5 flex items-center space-x-2 ${isDark ? "text-slate-400" : "text-slate-600"}`}>
-                                  <span>🏢 {job.company}</span>
-                                  <span>•</span>
-                                  <span>📍 {job.location}</span>
-                                </p>
-                              </div>
-                            </div>
-
-                            {/* Accordion Toggle & Quick Primary Actions */}
-                            <div className="flex items-center space-x-3">
-                              {/* Primary Action Button */}
-                              {job.status !== "APPLIED" && (
-                                <button
-                                  onClick={() => updateJobStatus(job.id, "APPLIED")}
-                                  className="px-4 py-2 bg-cyan-600 text-white hover:bg-cyan-500 text-[15px] font-bold rounded-xl transition cursor-pointer shadow-sm"
-                                >
-                                  Mark Applied
-                                </button>
-                              )}
-
-                              {/* Accordion Menu Toggle Button */}
-                              <button
-                                onClick={() => toggleAccordion(job.id)}
-                                className={`px-4 py-2 text-[16px] font-bold rounded-xl border transition flex items-center space-x-2 cursor-pointer ${
-                                  isExpanded
-                                    ? isDark
-                                      ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/40"
-                                      : "bg-emerald-50 text-emerald-700 border-emerald-300"
-                                    : isDark
-                                    ? "bg-slate-800 text-slate-200 border-slate-700 hover:bg-slate-700"
-                                    : "bg-slate-100 text-slate-800 border-slate-300 hover:bg-slate-200"
+                          Open tracker →
+                        </button>
+                      </div>
+                      <div className="mt-4 flex flex-wrap gap-3">
+                        {applicationMonths.length === 0 ? (
+                          <span className={`text-[16px] ${isDark ? "text-slate-500" : "text-slate-500"}`}>
+                            No applications recorded yet.
+                          </span>
+                        ) : (
+                          applicationMonths.map((month) => (
+                            <button
+                              key={month}
+                              onClick={() => {
+                                setSelectedMonth(month);
+                                setActiveTab("tracker");
+                              }}
+                              className={`rounded-lg border px-3.5 py-2 text-[16px] font-bold transition cursor-pointer ${month === currentMonthTag
+                                ? isDark
+                                  ? "border-cyan-500/40 bg-cyan-500/10 text-cyan-300"
+                                  : "border-cyan-300 bg-cyan-50 text-cyan-800"
+                                : isDark
+                                  ? "border-slate-700 bg-slate-950 text-slate-300 hover:border-slate-600"
+                                  : "border-slate-200 bg-slate-50 text-slate-700 hover:border-slate-300"
                                 }`}
-                              >
-                                <span>{isExpanded ? "▲ Hide Menu" : "▼ Breakdown & Options"}</span>
-                              </button>
-                            </div>
-                          </div>
+                            >
+                              {month}: {applicationsByMonth[month] || 0}
+                            </button>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </section>
 
-                          {/* ACCORDION EXPANDED DROPDOWN MENU PANEL */}
-                          {isExpanded && (
-                            <div className={`p-6 border-t space-y-6 transition-all ${isDark ? "border-slate-800 bg-slate-950/60" : "border-slate-200 bg-slate-50/70"}`}>
-                              {/* 1. ACCORDION ACTION BUTTONS DROPDOWN MENU */}
-                              <div>
-                                <h3 className={`text-[17px] font-bold uppercase tracking-wider mb-3 ${isDark ? "text-slate-400" : "text-slate-600"}`}>
-                                  ⚡ Accordion Menu Options
-                                </h3>
-                                <div className="flex flex-wrap items-center gap-3">
-                                  {/* Breakdown & Analysis */}
-                                  <button
-                                    onClick={() => {
-                                      setSelectedJob(job);
-                                      setModalTab("analysis");
-                                    }}
-                                    className="px-4 py-2.5 bg-emerald-600 text-white hover:bg-emerald-500 text-[15px] font-bold rounded-xl transition cursor-pointer shadow-sm flex items-center space-x-1.5"
-                                  >
-                                    <span>💡 Match Breakdown & Pitch Strategy</span>
-                                  </button>
+                {/* TAB 1: DAILY FEED */}
+                {activeTab === "feed" && (
+                  <div className="space-y-7">
+                    {/* External Job URL Importer Bar (LinkedIn, Teamtailor, Workday, ATS Portals) */}
+                    <div className="bg-[#381f09]/90 border-2 border-amber-400/50 rounded-2xl p-5 shadow-xl text-amber-100">
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-sm sm:text-base font-extrabold text-amber-300 uppercase tracking-wider flex items-center space-x-2">
+                          <span>🔗 Importera Direkt Jobblänk</span>
+                          <span className="text-xs font-normal text-amber-200/70 normal-case">(LinkedIn, Teamtailor, Workday, ATS Portal)</span>
+                        </h3>
+                      </div>
+                      <form onSubmit={handleImportJobUrl} className="flex flex-col sm:flex-row gap-3 items-stretch">
+                        <input
+                          type="url"
+                          placeholder="Klistra in jobb-URL (t.ex. LinkedIn, Teamtailor, Workday, karriärsida)..."
+                          value={importUrlInput}
+                          onChange={(e) => setImportUrlInput(e.target.value)}
+                          className="flex-1 bg-[#241203] border border-amber-500/40 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-semibold text-amber-100 placeholder:text-amber-200/50 focus:outline-none focus:border-amber-400 transition"
+                        />
+                        <button
+                          type="submit"
+                          disabled={importingUrl || !importUrlInput.trim()}
+                          className="px-5 py-2.5 bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-300 hover:to-orange-300 text-amber-950 font-black text-xs sm:text-sm rounded-xl transition cursor-pointer shadow-md disabled:opacity-50 flex items-center justify-center space-x-2 shrink-0"
+                        >
+                          <span>{importingUrl ? "⏳ Importerar..." : "🚀 Importera & Matcha"}</span>
+                        </button>
+                      </form>
+                      {importMessage && (
+                        <p className="mt-2 text-xs font-bold text-amber-300 animate-fade-in">
+                          {importMessage}
+                        </p>
+                      )}
+                    </div>
 
-                                  {/* Save Job */}
-                                  {job.status !== "SAVED" && (
-                                    <button
-                                      onClick={() => updateJobStatus(job.id, "SAVED")}
-                                      className={`px-4 py-2.5 text-[15px] font-bold rounded-xl transition cursor-pointer border flex items-center space-x-1.5 ${
-                                        isDark
-                                          ? "bg-purple-500/10 text-purple-400 border-purple-500/30 hover:bg-purple-500/20"
-                                          : "bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100"
-                                      }`}
+                    {/* Search & Filters */}
+                    <div
+                      className={`flex flex-col sm:flex-row gap-4 justify-between items-stretch sm:items-center p-5 rounded-2xl border transition ${isDark ? "bg-slate-900/60 border-slate-800" : "bg-white border-slate-200 shadow-sm"
+                        }`}
+                    >
+                      <div className="relative flex-1">
+                        <input
+                          type="text"
+                          placeholder={t.searchPlaceholder}
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          className={`w-full border rounded-xl px-4 py-3 text-[17px] focus:outline-none focus:border-amber-500 transition ${isDark
+                            ? "bg-[#251304] border-amber-500/40 text-amber-100"
+                            : "bg-[#251304] border-amber-500/40 text-amber-100"
+                            }`}
+                        />
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-[17px] font-medium text-amber-300">Status:</span>
+                        <select
+                          value={statusFilter}
+                          onChange={(e) => setStatusFilter(e.target.value)}
+                          className="border border-amber-500/40 rounded-xl px-4 py-3 text-[17px] focus:outline-none focus:border-amber-400 bg-[#251304] text-amber-100 font-bold cursor-pointer"
+                        >
+                          <option value="ALL">{t.statusAll}</option>
+                          <option value="NEW">New Jobs</option>
+                          <option value="SAVED">Saved Jobs</option>
+                          <option value="APPLIED">{t.statusApplied}</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Job List Accordions */}
+                    {filteredJobs.length === 0 ? (
+                      <div
+                        className="text-center py-16 rounded-2xl border bg-[#381f09]/80 border-amber-500/40 shadow-xl"
+                      >
+                        <h3 className="text-[23px] font-bold text-amber-100">{t.noJobsFound}</h3>
+                        <p className="text-[17px] mt-1 text-amber-200/70">
+                          Try running a job scan or adjusting your search filters.
+                        </p>
+                        <button
+                          onClick={triggerJobScan}
+                          className="mt-4 px-6 py-3 bg-gradient-to-r from-amber-400 to-orange-500 text-amber-950 text-[17px] font-black rounded-xl hover:opacity-90 transition shadow-lg"
+                        >
+                          ⚡ {t.runJobScan}
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {filteredJobs.map((job) => {
+                          const matchedSkillsArr: string[] = JSON.parse(job.matchedSkills || "[]");
+                          const domainScoresObj = JSON.parse(job.domainScores || "{}");
+                          const isExpanded = expandedJobIds.has(job.id);
+
+                          return (
+                            <div
+                              key={job.id}
+                              className={`rounded-2xl border transition shadow-sm overflow-hidden ${isDark
+                                ? "bg-slate-900/80 border-slate-800 hover:border-slate-700"
+                                : "bg-white border-slate-200 hover:border-slate-300"
+                                }`}
+                            >
+                              {/* ACCORDION COLLAPSED HEADER */}
+                              <div className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                <div className="flex-1 space-y-2">
+                                  {/* Top Row: Score Badge + Status */}
+                                  <div className="flex items-center space-x-3">
+                                    <span
+                                      className={`px-3.5 py-1 rounded-full text-[16px] font-bold shadow-sm ${job.matchScore >= 75
+                                        ? isDark
+                                          ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30"
+                                          : "bg-emerald-50 text-emerald-700 border border-emerald-300"
+                                        : job.matchScore >= 55
+                                          ? isDark
+                                            ? "bg-amber-500/10 text-amber-400 border border-amber-500/30"
+                                            : "bg-amber-50 text-amber-700 border border-amber-300"
+                                          : isDark
+                                            ? "bg-slate-800 text-slate-400"
+                                            : "bg-slate-100 text-slate-600"
+                                        }`}
                                     >
-                                      <span>🔖 Save Job</span>
-                                    </button>
-                                  )}
+                                      {job.matchScore}% Match
+                                    </span>
 
-                                  {/* Mark Applied */}
+                                    <span
+                                      className={`text-[14px] font-semibold uppercase px-3 py-0.5 rounded-md ${job.status === "APPLIED"
+                                        ? isDark
+                                          ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20"
+                                          : "bg-cyan-50 text-cyan-700 border border-cyan-200"
+                                        : job.status === "SAVED"
+                                          ? isDark
+                                            ? "bg-purple-500/10 text-purple-400 border border-purple-500/20"
+                                            : "bg-purple-50 text-purple-700 border border-purple-200"
+                                          : job.status === "DISCARDED"
+                                            ? isDark
+                                              ? "bg-red-500/10 text-red-400 border border-red-500/20"
+                                              : "bg-red-50 text-red-700 border border-red-200"
+                                            : isDark
+                                              ? "bg-slate-800 text-slate-400"
+                                              : "bg-slate-100 text-slate-600"
+                                        }`}
+                                    >
+                                      {job.status}
+                                    </span>
+
+                                    {/* Source Badge */}
+                                    <span
+                                      className={`text-[13px] font-bold px-2.5 py-0.5 rounded-md border ${job.source.includes("LinkedIn")
+                                        ? "bg-blue-600 text-white border-blue-700"
+                                        : isDark
+                                          ? "bg-slate-800 text-emerald-400 border-slate-700"
+                                          : "bg-slate-100 text-slate-700 border-slate-300"
+                                        }`}
+                                    >
+                                      {job.source.includes("LinkedIn") ? "💼 LinkedIn Jobs" : "🏛️ JobTech Platsbanken"}
+                                    </span>
+
+                                    <span className={`text-[15px] ${isDark ? "text-slate-400" : "text-slate-500"}`}>
+                                      Published: {new Date(job.publishedAt).toLocaleDateString("sv-SE")}
+                                    </span>
+                                  </div>
+
+                                  {/* Title & Company */}
+                                  <div>
+                                    <h2 className={`text-[22px] font-bold ${isDark ? "text-white" : "text-slate-900"}`}>
+                                      {job.title}
+                                    </h2>
+                                    <p className={`text-[16px] font-medium mt-0.5 flex items-center space-x-2 ${isDark ? "text-slate-400" : "text-slate-600"}`}>
+                                      <span>🏢 {job.company}</span>
+                                      <span>•</span>
+                                      <span>📍 {job.location}</span>
+                                    </p>
+                                  </div>
+                                </div>
+
+                                {/* Accordion Toggle & Quick Primary Actions */}
+                                <div className="flex items-center space-x-3">
+                                  {/* Primary Action Button */}
                                   {job.status !== "APPLIED" && (
                                     <button
                                       onClick={() => updateJobStatus(job.id, "APPLIED")}
-                                      className="px-4 py-2.5 bg-cyan-600 text-white hover:bg-cyan-500 text-[15px] font-bold rounded-xl transition cursor-pointer shadow-sm flex items-center space-x-1.5"
+                                      className="px-4 py-2 bg-cyan-600 text-white hover:bg-cyan-500 text-[15px] font-bold rounded-xl transition cursor-pointer shadow-sm"
                                     >
-                                      <span>✉️ Mark as Applied</span>
+                                      Mark Applied
                                     </button>
                                   )}
 
-                                  {/* Direct Apply Web Link */}
-                                  {job.webpageUrl && (
-                                    <a
-                                      href={job.webpageUrl}
-                                      target="_blank"
-                                      rel="noreferrer"
-                                      className={`px-4 py-2.5 text-[15px] font-bold rounded-xl transition cursor-pointer border flex items-center space-x-1.5 ${
-                                        isDark
-                                          ? "bg-slate-800 text-slate-200 border-slate-700 hover:bg-slate-700"
-                                          : "bg-slate-100 text-slate-800 border-slate-300 hover:bg-slate-200"
-                                      }`}
-                                    >
-                                      <span>↗️ Apply on Platsbanken</span>
-                                    </a>
-                                  )}
-
-                                  {/* DISCARD / DELETE BUTTON */}
+                                  {/* Accordion Menu Toggle Button */}
                                   <button
-                                    onClick={() => updateJobStatus(job.id, "DISCARDED")}
-                                    className="px-4 py-2.5 bg-red-600/10 text-red-600 border border-red-200 dark:border-red-500/30 hover:bg-red-600 text-[15px] hover:text-white font-bold rounded-xl transition cursor-pointer flex items-center space-x-1.5"
+                                    onClick={() => toggleAccordion(job.id)}
+                                    className={`px-4 py-2 text-[16px] font-bold rounded-xl border transition flex items-center space-x-2 cursor-pointer ${isExpanded
+                                      ? isDark
+                                        ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/40"
+                                        : "bg-emerald-50 text-emerald-700 border-emerald-300"
+                                      : isDark
+                                        ? "bg-slate-800 text-slate-200 border-slate-700 hover:bg-slate-700"
+                                        : "bg-slate-100 text-slate-800 border-slate-300 hover:bg-slate-200"
+                                      }`}
                                   >
-                                    <span>🗑️ Discard & Delete (Never Show Again)</span>
+                                    <span>{isExpanded ? "▲ Hide Menu" : "▼ Breakdown & Options"}</span>
                                   </button>
                                 </div>
                               </div>
 
-                              {/* 2. DOMAIN BREAKDOWN BADGES */}
-                              <div>
-                                <h4 className={`text-[16px] font-bold mb-2 ${isDark ? "text-slate-300" : "text-slate-700"}`}>
-                                  Domain Match Fit:
-                                </h4>
-                                <div className="flex flex-wrap gap-2">
-                                  {domainScoresObj.software > 0 && (
-                                    <span className={`text-[14px] px-3 py-1 rounded-md font-semibold ${isDark ? "bg-blue-500/10 text-blue-400 border border-blue-500/20" : "bg-blue-50 text-blue-800 border border-blue-200"}`}>
-                                      Software ({domainScoresObj.software}%)
-                                    </span>
-                                  )}
-                                  {domainScoresObj.systems > 0 && (
-                                    <span className={`text-[14px] px-3 py-1 rounded-md font-semibold ${isDark ? "bg-purple-500/10 text-purple-400 border border-purple-500/20" : "bg-purple-50 text-purple-800 border border-purple-200"}`}>
-                                      Systems ({domainScoresObj.systems}%)
-                                    </span>
-                                  )}
-                                  {domainScoresObj.quality > 0 && (
-                                    <span className={`text-[14px] px-3 py-1 rounded-md font-semibold ${isDark ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-emerald-50 text-emerald-800 border border-emerald-200"}`}>
-                                      Quality ({domainScoresObj.quality}%)
-                                    </span>
-                                  )}
-                                  {domainScoresObj.industrial > 0 && (
-                                    <span className={`text-[14px] px-3 py-1 rounded-md font-semibold ${isDark ? "bg-amber-500/10 text-amber-400 border border-amber-500/20" : "bg-amber-50 text-amber-800 border border-amber-200"}`}>
-                                      Manufacturing ({domainScoresObj.industrial}%)
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-
-                              {/* 3. MATCHED SKILL TAGS */}
-                              {matchedSkillsArr.length > 0 && (
-                                <div>
-                                  <h4 className={`text-[16px] font-bold mb-2 ${isDark ? "text-slate-300" : "text-slate-700"}`}>
-                                    Matched Skills & Keywords:
-                                  </h4>
-                                  <div className="flex flex-wrap gap-2">
-                                    {matchedSkillsArr.map((skill, idx) => (
-                                      <span
-                                        key={idx}
-                                        className={`text-[14px] px-3 py-1 rounded-md border font-semibold ${
-                                          isDark
-                                            ? "bg-slate-950 text-slate-300 border-slate-800"
-                                            : "bg-slate-100 text-slate-800 border-slate-200"
-                                        }`}
+                              {/* ACCORDION EXPANDED DROPDOWN MENU PANEL */}
+                              {isExpanded && (
+                                <div className={`p-6 border-t space-y-6 transition-all ${isDark ? "border-slate-800 bg-slate-950/60" : "border-slate-200 bg-slate-50/70"}`}>
+                                  {/* 1. ACCORDION ACTION BUTTONS DROPDOWN MENU */}
+                                  <div>
+                                    <h3 className={`text-[17px] font-bold uppercase tracking-wider mb-3 ${isDark ? "text-slate-400" : "text-slate-600"}`}>
+                                      ⚡ Accordion Menu Options
+                                    </h3>
+                                    <div className="flex flex-wrap items-center gap-3">
+                                      {/* Breakdown & Analysis */}
+                                      <button
+                                        onClick={() => {
+                                          setSelectedJob(job);
+                                          setModalTab("analysis");
+                                        }}
+                                        className="px-4 py-2.5 bg-emerald-600 text-white hover:bg-emerald-500 text-[15px] font-bold rounded-xl transition cursor-pointer shadow-sm flex items-center space-x-1.5"
                                       >
-                                        ✓ {skill}
-                                      </span>
-                                    ))}
+                                        <span>💡 Match Breakdown & Pitch Strategy</span>
+                                      </button>
+
+                                      {/* Save Job */}
+                                      {job.status !== "SAVED" && (
+                                        <button
+                                          onClick={() => updateJobStatus(job.id, "SAVED")}
+                                          className={`px-4 py-2.5 text-[15px] font-bold rounded-xl transition cursor-pointer border flex items-center space-x-1.5 ${isDark
+                                            ? "bg-purple-500/10 text-purple-400 border-purple-500/30 hover:bg-purple-500/20"
+                                            : "bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100"
+                                            }`}
+                                        >
+                                          <span>🔖 Save Job</span>
+                                        </button>
+                                      )}
+
+                                      {/* Mark Applied */}
+                                      {job.status !== "APPLIED" && (
+                                        <button
+                                          onClick={() => updateJobStatus(job.id, "APPLIED")}
+                                          className="px-4 py-2.5 bg-cyan-600 text-white hover:bg-cyan-500 text-[15px] font-bold rounded-xl transition cursor-pointer shadow-sm flex items-center space-x-1.5"
+                                        >
+                                          <span>✉️ Mark as Applied</span>
+                                        </button>
+                                      )}
+
+                                      {/* Direct Apply Web Link */}
+                                      {job.webpageUrl && (
+                                        <a
+                                          href={job.webpageUrl}
+                                          target="_blank"
+                                          rel="noreferrer"
+                                          className={`px-4 py-2.5 text-[15px] font-bold rounded-xl transition cursor-pointer border flex items-center space-x-1.5 ${isDark
+                                            ? "bg-slate-800 text-slate-200 border-slate-700 hover:bg-slate-700"
+                                            : "bg-slate-100 text-slate-800 border-slate-300 hover:bg-slate-200"
+                                            }`}
+                                        >
+                                          <span>↗️ Apply on Platsbanken</span>
+                                        </a>
+                                      )}
+
+                                      {/* DISCARD / DELETE BUTTON */}
+                                      <button
+                                        onClick={() => updateJobStatus(job.id, "DISCARDED")}
+                                        className="px-4 py-2.5 bg-red-600/10 text-red-600 border border-red-200 dark:border-red-500/30 hover:bg-red-600 text-[15px] hover:text-white font-bold rounded-xl transition cursor-pointer flex items-center space-x-1.5"
+                                      >
+                                        <span>🗑️ Discard & Delete (Never Show Again)</span>
+                                      </button>
+                                    </div>
+                                  </div>
+
+                                  {/* 2. DOMAIN BREAKDOWN BADGES */}
+                                  <div>
+                                    <h4 className={`text-[16px] font-bold mb-2 ${isDark ? "text-slate-300" : "text-slate-700"}`}>
+                                      Domain Match Fit:
+                                    </h4>
+                                    <div className="flex flex-wrap gap-2">
+                                      {domainScoresObj.software > 0 && (
+                                        <span className={`text-[14px] px-3 py-1 rounded-md font-semibold ${isDark ? "bg-blue-500/10 text-blue-400 border border-blue-500/20" : "bg-blue-50 text-blue-800 border border-blue-200"}`}>
+                                          Software ({domainScoresObj.software}%)
+                                        </span>
+                                      )}
+                                      {domainScoresObj.systems > 0 && (
+                                        <span className={`text-[14px] px-3 py-1 rounded-md font-semibold ${isDark ? "bg-purple-500/10 text-purple-400 border border-purple-500/20" : "bg-purple-50 text-purple-800 border border-purple-200"}`}>
+                                          Systems ({domainScoresObj.systems}%)
+                                        </span>
+                                      )}
+                                      {domainScoresObj.quality > 0 && (
+                                        <span className={`text-[14px] px-3 py-1 rounded-md font-semibold ${isDark ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-emerald-50 text-emerald-800 border border-emerald-200"}`}>
+                                          Quality ({domainScoresObj.quality}%)
+                                        </span>
+                                      )}
+                                      {domainScoresObj.industrial > 0 && (
+                                        <span className={`text-[14px] px-3 py-1 rounded-md font-semibold ${isDark ? "bg-amber-500/10 text-amber-400 border border-amber-500/20" : "bg-amber-50 text-amber-800 border border-amber-200"}`}>
+                                          Manufacturing ({domainScoresObj.industrial}%)
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  {/* 3. MATCHED SKILL TAGS */}
+                                  {matchedSkillsArr.length > 0 && (
+                                    <div>
+                                      <h4 className={`text-[16px] font-bold mb-2 ${isDark ? "text-slate-300" : "text-slate-700"}`}>
+                                        Matched Skills & Keywords:
+                                      </h4>
+                                      <div className="flex flex-wrap gap-2">
+                                        {matchedSkillsArr.map((skill, idx) => (
+                                          <span
+                                            key={idx}
+                                            className={`text-[14px] px-3 py-1 rounded-md border font-semibold ${isDark
+                                              ? "bg-slate-950 text-slate-300 border-slate-800"
+                                              : "bg-slate-100 text-slate-800 border-slate-200"
+                                              }`}
+                                          >
+                                            ✓ {skill}
+                                          </span>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* 4. DESCRIPTION PREVIEW */}
+                                  <div>
+                                    <h4 className={`text-[16px] font-bold mb-2 ${isDark ? "text-slate-300" : "text-slate-700"}`}>
+                                      Job Overview:
+                                    </h4>
+                                    <p className={`text-[17px] leading-relaxed whitespace-pre-line ${isDark ? "text-slate-400" : "text-slate-600"}`}>
+                                      {job.description}
+                                    </p>
                                   </div>
                                 </div>
                               )}
-
-                              {/* 4. DESCRIPTION PREVIEW */}
-                              <div>
-                                <h4 className={`text-[16px] font-bold mb-2 ${isDark ? "text-slate-300" : "text-slate-700"}`}>
-                                  Job Overview:
-                                </h4>
-                                <p className={`text-[17px] leading-relaxed whitespace-pre-line ${isDark ? "text-slate-400" : "text-slate-600"}`}>
-                                  {job.description}
-                                </p>
-                              </div>
                             </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* TAB 2: MONTHLY APPLICATION TRACKER */}
-            {activeTab === "tracker" && (
-              <div className="space-y-6">
-                {/* Month Tabs Header & Aktivitetsrapport Export */}
-                <div
-                  className={`flex flex-col md:flex-row justify-between items-start md:items-center p-6 rounded-2xl border gap-4 transition ${
-                    isDark ? "bg-slate-900/60 border-slate-800" : "bg-white border-slate-200 shadow-sm"
-                  }`}
-                >
-                  <div>
-                    <h2 className={`text-[23px] font-bold ${isDark ? "text-white" : "text-slate-900"}`}>
-                      Monthly Job Application Log & Arbetsförmedlingen Compliance
-                    </h2>
-                    <p className={`text-[17px] mt-0.5 ${isDark ? "text-slate-400" : "text-slate-600"}`}>
-                      Track jobs applied each month and generate your official Swedish **Aktivitetsrapport**.
-                    </p>
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-3">
-                    <div className="flex items-center space-x-2">
-                      <span className={`text-[17px] font-medium ${isDark ? "text-slate-400" : "text-slate-600"}`}>Select Month:</span>
-                      <select
-                        value={selectedMonth}
-                        onChange={(e) => setSelectedMonth(e.target.value)}
-                        className={`border rounded-xl px-4 py-2.5 text-[17px] focus:outline-none focus:border-emerald-600 ${
-                          isDark
-                            ? "bg-slate-950 border-slate-800 text-slate-200"
-                            : "bg-slate-50 border-slate-300 text-slate-900"
-                        }`}
-                      >
-                        {months.length === 0 ? (
-                          <option value="">No Month Logs Yet</option>
-                        ) : (
-                          months.map((m) => (
-                            <option key={m} value={m}>
-                              📅 {m}
-                            </option>
-                          ))
-                        )}
-                      </select>
-                    </div>
-
-                    {/* AKTIVITETSRAPPORT EXPORT BUTTON */}
-                    <button
-                      onClick={() => setShowAktivitetsrapport(true)}
-                      className="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-[16px] font-bold rounded-xl transition cursor-pointer shadow-md shadow-emerald-600/20 flex items-center space-x-2"
-                    >
-                      <span>📄 Export Swedish Aktivitetsrapport (PDF / Print)</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Applications Table */}
-                {filteredApps.length === 0 ? (
-                  <div
-                    className={`text-center py-16 rounded-2xl border ${
-                      isDark ? "bg-slate-900/40 border-slate-800" : "bg-white border-slate-200 shadow-sm"
-                    }`}
-                  >
-                    <p className={`text-[22px] font-semibold ${isDark ? "text-slate-300" : "text-slate-700"}`}>
-                      No applications logged for {selectedMonth || "this month"}
-                    </p>
-                    <p className={`text-[17px] mt-1 ${isDark ? "text-slate-500" : "text-slate-500"}`}>
-                      Mark jobs as "Applied" from the Daily Feed tab to start tracking your applications.
-                    </p>
-                  </div>
-                ) : (
-                  <div
-                    className={`overflow-x-auto rounded-2xl border shadow-sm transition ${
-                      isDark ? "bg-slate-900/80 border-slate-800" : "bg-white border-slate-200"
-                    }`}
-                  >
-                    <table className="w-full text-left text-[17px]">
-                      <thead
-                        className={`uppercase tracking-wider border-b ${
-                          isDark
-                            ? "bg-slate-950 text-slate-400 border-slate-800"
-                            : "bg-slate-100 text-slate-700 border-slate-200"
-                        }`}
-                      >
-                        <tr>
-                          <th className="py-4 px-5 font-bold text-[18px]">Job Title & Company</th>
-                          <th className="py-4 px-5 font-bold text-[18px]">Location</th>
-                          <th className="py-4 px-5 font-bold text-[18px]">Match %</th>
-                          <th className="py-4 px-5 font-bold text-[18px]">Date Applied</th>
-                          <th className="py-4 px-5 font-bold text-[18px]">Status</th>
-                          <th className="py-4 px-5 font-bold text-[18px]">Resume / CV Version</th>
-                          <th className="py-4 px-5 font-bold text-right text-[18px]">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody className={`divide-y ${isDark ? "divide-slate-800/60" : "divide-slate-200"}`}>
-                        {filteredApps.map((app) => (
-                          <tr key={app.id} className={isDark ? "hover:bg-slate-800/40 transition" : "hover:bg-slate-50 transition"}>
-                            <td className="py-4 px-5">
-                              <p className={`font-bold text-[19px] ${isDark ? "text-white" : "text-slate-900"}`}>{app.job?.title || "Job Title"}</p>
-                              <p className={`text-[16px] ${isDark ? "text-slate-400" : "text-slate-600"}`}>{app.job?.company || "Company"}</p>
-                            </td>
-                            <td className={`py-4 px-5 text-[17px] ${isDark ? "text-slate-300" : "text-slate-700"}`}>{app.job?.location || "Sweden"}</td>
-                            <td className="py-4 px-5">
-                              <span className={`px-3 py-1 rounded font-bold text-[16px] border ${isDark ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-emerald-50 text-emerald-700 border-emerald-200"}`}>
-                                {app.job?.matchScore || 0}%
-                              </span>
-                            </td>
-                            <td className={`py-4 px-5 text-[17px] ${isDark ? "text-slate-300" : "text-slate-700"}`}>
-                              {new Date(app.appliedAt).toLocaleDateString("sv-SE")}
-                            </td>
-                            <td className="py-4 px-5">
-                              <select
-                                value={app.status}
-                                onChange={(e) => updateAppStatus(app.id, e.target.value as Application["status"])}
-                                className={`text-[16px] font-semibold px-3 py-2 rounded-lg border focus:outline-none ${
-                                  isDark
-                                    ? "bg-slate-950 border-slate-800"
-                                    : "bg-slate-50 border-slate-300"
-                                } ${
-                                  app.status === "APPLIED"
-                                    ? "text-cyan-600 font-bold"
-                                    : app.status === "INTERVIEWING"
-                                    ? "text-purple-600 font-bold"
-                                    : app.status === "OFFER"
-                                    ? "text-emerald-600 font-bold"
-                                    : "text-red-600 font-bold"
-                                }`}
-                              >
-                                <option value="APPLIED">Applied</option>
-                                <option value="INTERVIEWING">Interviewing</option>
-                                <option value="OFFER">Offer Received 🎉</option>
-                                <option value="REJECTED">Rejected</option>
-                              </select>
-                            </td>
-                            <td className={`py-4 px-5 text-[16px] ${isDark ? "text-slate-400" : "text-slate-600"}`}>{app.resumeVersion}</td>
-                            <td className="py-4 px-5 text-right">
-                              {app.job?.webpageUrl && (
-                                <a
-                                  href={app.job.webpageUrl}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className="text-[16px] text-emerald-600 hover:text-emerald-500 font-semibold underline"
-                                >
-                                  Ad Link ↗
-                                </a>
-                              )}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* TAB 3: COMPETENCE PROFILE */}
-            {activeTab === "profile" && (
-              <div className="space-y-6 max-w-4xl">
-                <div className={`rounded-2xl p-6 border space-y-6 transition ${isDark ? "bg-slate-900/80 border-slate-800" : "bg-white border-slate-200 shadow-sm"}`}>
-                  <div>
-                    <h2 className={`text-[23px] font-bold ${isDark ? "text-white" : "text-slate-900"}`}>
-                      Manoj John Axelsson — Competence & CV Profile
-                    </h2>
-                    <p className={`text-[17px] mt-1 ${isDark ? "text-slate-400" : "text-slate-600"}`}>
-                      Target roles and skill taxonomy used to score daily Swedish job ads.
-                    </p>
-                  </div>
-
-                  {/* Competence Domains */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <div className={`p-5 rounded-xl border ${isDark ? "bg-slate-950 border-slate-800" : "bg-slate-50 border-slate-200"}`}>
-                      <h3 className="text-[20px] font-bold text-blue-600 uppercase tracking-wider mb-2">1. Software Engineering</h3>
-                      <p className={`text-[17px] leading-relaxed ${isDark ? "text-slate-300" : "text-slate-700"}`}>
-                        React, TypeScript, Next.js, Node.js, Express, PostgreSQL, SQL, REST APIs, Git/GitHub, Tailwind CSS, Vercel.
-                      </p>
-                    </div>
-
-                    <div className={`p-5 rounded-xl border ${isDark ? "bg-slate-950 border-slate-800" : "bg-slate-50 border-slate-200"}`}>
-                      <h3 className="text-[20px] font-bold text-purple-600 uppercase tracking-wider mb-2">2. Systems Engineering & Architecture</h3>
-                      <p className={`text-[17px] leading-relaxed ${isDark ? "text-slate-300" : "text-slate-700"}`}>
-                        Systems Thinking, Software Architecture, Requirements Engineering, Validation & Verification, Technical Documentation, PLM.
-                      </p>
-                    </div>
-
-                    <div className={`p-5 rounded-xl border ${isDark ? "bg-slate-950 border-slate-800" : "bg-slate-50 border-slate-200"}`}>
-                      <h3 className="text-[20px] font-bold text-emerald-600 uppercase tracking-wider mb-2">3. Quality & Continuous Improvement</h3>
-                      <p className={`text-[17px] leading-relaxed ${isDark ? "text-slate-300" : "text-slate-700"}`}>
-                        Six Sigma Green Belt (KPMG), DMAIC, FMEA, Poka-Yoke, Root Cause Analysis, QA, Process Optimization, Standard Work.
-                      </p>
-                    </div>
-
-                    <div className={`p-5 rounded-xl border ${isDark ? "bg-slate-950 border-slate-800" : "bg-slate-50 border-slate-200"}`}>
-                      <h3 className="text-[20px] font-bold text-amber-600 uppercase tracking-wider mb-2">4. Industrial & Manufacturing</h3>
-                      <p className={`text-[17px] leading-relaxed ${isDark ? "text-slate-300" : "text-slate-700"}`}>
-                        Manufacturing Engineering, Production Development, Lean Manufacturing, Industrial Digitalization, Automation, CNC, CAD/CAM.
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Scanner Threshold Slider */}
-                  <div className={`pt-4 border-t space-y-2 ${isDark ? "border-slate-800" : "border-slate-200"}`}>
-                    <label className={`text-[17px] font-semibold flex justify-between ${isDark ? "text-slate-300" : "text-slate-700"}`}>
-                      <span>Minimum Match Threshold for 12:00 PM Daily Feed:</span>
-                      <span className="text-emerald-600 font-bold text-[21px]">{minScore}% Match</span>
-                    </label>
-                    <input
-                      type="range"
-                      min="30"
-                      max="80"
-                      value={minScore}
-                      onChange={(e) => setMinScore(Number(e.target.value))}
-                      className="w-full accent-emerald-600 cursor-pointer"
-                    />
-                    <p className={`text-[16px] ${isDark ? "text-slate-500" : "text-slate-500"}`}>
-                      Only jobs scoring above {minScore}% match score will be saved to your daily feed.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* TAB 4: SCAN LOGS */}
-            {activeTab === "logs" && (
-              <div className="space-y-6">
-                <div className={`rounded-2xl p-6 border transition ${isDark ? "bg-slate-900/80 border-slate-800" : "bg-white border-slate-200 shadow-sm"}`}>
-                  <h2 className={`text-[23px] font-bold mb-4 ${isDark ? "text-white" : "text-slate-900"}`}>
-                    Daily 12:00 PM Scanner Logs
-                  </h2>
-                  <div className="space-y-3">
-                    {scanLogs.length === 0 ? (
-                      <p className="text-[17px] text-slate-500">No scan executions logged yet.</p>
-                    ) : (
-                      scanLogs.map((log) => (
-                        <div
-                          key={log.id}
-                          className={`p-5 rounded-xl border flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 ${
-                            isDark ? "bg-slate-950 border-slate-800" : "bg-slate-50 border-slate-200"
-                          }`}
-                        >
-                          <div>
-                            <p className={`text-[17px] font-bold ${isDark ? "text-slate-200" : "text-slate-800"}`}>
-                              📅 Scan Execution: {new Date(log.scannedAt).toLocaleString("sv-SE")}
-                            </p>
-                            <p className={`text-[16px] mt-0.5 ${isDark ? "text-slate-400" : "text-slate-600"}`}>{log.message}</p>
-                          </div>
-                          <div className="flex items-center space-x-3 text-[16px]">
-                            <span className={`px-3 py-0.5 rounded font-semibold border ${isDark ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-emerald-50 text-emerald-700 border-emerald-200"}`}>
-                              {log.totalMatched} Matched
-                            </span>
-                            <span className={`px-3 py-0.5 rounded font-semibold border ${isDark ? "bg-slate-800 text-slate-300 border-slate-700" : "bg-slate-200 text-slate-700 border-slate-300"}`}>
-                              {log.totalFound} Scanned
-                            </span>
-                          </div>
-                        </div>
-                      ))
+                          );
+                        })}
+                      </div>
                     )}
                   </div>
-                </div>
-              </div>
+                )}
+
+                {/* TAB 2: MONTHLY APPLICATION TRACKER */}
+                {activeTab === "tracker" && (
+                  <div className="space-y-6">
+                    {/* Month Tabs Header & Aktivitetsrapport Export */}
+                    <div
+                      className={`flex flex-col md:flex-row justify-between items-start md:items-center p-6 rounded-2xl border gap-4 transition ${isDark ? "bg-slate-900/60 border-slate-800" : "bg-white border-slate-200 shadow-sm"
+                        }`}
+                    >
+                      <div>
+                        <h2 className={`text-[23px] font-bold ${isDark ? "text-white" : "text-slate-900"}`}>
+                          Monthly Job Application Log & Arbetsförmedlingen Compliance
+                        </h2>
+                        <p className={`text-[17px] mt-0.5 ${isDark ? "text-slate-400" : "text-slate-600"}`}>
+                          Track jobs applied each month and generate your official Swedish **Aktivitetsrapport**.
+                        </p>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-3">
+                        <div className="flex items-center space-x-2">
+                          <span className={`text-[17px] font-medium ${isDark ? "text-slate-400" : "text-slate-600"}`}>Select Month:</span>
+                          <select
+                            value={selectedMonth}
+                            onChange={(e) => setSelectedMonth(e.target.value)}
+                            className={`border rounded-xl px-4 py-2.5 text-[17px] focus:outline-none focus:border-emerald-600 ${isDark
+                              ? "bg-slate-950 border-slate-800 text-slate-200"
+                              : "bg-slate-50 border-slate-300 text-slate-900"
+                              }`}
+                          >
+                            {months.length === 0 ? (
+                              <option value="">No Month Logs Yet</option>
+                            ) : (
+                              months.map((m) => (
+                                <option key={m} value={m}>
+                                  📅 {m}
+                                </option>
+                              ))
+                            )}
+                          </select>
+                        </div>
+
+                        {/* AKTIVITETSRAPPORT EXPORT BUTTON */}
+                        <button
+                          onClick={() => setShowAktivitetsrapport(true)}
+                          className="px-5 py-2.5 bg-linear-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-[16px] font-bold rounded-xl transition cursor-pointer shadow-md shadow-emerald-600/20 flex items-center space-x-2"
+                        >
+                          <span>📄 Export Swedish Aktivitetsrapport (PDF / Print)</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Applications Table */}
+                    {filteredApps.length === 0 ? (
+                      <div
+                        className={`text-center py-16 rounded-2xl border ${isDark ? "bg-slate-900/40 border-slate-800" : "bg-white border-slate-200 shadow-sm"
+                          }`}
+                      >
+                        <p className={`text-[22px] font-semibold ${isDark ? "text-slate-300" : "text-slate-700"}`}>
+                          No applications logged for {selectedMonth || "this month"}
+                        </p>
+                        <p className={`text-[17px] mt-1 ${isDark ? "text-slate-500" : "text-slate-500"}`}>
+                          Mark jobs as "Applied" from the Daily Feed tab to start tracking your applications.
+                        </p>
+                      </div>
+                    ) : (
+                      <div
+                        className={`overflow-x-auto rounded-2xl border shadow-sm transition ${isDark ? "bg-slate-900/80 border-slate-800" : "bg-white border-slate-200"
+                          }`}
+                      >
+                        <table className="w-full text-left text-[17px]">
+                          <thead
+                            className={`uppercase tracking-wider border-b ${isDark
+                              ? "bg-slate-950 text-slate-400 border-slate-800"
+                              : "bg-slate-100 text-slate-700 border-slate-200"
+                              }`}
+                          >
+                            <tr>
+                              <th className="py-4 px-5 font-bold text-[18px]">Job Title & Company</th>
+                              <th className="py-4 px-5 font-bold text-[18px]">Location</th>
+                              <th className="py-4 px-5 font-bold text-[18px]">Match %</th>
+                              <th className="py-4 px-5 font-bold text-[18px]">Date Applied</th>
+                              <th className="py-4 px-5 font-bold text-[18px]">Status</th>
+                              <th className="py-4 px-5 font-bold text-[18px]">Resume / CV Version</th>
+                              <th className="py-4 px-5 font-bold text-right text-[18px]">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody className={`divide-y ${isDark ? "divide-slate-800/60" : "divide-slate-200"}`}>
+                            {filteredApps.map((app) => (
+                              <tr key={app.id} className={isDark ? "hover:bg-slate-800/40 transition" : "hover:bg-slate-50 transition"}>
+                                <td className="py-4 px-5">
+                                  <p className={`font-bold text-[19px] ${isDark ? "text-white" : "text-slate-900"}`}>{app.job?.title || "Job Title"}</p>
+                                  <p className={`text-[16px] ${isDark ? "text-slate-400" : "text-slate-600"}`}>{app.job?.company || "Company"}</p>
+                                </td>
+                                <td className={`py-4 px-5 text-[17px] ${isDark ? "text-slate-300" : "text-slate-700"}`}>{app.job?.location || "Sweden"}</td>
+                                <td className="py-4 px-5">
+                                  <span className={`px-3 py-1 rounded font-bold text-[16px] border ${isDark ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-emerald-50 text-emerald-700 border-emerald-200"}`}>
+                                    {app.job?.matchScore || 0}%
+                                  </span>
+                                </td>
+                                <td className={`py-4 px-5 text-[17px] ${isDark ? "text-slate-300" : "text-slate-700"}`}>
+                                  {new Date(app.appliedAt).toLocaleDateString("sv-SE")}
+                                </td>
+                                <td className="py-4 px-5">
+                                  <select
+                                    value={app.status}
+                                    onChange={(e) => updateAppStatus(app.id, e.target.value as Application["status"])}
+                                    className={`text-[16px] font-semibold px-3 py-2 rounded-lg border focus:outline-none ${isDark
+                                      ? "bg-slate-950 border-slate-800"
+                                      : "bg-slate-50 border-slate-300"
+                                      } ${app.status === "APPLIED"
+                                        ? "text-cyan-600 font-bold"
+                                        : app.status === "INTERVIEWING"
+                                          ? "text-purple-600 font-bold"
+                                          : app.status === "OFFER"
+                                            ? "text-emerald-600 font-bold"
+                                            : "text-red-600 font-bold"
+                                      }`}
+                                  >
+                                    <option value="APPLIED">Applied</option>
+                                    <option value="INTERVIEWING">Interviewing</option>
+                                    <option value="OFFER">Offer Received 🎉</option>
+                                    <option value="REJECTED">Rejected</option>
+                                  </select>
+                                </td>
+                                <td className={`py-4 px-5 text-[16px] ${isDark ? "text-slate-400" : "text-slate-600"}`}>{app.resumeVersion}</td>
+                                <td className="py-4 px-5 text-right">
+                                  {app.job?.webpageUrl && (
+                                    <a
+                                      href={app.job.webpageUrl}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="text-[16px] text-emerald-600 hover:text-emerald-500 font-semibold underline"
+                                    >
+                                      Ad Link ↗
+                                    </a>
+                                  )}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* TAB 3: COMPETENCE PROFILE */}
+                {activeTab === "profile" && (
+                  <div className="space-y-6 max-w-4xl">
+                    <div className={`rounded-2xl p-6 border space-y-6 transition ${isDark ? "bg-slate-900/80 border-slate-800" : "bg-white border-slate-200 shadow-sm"}`}>
+                      <div>
+                        <h2 className={`text-[23px] font-bold ${isDark ? "text-white" : "text-slate-900"}`}>
+                          Manoj John Axelsson — Competence & CV Profile
+                        </h2>
+                        <p className={`text-[17px] mt-1 ${isDark ? "text-slate-400" : "text-slate-600"}`}>
+                          Target roles and skill taxonomy used to score daily Swedish job ads.
+                        </p>
+                      </div>
+
+                      {/* Competence Domains */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div className={`p-5 rounded-xl border ${isDark ? "bg-slate-950 border-slate-800" : "bg-slate-50 border-slate-200"}`}>
+                          <h3 className="text-[20px] font-bold text-blue-600 uppercase tracking-wider mb-2">1. Software Engineering</h3>
+                          <p className={`text-[17px] leading-relaxed ${isDark ? "text-slate-300" : "text-slate-700"}`}>
+                            React, TypeScript, Next.js, Node.js, Express, PostgreSQL, SQL, REST APIs, Git/GitHub, Tailwind CSS, Vercel.
+                          </p>
+                        </div>
+
+                        <div className={`p-5 rounded-xl border ${isDark ? "bg-slate-950 border-slate-800" : "bg-slate-50 border-slate-200"}`}>
+                          <h3 className="text-[20px] font-bold text-purple-600 uppercase tracking-wider mb-2">2. Systems Engineering & Architecture</h3>
+                          <p className={`text-[17px] leading-relaxed ${isDark ? "text-slate-300" : "text-slate-700"}`}>
+                            Systems Thinking, Software Architecture, Requirements Engineering, Validation & Verification, Technical Documentation, PLM.
+                          </p>
+                        </div>
+
+                        <div className={`p-5 rounded-xl border ${isDark ? "bg-slate-950 border-slate-800" : "bg-slate-50 border-slate-200"}`}>
+                          <h3 className="text-[20px] font-bold text-emerald-600 uppercase tracking-wider mb-2">3. Quality & Continuous Improvement</h3>
+                          <p className={`text-[17px] leading-relaxed ${isDark ? "text-slate-300" : "text-slate-700"}`}>
+                            Six Sigma Green Belt (KPMG), DMAIC, FMEA, Poka-Yoke, Root Cause Analysis, QA, Process Optimization, Standard Work.
+                          </p>
+                        </div>
+
+                        <div className={`p-5 rounded-xl border ${isDark ? "bg-slate-950 border-slate-800" : "bg-slate-50 border-slate-200"}`}>
+                          <h3 className="text-[20px] font-bold text-amber-600 uppercase tracking-wider mb-2">4. Industrial & Manufacturing</h3>
+                          <p className={`text-[17px] leading-relaxed ${isDark ? "text-slate-300" : "text-slate-700"}`}>
+                            Manufacturing Engineering, Production Development, Lean Manufacturing, Industrial Digitalization, Automation, CNC, CAD/CAM.
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Scanner Threshold Slider */}
+                      <div className={`pt-4 border-t space-y-2 ${isDark ? "border-slate-800" : "border-slate-200"}`}>
+                        <label className={`text-[17px] font-semibold flex justify-between ${isDark ? "text-slate-300" : "text-slate-700"}`}>
+                          <span>Minimum Match Threshold for 12:00 PM Daily Feed:</span>
+                          <span className="text-emerald-600 font-bold text-[21px]">{minScore}% Match</span>
+                        </label>
+                        <input
+                          type="range"
+                          min="30"
+                          max="80"
+                          value={minScore}
+                          onChange={(e) => setMinScore(Number(e.target.value))}
+                          className="w-full accent-emerald-600 cursor-pointer"
+                        />
+                        <p className={`text-[16px] ${isDark ? "text-slate-500" : "text-slate-500"}`}>
+                          Only jobs scoring above {minScore}% match score will be saved to your daily feed.
+                        </p>
+                      </div>
+
+                      {/* 🚫 Excluded Companies & Employer Blacklist Manager */}
+                      <div className={`pt-6 border-t space-y-4 ${isDark ? "border-slate-800" : "border-slate-200"}`}>
+                        <div>
+                          <h3 className="text-[20px] font-extrabold text-red-400 flex items-center space-x-2">
+                            <span>🚫 Excluded Companies &amp; Employer Blacklist</span>
+                          </h3>
+                          <p className={`text-[16px] mt-0.5 ${isDark ? "text-slate-400" : "text-slate-600"}`}>
+                            Job ads from these employers will be automatically hidden from your daily feed and API scans.
+                          </p>
+                        </div>
+
+                        {/* Form to add company to blacklist */}
+                        <form
+                          onSubmit={(e) => {
+                            e.preventDefault();
+                            if (newCompanyToBlock.trim()) {
+                              handleToggleCompanyExclusion(newCompanyToBlock);
+                              setNewCompanyToBlock("");
+                            }
+                          }}
+                          className="flex flex-col sm:flex-row gap-3"
+                        >
+                          <input
+                            type="text"
+                            placeholder="Type company name to block (e.g. Acme Corp, Unwanted Company AB)..."
+                            value={newCompanyToBlock}
+                            onChange={(e) => setNewCompanyToBlock(e.target.value)}
+                            className="flex-1 bg-[#241203] border border-amber-500/40 rounded-xl px-4 py-2.5 text-sm text-amber-100 placeholder:text-amber-200/50 focus:outline-none focus:border-amber-400 transition"
+                          />
+                          <button
+                            type="submit"
+                            disabled={!newCompanyToBlock.trim()}
+                            className="px-5 py-2.5 bg-red-800 hover:bg-red-700 disabled:opacity-50 text-white font-bold text-sm rounded-xl transition cursor-pointer shadow-sm shrink-0"
+                          >
+                            + Block Company
+                          </button>
+                        </form>
+
+                        {/* Excluded company badges list */}
+                        <div className="flex flex-wrap gap-2 pt-2">
+                          {excludedCompanies.length === 0 ? (
+                            <p className="text-xs text-amber-200/60 italic">No companies currently blocked.</p>
+                          ) : (
+                            excludedCompanies.map((comp) => (
+                              <span
+                                key={comp}
+                                className="inline-flex items-center space-x-2 px-3 py-1.5 rounded-xl text-xs font-bold bg-red-950/90 text-red-200 border border-red-500/40 shadow-sm"
+                              >
+                                <span>🏢 {comp}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleToggleCompanyExclusion(comp)}
+                                  className="text-red-400 hover:text-white font-black text-sm ml-1 cursor-pointer"
+                                  title={`Remove ${comp} from blacklist`}
+                                >
+                                  ✕
+                                </button>
+                              </span>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* TAB 4: SCAN LOGS */}
+                {activeTab === "logs" && (
+                  <div className="space-y-6">
+                    <div className={`rounded-2xl p-6 border transition ${isDark ? "bg-slate-900/80 border-slate-800" : "bg-white border-slate-200 shadow-sm"}`}>
+                      <h2 className={`text-[23px] font-bold mb-4 ${isDark ? "text-white" : "text-slate-900"}`}>
+                        Daily 12:00 PM Scanner Logs
+                      </h2>
+                      <div className="space-y-3">
+                        {scanLogs.length === 0 ? (
+                          <p className="text-[17px] text-slate-500">No scan executions logged yet.</p>
+                        ) : (
+                          scanLogs.map((log) => (
+                            <div
+                              key={log.id}
+                              className={`p-5 rounded-xl border flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 ${isDark ? "bg-slate-950 border-slate-800" : "bg-slate-50 border-slate-200"
+                                }`}
+                            >
+                              <div>
+                                <p className={`text-[17px] font-bold ${isDark ? "text-slate-200" : "text-slate-800"}`}>
+                                  📅 Scan Execution: {new Date(log.scannedAt).toLocaleString("sv-SE")}
+                                </p>
+                                <p className={`text-[16px] mt-0.5 ${isDark ? "text-slate-400" : "text-slate-600"}`}>{log.message}</p>
+                              </div>
+                              <div className="flex items-center space-x-3 text-[16px]">
+                                <span className={`px-3 py-0.5 rounded font-semibold border ${isDark ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-emerald-50 text-emerald-700 border-emerald-200"}`}>
+                                  {log.totalMatched} Matched
+                                </span>
+                                <span className={`px-3 py-0.5 rounded font-semibold border ${isDark ? "bg-slate-800 text-slate-300 border-slate-700" : "bg-slate-200 text-slate-700 border-slate-300"}`}>
+                                  {log.totalFound} Scanned
+                                </span>
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </>
             )}
-          </>
-        )}
+          </div>
+        </div>
       </main>
 
       {/* FULL JOB & MATCH ANALYSIS MODAL */}
       {selectedJob && jobAnalysis && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div
-            className={`rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-7 space-y-5 border shadow-2xl ${
-              isDark ? "bg-slate-900 border-slate-800 text-slate-100" : "bg-white border-slate-200 text-slate-900"
-            }`}
+            className={`rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-7 space-y-5 border shadow-2xl ${isDark ? "bg-slate-900 border-slate-800 text-slate-100" : "bg-white border-slate-200 text-slate-900"
+              }`}
           >
             {/* Modal Header */}
             <div className="flex items-start justify-between">
               <div>
                 <div className="flex items-center space-x-2">
                   <span
-                    className={`px-3 py-1 rounded-full text-[16px] font-bold border ${
-                      selectedJob.matchScore >= 75
-                        ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                        : "bg-amber-50 text-amber-700 border-amber-200"
-                    }`}
+                    className={`px-3 py-1 rounded-full text-[16px] font-bold border ${selectedJob.matchScore >= 75
+                      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                      : "bg-amber-50 text-amber-700 border-amber-200"
+                      }`}
                   >
                     {selectedJob.matchScore}% Match Score
                   </span>
                   <span className="text-[15px] font-semibold text-slate-500">Source: {selectedJob.source}</span>
+                  <button
+                    onClick={() => {
+                      if (jobAnalysis) {
+                        const pitchText = `Jobb: ${selectedJob.title} på ${selectedJob.company}. Matchningspoäng: ${selectedJob.matchScore} procent. Öppningsfras för personligt brev: ${jobAnalysis.analysis.coverLetterPitch.openingHook}`;
+                        speakText(pitchText, "sv-SE");
+                      }
+                    }}
+                    className="px-3 py-1 bg-indigo-600/10 text-indigo-400 border border-indigo-500/30 hover:bg-indigo-600 hover:text-white rounded-lg text-xs font-bold transition flex items-center gap-1 cursor-pointer"
+                    title="Audio Assistance: Read Job Details & Cover Letter Hook Aloud"
+                    aria-label="Read job pitch strategy aloud"
+                  >
+                    🔊 Listen to Pitch
+                  </button>
                 </div>
                 <h2 className={`text-[25px] font-bold mt-2 ${isDark ? "text-white" : "text-slate-900"}`}>{selectedJob.title}</h2>
                 <p className={`text-[17px] font-medium ${isDark ? "text-slate-400" : "text-slate-600"}`}>
@@ -1033,25 +1191,23 @@ export default function Dashboard() {
             <div className={`border-b flex space-x-6 ${isDark ? "border-slate-800" : "border-slate-200"}`}>
               <button
                 onClick={() => setModalTab("analysis")}
-                className={`pb-3 text-[17px] font-bold border-b-2 transition cursor-pointer ${
-                  modalTab === "analysis"
-                    ? "border-emerald-600 text-emerald-600"
-                    : isDark
+                className={`pb-3 text-[17px] font-bold border-b-2 transition cursor-pointer ${modalTab === "analysis"
+                  ? "border-emerald-600 text-emerald-600"
+                  : isDark
                     ? "border-transparent text-slate-400 hover:text-slate-200"
                     : "border-transparent text-slate-600 hover:text-slate-900"
-                }`}
+                  }`}
               >
                 💡 Match Analysis & Cover Letter Strategy
               </button>
               <button
                 onClick={() => setModalTab("description")}
-                className={`pb-3 text-[17px] font-bold border-b-2 transition cursor-pointer ${
-                  modalTab === "description"
-                    ? "border-emerald-600 text-emerald-600"
-                    : isDark
+                className={`pb-3 text-[17px] font-bold border-b-2 transition cursor-pointer ${modalTab === "description"
+                  ? "border-emerald-600 text-emerald-600"
+                  : isDark
                     ? "border-transparent text-slate-400 hover:text-slate-200"
                     : "border-transparent text-slate-600 hover:text-slate-900"
-                }`}
+                  }`}
               >
                 📄 Full Job Posting Text
               </button>
@@ -1269,7 +1425,7 @@ export default function Dashboard() {
                           <td className="py-3.5 px-4 font-bold text-emerald-800">
                             {new Date(app.appliedAt).toLocaleDateString("sv-SE")}
                           </td>
-                          <td className="py-3.5 px-4 text-xs font-mono text-slate-600 truncate max-w-[200px]">
+                          <td className="py-3.5 px-4 text-xs font-mono text-slate-600 truncate max-w-50">
                             {app.job?.webpageUrl || "Direct Application"}
                           </td>
                         </tr>

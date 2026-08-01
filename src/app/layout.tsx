@@ -1,20 +1,9 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
 export const metadata: Metadata = {
-  title: "Atlas Talent Navigator",
-  description: "Navigate, discover, and analyze top talent with precision.",
+  title: "JobseekeR™ — Open Source Job Market Scanner",
+  description: "Automated daily Swedish job market scanner, CV competence matcher, and application tracking platform built for accessibility.",
 };
 
 export default function RootLayout({
@@ -23,11 +12,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col">{children}</body>
+    <html lang="sv" className="h-full antialiased">
+      <body className="min-h-full flex flex-col font-serif">
+        <a href="#main-content" className="skip-link">
+          Hoppa till huvudinnehåll (Skip to main content)
+        </a>
+        <div id="main-content" className="flex-1 flex flex-col">
+          {children}
+        </div>
+      </body>
     </html>
   );
 }

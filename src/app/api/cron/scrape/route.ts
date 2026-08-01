@@ -142,7 +142,8 @@ async function handleScrape() {
       expiredCount,
       scanLog,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Failed to execute scan";
     console.error("Scrape error:", error);
     await db.scanLog.create({
       data: {
@@ -151,12 +152,12 @@ async function handleScrape() {
         totalMatched,
         newAdded,
         status: "ERROR",
-        message: error?.message || "Failed to execute scan",
+        message,
       },
     });
 
     return NextResponse.json(
-      { success: false, error: error?.message || "Scan failed" },
+      { success: false, error: message },
       { status: 500 }
     );
   }

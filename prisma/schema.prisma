@@ -7,17 +7,36 @@ generator client {
   provider = "prisma-client-js"
 }
 
+model UserAccount {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
 model UserProfile {
-  id              String   @id @default("user_manoj")
-  name            String   @default("Manoj John Axelsson")
-  headline        String   @default("Systems Engineer | Fullstack Developer | Manufacturing & Quality Improvement")
+  id              String   @id @default("user_main")
+  name            String   @default("JobseekeR User")
+  headline        String   @default("Software & Systems Engineer")
   location        String   @default("Sweden")
-  languages       String   @default("English, Swedish, Malayalam")
+  languages       String   @default("English, Swedish")
   targetRoles     String   // JSON string array of target roles
   skills          String   // JSON string object of skill taxonomy
   minMatchScore   Int      @default(50)
+  excludedCompanies String @default("[]") // JSON string array of blocked company names
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+}
+
+model UserDocument {
+  id              String   @id @default(uuid())
+  filename        String
+  fileType        String   // CV, CERTIFICATE, COVER_LETTER
+  extractedText   String
+  extractedSkills String   // JSON string array of extracted skill keywords
+  uploadedAt      DateTime @default(now())
 }
 
 model JobAd {
@@ -48,7 +67,7 @@ model Application {
   job             JobAd    @relation(fields: [jobId], references: [id], onDelete: Cascade)
   status          String   @default("APPLIED") // APPLIED, INTERVIEWING, OFFER, REJECTED
   appliedAt       DateTime @default(now())
-  resumeVersion   String   @default("Manoj John Axelsson- CV")
+  resumeVersion   String   @default("JobseekeR CV")
   notes           String?
   monthlyTag      String   // e.g. "2026-07"
   createdAt       DateTime @default(now())
@@ -64,3 +83,4 @@ model ScanLog {
   status          String   @default("SUCCESS") // SUCCESS, ERROR
   message         String?
 }
+

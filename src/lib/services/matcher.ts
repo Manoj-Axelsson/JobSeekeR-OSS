@@ -25,13 +25,14 @@ const TAXONOMY = {
     "react", "typescript", "next.js", "nextjs", "node.js", "nodejs", "express", 
     "postgresql", "postgres", "sql", "rest", "api", "git", "github", "frontend", 
     "fullstack", "web", "tailwind", "vercel", "render", "javascript", "developer",
-    "software engineer", "frontend developer", "backend"
+    "software engineer", "frontend developer", "backend", "cloud", "aws", "azure", 
+    "gcp", "kubernetes", "docker", "python", "terraform", "devops", "infrastructure"
   ],
   systems: [
     "systems engineering", "systems engineer", "systems thinking", "software architecture", 
     "system architecture", "requirements engineering", "requirement engineer", 
     "requirements management", "validation", "verification", "technical documentation", 
-    "plm", "business analyst", "system analyst", "lifecycle", "specification"
+    "plm", "business analyst", "system analyst", "lifecycle", "specification", "solutions engineer"
   ],
   quality: [
     "six sigma", "lean", "dmaic", "fmea", "poka-yoke", "root cause", "quality assurance", 
@@ -53,7 +54,13 @@ const EXTERNAL_TECH = [
   "sap", "embedded", "linux", "autosar"
 ];
 
-export function evaluateJobMatch(title: string, description: string): MatchResult {
+export function evaluateJobMatch(
+  title: string, 
+  description: string, 
+  customProfileSkills: string[] = [],
+  userName: string = "JobseekeR Candidate",
+  userHeadline: string = "Software & Systems Engineer"
+): MatchResult {
   const text = `${title} ${description}`.toLowerCase();
   
   const matchedSet = new Set<string>();
@@ -65,6 +72,18 @@ export function evaluateJobMatch(title: string, description: string): MatchResul
     quality: calculateDomainScore(text, TAXONOMY.quality, matchedSet, missingSet),
     industrial: calculateDomainScore(text, TAXONOMY.industrial, matchedSet, missingSet),
   };
+
+  // Evaluate any custom skills uploaded via CV or user profile
+  let customSkillsMatchedCount = 0;
+  if (customProfileSkills && customProfileSkills.length > 0) {
+    for (const skill of customProfileSkills) {
+      const sLower = skill.toLowerCase().trim();
+      if (sLower && text.includes(sLower)) {
+        customSkillsMatchedCount++;
+        matchedSet.add(capitalize(skill));
+      }
+    }
+  }
 
   // Weighted overall match score calculation
   const maxDomainScore = Math.max(
@@ -79,11 +98,13 @@ export function evaluateJobMatch(title: string, description: string): MatchResul
   // Title bonus matching
   let titleBonus = 0;
   const titleLower = title.toLowerCase();
-  if (titleLower.includes("developer") || titleLower.includes("engineer") || titleLower.includes("fullstack") || titleLower.includes("system") || titleLower.includes("quality") || titleLower.includes("manufacturing")) {
+  if (titleLower.includes("developer") || titleLower.includes("engineer") || titleLower.includes("fullstack") || titleLower.includes("system") || titleLower.includes("quality") || titleLower.includes("manufacturing") || titleLower.includes("architect")) {
     titleBonus = 15;
   }
 
-  const rawScore = Math.round((maxDomainScore * 0.6) + (avgDomainScore * 0.25) + titleBonus);
+  const customSkillsBonus = Math.min(30, customSkillsMatchedCount * 8);
+
+  const rawScore = Math.round((maxDomainScore * 0.5) + (avgDomainScore * 0.2) + titleBonus + customSkillsBonus);
   const matchScore = Math.min(100, Math.max(20, rawScore));
 
   // Detect external missing skills mentioned in description
@@ -114,8 +135,8 @@ export function evaluateJobMatch(title: string, description: string): MatchResul
     keyStrengthsToLeadWith.push("Systems Engineering, Requirements Management & Lifecycle Thinking");
   }
   if (domainScores.quality >= 40) {
-    whyMatched.push("Direct match for your Six Sigma Green Belt (KPMG) and Quality Assurance experience (DMAIC, FMEA, Poka-Yoke, root cause analysis).");
-    keyStrengthsToLeadWith.push("Six Sigma Green Belt & Data-Driven Process Quality Improvement");
+    whyMatched.push("Direct match for your Quality Assurance and Quality Engineering experience (Six Sigma, DMAIC, FMEA, Poka-Yoke, root cause analysis).");
+    keyStrengthsToLeadWith.push("Quality Assurance & Data-Driven Process Quality Improvement");
   }
   if (domainScores.industrial >= 40) {
     whyMatched.push("Strong relevance to your Industrial & Manufacturing background (Lean production, CNC, CAD/CAM, preventive maintenance, uptime optimization).");
@@ -135,16 +156,16 @@ export function evaluateJobMatch(title: string, description: string): MatchResul
   }
 
   // Cover Letter Strategy
-  const openingHook = `As a hybrid Systems Engineer and Fullstack Developer with a Six Sigma Green Belt and background in industrial digitalization, I am drawn to the ${title} role at ${titleLower.includes("inc") || titleLower.includes("ab") ? title : "your organization"} where technical rigor and system architecture drive measurable results.`;
+  const openingHook = `As a candidate with background in ${userHeadline || "Software & Systems Engineering"}, I am drawn to the ${title} role where technical rigor and system architecture drive measurable results.`;
 
   const gapMitigationStrategy = missingSkills.length > 0
-    ? `For missing competencies (${missingSkills.slice(0, 3).join(", ")}), emphasize your rapid learning curve (evidenced by your Lexicon Fullstack Diploma, YH Production credentials, and hands-on RubberDuckWorks system lab) and how your core engineering foundation accelerates onboarding.`
-    : "Emphasize how your dual software-hardware/quality background allows you to contribute immediately without onboarding delays.";
+    ? `For missing competencies (${missingSkills.slice(0, 3).join(", ")}), emphasize your rapid learning curve and how your core engineering foundation accelerates onboarding.`
+    : "Emphasize how your dual software/systems background allows you to contribute immediately without onboarding delays.";
 
   const suggestedBulletPoints = [
-    `Software & Systems Architecture: Applied React, TypeScript, Next.js, Node.js, and PostgreSQL within modular application structures (Bulletproof React architecture).`,
-    `Quality & Process Engineering: Utilized Six Sigma Green Belt (DMAIC, FMEA) methodology to eliminate bottlenecks and optimize operational workflows.`,
-    `Cross-Functional Communication: Experienced at translating business, production, and technical requirements into maintainable software and structured documentation.`
+    `Software & Systems Architecture: Applied React, TypeScript, Next.js, and Node.js within modular application structures (Bulletproof React architecture).`,
+    `Quality & Process Engineering: Utilized systematic quality assurance tools and analytical methodology to eliminate bottlenecks and optimize workflows.`,
+    `Cross-Functional Communication: Experienced at translating business and technical requirements into maintainable software and structured documentation.`
   ];
 
   return {

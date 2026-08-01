@@ -16,7 +16,22 @@ export interface FetchJobsParams {
   limit?: number;
 }
 
-export async function fetchSwedishJobs(keywords: string[] = ["developer", "engineer", "software", "systems", "manufacturing", "quality", "automation"]): Promise<JobTechAd[]> {
+export async function fetchSwedishJobs(keywords: string[] = [
+  "fullstack",
+  "developer",
+  "engineer",
+  "software",
+  "systems",
+  "frontend",
+  "backend",
+  "web",
+  "cloud",
+  "python",
+  "react",
+  "node",
+  "automation",
+  "quality"
+]): Promise<JobTechAd[]> {
   const allAds: JobTechAd[] = [];
   const seenIds = new Set<string>();
 

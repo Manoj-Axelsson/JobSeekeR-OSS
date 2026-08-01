@@ -1,42 +1,92 @@
 @import "tailwindcss";
 
 :root {
-  --font-cochin: Cochin, Georgia, Times, "Times New Roman", serif;
+  --font-cochin: Cochin, Georgia, Garamond, "Times New Roman", serif;
+  --base-font-size: 19px;
 }
 
 body {
   font-family: var(--font-cochin);
-  font-size: 19px;
+  font-size: var(--base-font-size);
   line-height: 1.6;
 }
 
 h1 {
   font-family: var(--font-cochin);
-  font-size: 29px !important;
+  font-size: 1.6em !important;
   font-weight: 700;
   line-height: 1.3;
 }
 
 h2 {
   font-family: var(--font-cochin);
-  font-size: 25px !important;
+  font-size: 1.35em !important;
   font-weight: 700;
   line-height: 1.3;
 }
 
 h3, h4, h5, h6 {
   font-family: var(--font-cochin);
-  font-size: 22px !important;
+  font-size: 1.2em !important;
   font-weight: 700;
   line-height: 1.4;
 }
 
-/* Ensure comfortable base font sizes */
+/* Ensure comfortable Cochin typography */
 * {
-  font-family: var(--font-cochin) !important;
+  font-family: var(--font-cochin);
 }
 
-/* Ensure all italicized text is bold for high contrast and effortless legibility */
+/* Ensure all italicized text is bold for high contrast and legibility */
 em, i, .italic {
   font-weight: 700 !important;
 }
+
+/* EU EN 301 549 / WCAG 2.1 AA Accessibility Standards */
+
+/* 1. Keyboard Focus Rings for Visually Impaired Navigation */
+:focus-visible {
+  outline: 3px solid #6366f1 !important;
+  outline-offset: 3px !important;
+  border-radius: 4px;
+}
+
+/* 2. Skip to Main Content Link for Screen Readers */
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: 1rem;
+  background: #4f46e5;
+  color: #ffffff;
+  padding: 0.75rem 1.5rem;
+  font-weight: 700;
+  z-index: 100;
+  border-radius: 0.5rem;
+  transition: top 0.2s ease;
+}
+
+.skip-link:focus {
+  top: 1rem;
+}
+
+/* 3. High Contrast Accessibility Mode */
+.high-contrast {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+.high-contrast button, 
+.high-contrast a {
+  border: 2px solid #ffffff !important;
+}
+
+/* 4. Motion Reduction for Vestibular & Hearing Impaired Focus */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
