@@ -23,7 +23,7 @@ export function SidebarNav({
   return (
     <aside className="w-full lg:w-72 shrink-0 space-y-4 lg:sticky lg:top-28 self-start z-30">
       {/* Warm Rich Golden Amber Sidebar Navigation Panel */}
-      <div className="bg-[#3e230b]/95 backdrop-blur-xl border-2 border-amber-400/50 rounded-3xl p-4 shadow-2xl space-y-2 text-amber-100">
+      <div className="bg-[#5c3612]/95 backdrop-blur-xl border-2 border-amber-300/60 rounded-3xl p-4 shadow-2xl space-y-2 text-amber-100">
         <div className="px-3 py-2 border-b border-amber-500/30 mb-2 flex items-center justify-between">
           <span className="text-xs font-bold uppercase tracking-wider text-amber-400">
             Navigation Menu

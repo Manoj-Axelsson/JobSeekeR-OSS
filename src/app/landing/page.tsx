@@ -40,7 +40,7 @@ export default function LandingPage() {
   return (
     <div
       style={{ fontFamily: 'Cochin, Georgia, Garamond, "Times New Roman", serif' }}
-      className="min-h-screen relative overflow-hidden bg-gradient-to-br from-[#1c0c03] via-[#873e0e] to-[#d87623] text-amber-50 selection:bg-amber-400 selection:text-amber-950 flex flex-col"
+      className="min-h-screen relative overflow-hidden bg-gradient-to-br from-[#4f280a] via-[#a34e12] to-[#e6842c] text-amber-50 selection:bg-amber-300 selection:text-amber-950 flex flex-col"
     >
       {/* Animated Retro Pixel-Film-Strip Background Canvas Layer */}
       <div className="absolute inset-0 opacity-25 pointer-events-none overflow-hidden">

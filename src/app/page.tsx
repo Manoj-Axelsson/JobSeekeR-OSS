@@ -348,7 +348,7 @@ export default function Dashboard() {
   return (
     <div
       style={{ fontFamily: 'Cochin, Georgia, Garamond, "Times New Roman", serif' }}
-      className="min-h-screen bg-linear-to-br from-[#2c1706] via-[#3e230b] to-[#4e2d10] text-amber-50 selection:bg-amber-400 selection:text-amber-950 transition-colors duration-200 antialiased"
+      className="min-h-screen bg-gradient-to-br from-[#593915] via-[#784e1d] to-[#996525] text-amber-50 selection:bg-amber-300 selection:text-amber-950 transition-colors duration-200 antialiased"
     >
       {/* Modern Responsive Navbar with Landing Page Warm Amber Theme */}
       <Navbar
