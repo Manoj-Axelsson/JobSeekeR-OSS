@@ -657,8 +657,16 @@ export default function Dashboard() {
 
                                 {/* Accordion Toggle & Quick Primary Actions */}
                                 <div className="flex items-center space-x-3">
-                                  {/* Primary Action Button */}
-                                  {job.status !== "APPLIED" && (
+                                  {/* Primary Action / Accidental Undo Button */}
+                                  {job.status === "APPLIED" ? (
+                                    <button
+                                      onClick={() => updateJobStatus(job.id, "NEW")}
+                                      className="px-4 py-2 bg-amber-700/90 hover:bg-amber-600 text-white text-[15px] font-bold rounded-xl transition cursor-pointer shadow-sm flex items-center space-x-1.5"
+                                      title="Undo accidental application status and return job to active feed"
+                                    >
+                                      <span>↩️ Undo Applied</span>
+                                    </button>
+                                  ) : (
                                     <button
                                       onClick={() => updateJobStatus(job.id, "APPLIED")}
                                       className="px-4 py-2 bg-cyan-600 text-white hover:bg-cyan-500 text-[15px] font-bold rounded-xl transition cursor-pointer shadow-sm"
@@ -717,8 +725,16 @@ export default function Dashboard() {
                                         </button>
                                       )}
 
-                                      {/* Mark Applied */}
-                                      {job.status !== "APPLIED" && (
+                                      {/* Mark / Undo Applied */}
+                                      {job.status === "APPLIED" ? (
+                                        <button
+                                          onClick={() => updateJobStatus(job.id, "NEW")}
+                                          className="px-4 py-2.5 bg-amber-700/90 hover:bg-amber-600 text-white text-[15px] font-bold rounded-xl transition cursor-pointer shadow-sm flex items-center space-x-1.5"
+                                          title="Revert application status"
+                                        >
+                                          <span>↩️ Undo / Unmark Applied</span>
+                                        </button>
+                                      ) : (
                                         <button
                                           onClick={() => updateJobStatus(job.id, "APPLIED")}
                                           className="px-4 py-2.5 bg-cyan-600 text-white hover:bg-cyan-500 text-[15px] font-bold rounded-xl transition cursor-pointer shadow-sm flex items-center space-x-1.5"
@@ -946,17 +962,24 @@ export default function Dashboard() {
                                   </select>
                                 </td>
                                 <td className={`py-4 px-5 text-[16px] ${isDark ? "text-slate-400" : "text-slate-600"}`}>{app.resumeVersion}</td>
-                                <td className="py-4 px-5 text-right">
+                                <td className="py-4 px-5 text-right flex items-center justify-end space-x-3">
                                   {app.job?.webpageUrl && (
                                     <a
                                       href={app.job.webpageUrl}
                                       target="_blank"
                                       rel="noreferrer"
-                                      className="text-[16px] text-emerald-600 hover:text-emerald-500 font-semibold underline"
+                                      className="text-[16px] text-amber-400 hover:text-white font-semibold underline"
                                     >
                                       Ad Link ↗
                                     </a>
                                   )}
+                                  <button
+                                    onClick={() => updateJobStatus(app.jobId, "NEW")}
+                                    className="px-3 py-1.5 bg-amber-800/80 hover:bg-amber-700 text-white text-xs font-bold rounded-xl transition cursor-pointer shadow-sm"
+                                    title="Undo accidental application status and remove from tracker"
+                                  >
+                                    ↩️ Undo
+                                  </button>
                                 </td>
                               </tr>
                             ))}

@@ -45,8 +45,10 @@ export async function GET(request: Request) {
 
 /**
  * PATCH /api/jobs
- * Updates job status. If status === "DISCARDED", the job is permanently deleted
- * from the database to keep the storage lean and simple.
+ * Updates job status.
+ * - If status === "DISCARDED": Permanently purges job from DB.
+ * - If status === "APPLIED": Creates associated Application record.
+ * - If status reverted to "NEW" or "SAVED": Automatically deletes associated Application record.
  */
 export async function PATCH(request: Request) {
   try {
@@ -89,6 +91,11 @@ export async function PATCH(request: Request) {
           },
         });
       }
+    } else if (status === "NEW" || status === "SAVED") {
+      // Accidental Application Reversal: Purge associated application record if un-marked
+      await db.application.deleteMany({
+        where: { jobId: id },
+      });
     }
 
     return NextResponse.json({ success: true, job: updatedJob });
