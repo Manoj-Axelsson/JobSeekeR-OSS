@@ -1,14 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { evaluateJobMatch, MatchResult } from "@/lib/services/matcher";
 import { OnboardingWizard } from "@/components/OnboardingWizard";
 import { AuthModal } from "@/components/AuthModal";
 import { DocumentUploader } from "@/components/DocumentUploader";
 import { Navbar } from "@/components/Navbar";
 import { SidebarNav } from "@/components/SidebarNav";
-import { speakText, stopSpeaking } from "@/lib/services/tts";
+import { speakText } from "@/lib/services/tts";
 import { translations, Language } from "@/lib/services/i18n";
 
 interface JobAd {
@@ -105,8 +104,9 @@ export default function Dashboard() {
       } else {
         setImportMessage(`❌ ${data.error || "Failed to import job URL."}`);
       }
-    } catch (err: any) {
-      setImportMessage(`❌ Error: ${err.message || "Import failed"}`);
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : "Import failed";
+      setImportMessage(`❌ Error: ${errorMsg}`);
     } finally {
       setImportingUrl(false);
     }
@@ -348,7 +348,7 @@ export default function Dashboard() {
   return (
     <div
       style={{ fontFamily: 'Cochin, Georgia, Garamond, "Times New Roman", serif' }}
-      className="min-h-screen bg-gradient-to-br from-[#2c1706] via-[#3e230b] to-[#4e2d10] text-amber-50 selection:bg-amber-400 selection:text-amber-950 transition-colors duration-200 antialiased"
+      className="min-h-screen bg-linear-to-br from-[#2c1706] via-[#3e230b] to-[#4e2d10] text-amber-50 selection:bg-amber-400 selection:text-amber-950 transition-colors duration-200 antialiased"
     >
       {/* Modern Responsive Navbar with Landing Page Warm Amber Theme */}
       <Navbar
@@ -502,12 +502,12 @@ export default function Dashboard() {
                           placeholder="Klistra in jobb-URL (t.ex. LinkedIn, Teamtailor, Workday, karriärsida)..."
                           value={importUrlInput}
                           onChange={(e) => setImportUrlInput(e.target.value)}
-                          className="flex-1 bg-[#241203] border border-amber-500/40 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-semibold text-amber-100 placeholder:text-amber-200/50 focus:outline-none focus:border-amber-400 transition"
+                          className="flex-1 bg-[#241203] border border-amber-500/40 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-semibold text-amber-100 placeholder:opacity-50 focus:outline-none focus:ring-1 focus:ring-amber-400 transition"
                         />
                         <button
                           type="submit"
                           disabled={importingUrl || !importUrlInput.trim()}
-                          className="px-5 py-2.5 bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-300 hover:to-orange-300 text-amber-950 font-black text-xs sm:text-sm rounded-xl transition cursor-pointer shadow-md disabled:opacity-50 flex items-center justify-center space-x-2 shrink-0"
+                          className="px-5 py-2.5 bg-linear-to-r from-amber-400 to-orange-400 hover:from-amber-300 hover:to-orange-300 text-amber-950 font-black text-xs sm:text-sm rounded-xl transition cursor-pointer shadow-md disabled:opacity-50 flex items-center justify-center space-x-2 shrink-0"
                         >
                           <span>{importingUrl ? "⏳ Importerar..." : "🚀 Importera & Matcha"}</span>
                         </button>
@@ -541,7 +541,7 @@ export default function Dashboard() {
                         <select
                           value={statusFilter}
                           onChange={(e) => setStatusFilter(e.target.value)}
-                          className="border border-amber-500/40 rounded-xl px-4 py-3 text-[17px] focus:outline-none focus:border-amber-400 bg-[#251304] text-amber-100 font-bold cursor-pointer"
+                          className="border border-amber-500/40 rounded-xl px-4 py-3 text-[17px] focus:outline-none focus:ring-1 focus:ring-amber-400 bg-[#251304] text-amber-100 font-bold cursor-pointer"
                         >
                           <option value="ALL">{t.statusAll}</option>
                           <option value="NEW">New Jobs</option>
@@ -562,7 +562,7 @@ export default function Dashboard() {
                         </p>
                         <button
                           onClick={triggerJobScan}
-                          className="mt-4 px-6 py-3 bg-gradient-to-r from-amber-400 to-orange-500 text-amber-950 text-[17px] font-black rounded-xl hover:opacity-90 transition shadow-lg"
+                          className="mt-4 px-6 py-3 bg-linear-to-r from-amber-400 to-orange-500 text-amber-950 text-[17px] font-black rounded-xl hover:opacity-90 transition shadow-lg"
                         >
                           ⚡ {t.runJobScan}
                         </button>
@@ -882,7 +882,7 @@ export default function Dashboard() {
                           No applications logged for {selectedMonth || "this month"}
                         </p>
                         <p className={`text-[17px] mt-1 ${isDark ? "text-slate-500" : "text-slate-500"}`}>
-                          Mark jobs as "Applied" from the Daily Feed tab to start tracking your applications.
+                          Mark jobs as &quot;Applied&quot; from the Daily Feed tab to start tracking your applications.
                         </p>
                       </div>
                     ) : (
@@ -1057,7 +1057,7 @@ export default function Dashboard() {
                             placeholder="Type company name to block (e.g. Acme Corp, Unwanted Company AB)..."
                             value={newCompanyToBlock}
                             onChange={(e) => setNewCompanyToBlock(e.target.value)}
-                            className="flex-1 bg-[#241203] border border-amber-500/40 rounded-xl px-4 py-2.5 text-sm text-amber-100 placeholder:text-amber-200/50 focus:outline-none focus:border-amber-400 transition"
+                            className="flex-1 bg-[#241203] border border-amber-500/40 rounded-xl px-4 py-2.5 text-sm text-amber-100 placeholder:opacity-50 focus:outline-none focus:ring-1 focus:ring-amber-400 transition"
                           />
                           <button
                             type="submit"
@@ -1104,10 +1104,10 @@ export default function Dashboard() {
                         Daily 12:00 PM Scanner Logs
                       </h2>
                       <div className="space-y-3">
-                        {scanLogs.length === 0 ? (
+                        {logsList.length === 0 ? (
                           <p className="text-[17px] text-slate-500">No scan executions logged yet.</p>
                         ) : (
-                          scanLogs.map((log) => (
+                          logsList.map((log) => (
                             <div
                               key={log.id}
                               className={`p-5 rounded-xl border flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 ${isDark ? "bg-slate-950 border-slate-800" : "bg-slate-50 border-slate-200"
@@ -1272,7 +1272,7 @@ export default function Dashboard() {
                   <div className="mt-4">
                     <h4 className="text-[17px] font-bold text-slate-900 dark:text-slate-200">Recommended Opening Line for Cover Letter:</h4>
                     <p className="mt-1.5 p-3.5 bg-white dark:bg-slate-900 rounded-lg border border-slate-300 dark:border-slate-700 text-[18px] italic font-bold text-slate-950 dark:text-white leading-relaxed">
-                      "{jobAnalysis.analysis.coverLetterPitch.openingHook}"
+                      &quot;{jobAnalysis.analysis.coverLetterPitch.openingHook}&quot;
                     </p>
                   </div>
 
