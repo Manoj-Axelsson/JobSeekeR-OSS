@@ -1088,41 +1088,49 @@ export default function Dashboard() {
                 {activeTab === "profile" && (
                   <div className="space-y-6 max-w-4xl">
                     <div className={`rounded-2xl p-6 border space-y-6 transition ${isDark ? "bg-slate-900/80 border-slate-800" : "bg-white border-slate-200 shadow-sm"}`}>
-                      <div>
-                        <h2 className={`text-[23px] font-bold ${isDark ? "text-white" : "text-slate-900"}`}>
-                          Manoj John Axelsson — Competence & CV Profile
-                        </h2>
-                        <p className={`text-[17px] mt-1 ${isDark ? "text-slate-400" : "text-slate-600"}`}>
-                          Target roles and skill taxonomy used to score daily Swedish job ads.
-                        </p>
+                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div>
+                          <h2 className={`text-xl sm:text-2xl font-black ${isDark ? "text-white" : "text-slate-900"}`}>
+                            {profileName || "Candidate Profile"} — Competence &amp; CV Profile
+                          </h2>
+                          <p className={`text-xs sm:text-sm mt-1 ${isDark ? "text-slate-400" : "text-slate-600"}`}>
+                            Target roles and skill taxonomy stored in your local SQLite database (`prisma/dev.db`) used to score daily Swedish job ads.
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => setShowOnboarding(true)}
+                          className="px-4 py-2 bg-amber-400 hover:bg-amber-300 text-amber-950 font-black text-xs uppercase tracking-wider rounded-xl transition cursor-pointer shadow-md shrink-0"
+                        >
+                          ✏️ Edit Profile &amp; Target Roles
+                        </button>
                       </div>
 
                       {/* Competence Domains */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                        <div className={`p-5 rounded-xl border ${isDark ? "bg-slate-950 border-slate-800" : "bg-slate-50 border-slate-200"}`}>
-                          <h3 className="text-[20px] font-bold text-blue-600 uppercase tracking-wider mb-2">1. Software Engineering</h3>
-                          <p className={`text-[17px] leading-relaxed ${isDark ? "text-slate-300" : "text-slate-700"}`}>
+                        <div className={`p-5 rounded-xl border ${isDark ? "bg-slate-950 border-slate-800" : "bg-slate-100 border-slate-300 text-black"}`}>
+                          <h3 className={`text-base font-black uppercase tracking-wider mb-2 ${isDark ? "text-blue-400" : "text-blue-900"}`}>1. Software Engineering</h3>
+                          <p className={`text-sm sm:text-base font-medium leading-relaxed ${isDark ? "text-slate-300" : "text-slate-900"}`}>
                             React, TypeScript, Next.js, Node.js, Express, PostgreSQL, SQL, REST APIs, Git/GitHub, Tailwind CSS, Vercel.
                           </p>
                         </div>
 
-                        <div className={`p-5 rounded-xl border ${isDark ? "bg-slate-950 border-slate-800" : "bg-slate-50 border-slate-200"}`}>
-                          <h3 className="text-[20px] font-bold text-purple-600 uppercase tracking-wider mb-2">2. Systems Engineering & Architecture</h3>
-                          <p className={`text-[17px] leading-relaxed ${isDark ? "text-slate-300" : "text-slate-700"}`}>
-                            Systems Thinking, Software Architecture, Requirements Engineering, Validation & Verification, Technical Documentation, PLM.
+                        <div className={`p-5 rounded-xl border ${isDark ? "bg-slate-950 border-slate-800" : "bg-slate-100 border-slate-300 text-black"}`}>
+                          <h3 className={`text-base font-black uppercase tracking-wider mb-2 ${isDark ? "text-purple-400" : "text-purple-900"}`}>2. Systems Engineering &amp; Architecture</h3>
+                          <p className={`text-sm sm:text-base font-medium leading-relaxed ${isDark ? "text-slate-300" : "text-slate-900"}`}>
+                            Systems Thinking, Software Architecture, Requirements Engineering, Validation &amp; Verification, Technical Documentation, PLM.
                           </p>
                         </div>
 
-                        <div className={`p-5 rounded-xl border ${isDark ? "bg-slate-950 border-slate-800" : "bg-slate-50 border-slate-200"}`}>
-                          <h3 className="text-[20px] font-bold text-emerald-600 uppercase tracking-wider mb-2">3. Quality & Continuous Improvement</h3>
-                          <p className={`text-[17px] leading-relaxed ${isDark ? "text-slate-300" : "text-slate-700"}`}>
+                        <div className={`p-5 rounded-xl border ${isDark ? "bg-slate-950 border-slate-800" : "bg-slate-100 border-slate-300 text-black"}`}>
+                          <h3 className={`text-base font-black uppercase tracking-wider mb-2 ${isDark ? "text-emerald-400" : "text-emerald-900"}`}>3. Quality &amp; Continuous Improvement</h3>
+                          <p className={`text-sm sm:text-base font-medium leading-relaxed ${isDark ? "text-slate-300" : "text-slate-900"}`}>
                             Six Sigma Green Belt (KPMG), DMAIC, FMEA, Poka-Yoke, Root Cause Analysis, QA, Process Optimization, Standard Work.
                           </p>
                         </div>
 
-                        <div className={`p-5 rounded-xl border ${isDark ? "bg-slate-950 border-slate-800" : "bg-slate-50 border-slate-200"}`}>
-                          <h3 className="text-[20px] font-bold text-amber-600 uppercase tracking-wider mb-2">4. Industrial & Manufacturing</h3>
-                          <p className={`text-[17px] leading-relaxed ${isDark ? "text-slate-300" : "text-slate-700"}`}>
+                        <div className={`p-5 rounded-xl border ${isDark ? "bg-slate-950 border-slate-800" : "bg-slate-100 border-slate-300 text-black"}`}>
+                          <h3 className={`text-base font-black uppercase tracking-wider mb-2 ${isDark ? "text-amber-400" : "text-amber-900"}`}>4. Industrial &amp; Manufacturing</h3>
+                          <p className={`text-sm sm:text-base font-medium leading-relaxed ${isDark ? "text-slate-300" : "text-slate-900"}`}>
                             Manufacturing Engineering, Production Development, Lean Manufacturing, Industrial Digitalization, Automation, CNC, CAD/CAM.
                           </p>
                         </div>
