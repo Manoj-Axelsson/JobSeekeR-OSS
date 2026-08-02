@@ -6,6 +6,7 @@ import { OnboardingWizard } from "@/components/OnboardingWizard";
 import { AuthModal } from "@/components/AuthModal";
 import { DocumentUploader } from "@/components/DocumentUploader";
 import { UserGuideModal } from "@/components/UserGuideModal";
+import { SettingsPanel } from "@/components/SettingsPanel";
 import { Navbar } from "@/components/Navbar";
 import { SidebarNav } from "@/components/SidebarNav";
 import { speakText } from "@/lib/services/tts";
@@ -1472,83 +1473,16 @@ export default function Dashboard() {
 
                 {/* ⚙️ SETTINGS & USER PREFERENCES TAB */}
                 {activeTab === "settings" && (
-                  <div className="space-y-6">
-                    <div className="p-6 rounded-2xl bg-gradient-to-r from-amber-950/80 via-orange-950/90 to-amber-900/80 border-2 border-amber-400/50 shadow-xl text-amber-100">
-                      <h2 className="text-xl sm:text-2xl font-black text-amber-300 uppercase tracking-wide flex items-center space-x-2">
-                        <span>⚙️</span>
-                        <span>Settings &amp; User Preferences</span>
-                      </h2>
-                      <p className="text-xs sm:text-sm text-amber-200/90 mt-1">
-                        Manage onboarding walkthroughs, scanner behavior, confidence meter visibility, and local privacy settings.
-                      </p>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {/* 1. Onboarding Reset */}
-                      <div className="p-5 rounded-2xl bg-slate-900/80 border border-amber-500/30 text-amber-100 space-y-3">
-                        <div className="flex items-center space-x-2">
-                          <span className="text-xl">🚀</span>
-                          <h3 className="font-extrabold text-amber-300">Guided Onboarding</h3>
-                        </div>
-                        <p className="text-xs text-amber-100/80 leading-relaxed">
-                          Re-run the initial 5-step guided walkthrough to reconfigure profile identity, CV upload, target roles, and match thresholds.
-                        </p>
-                        <button
-                          onClick={() => setShowOnboarding(true)}
-                          className="px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-amber-950 font-black text-xs uppercase tracking-wider transition cursor-pointer shadow-md"
-                        >
-                          Restart Guided Onboarding 🚀
-                        </button>
-                      </div>
-
-                      {/* 2. Scanner Behavior */}
-                      <div className="p-5 rounded-2xl bg-slate-900/80 border border-amber-500/30 text-amber-100 space-y-3">
-                        <div className="flex items-center space-x-2">
-                          <span className="text-xl">⚡</span>
-                          <h3 className="font-extrabold text-amber-300">Scanner Auto-Execution</h3>
-                        </div>
-                        <p className="text-xs text-amber-100/80 leading-relaxed">
-                          JobseekeR™ automatically scans Arbetsförmedlingen JobTech API every day at 12:00 PM.
-                        </p>
-                        <div className="flex items-center space-x-3 pt-1">
-                          <button
-                            onClick={triggerJobScan}
-                            disabled={scanning}
-                            className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-400 to-orange-400 text-amber-950 font-black text-xs uppercase tracking-wider transition cursor-pointer shadow-md disabled:opacity-50"
-                          >
-                            {scanning ? "⏳ Scanning..." : "Run Scanner Manual Scan ⚡"}
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* 3. Privacy & Local SQLite Data */}
-                      <div className="p-5 rounded-2xl bg-slate-900/80 border border-amber-500/30 text-amber-100 space-y-3 col-span-1 md:col-span-2">
-                        <div className="flex items-center space-x-2">
-                          <span className="text-xl">🔒</span>
-                          <h3 className="font-extrabold text-amber-300">Privacy &amp; Local Data Ownership</h3>
-                        </div>
-                        <p className="text-xs text-amber-100/80 leading-relaxed">
-                          All career data is stored in your local embedded SQLite database (`prisma/dev.db`). No telemetry or personal information is transmitted to external tracking servers.
-                        </p>
-                        <div className="flex flex-wrap gap-3 pt-1">
-                          <button
-                            onClick={() => {
-                              const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ jobs, applications, profileName }));
-                              const downloadAnchor = document.createElement("a");
-                              downloadAnchor.setAttribute("href", dataStr);
-                              downloadAnchor.setAttribute("download", `jobseeker-backup-${new Date().toISOString().slice(0, 10)}.json`);
-                              document.body.appendChild(downloadAnchor);
-                              downloadAnchor.click();
-                              downloadAnchor.remove();
-                            }}
-                            className="px-4 py-2 rounded-xl bg-amber-950 border border-amber-400/40 text-amber-300 font-bold text-xs hover:bg-amber-900 transition cursor-pointer"
-                          >
-                            📥 Export Local Backup (JSON)
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  <SettingsPanel
+                    profileName={profileName}
+                    onOpenOnboarding={() => setShowOnboarding(true)}
+                    onTriggerScan={triggerJobScan}
+                    scanning={scanning}
+                    themeMode={themeMode}
+                    setThemeMode={setThemeMode}
+                    jobs={jobs}
+                    applications={applications}
+                  />
                 )}
               </>
             )}
