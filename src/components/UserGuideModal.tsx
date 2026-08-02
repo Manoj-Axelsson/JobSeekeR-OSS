@@ -156,50 +156,50 @@ export function UserGuideModal({ isOpen, onClose, onOpenOnboarding }: UserGuideM
 
         {/* Tab 2: Intelligence Suite */}
         {guideTab === "intelligence" && (
-          <div className="space-y-4 text-xs sm:text-sm leading-relaxed">
-            <h3 className="text-lg font-extrabold text-amber-300">
+          <div className="space-y-5 text-sm sm:text-base leading-relaxed">
+            <h3 className="text-xl font-black text-amber-300 uppercase tracking-wide">
               🤖 The 8 Pillars of JobseekeR™ Intelligence Suite
             </h3>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-              <div className="p-3 rounded-xl bg-amber-950/50 border border-amber-500/30">
-                <h4 className="font-extrabold text-amber-300">🧠 1. Recruiter Intelligence</h4>
-                <p className="text-amber-100/80 mt-1">Tracks recruiter response speeds, reply rates (%), portfolio request habits, and preferred hiring seniority levels.</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs sm:text-sm">
+              <div className="p-3.5 rounded-2xl bg-amber-950/80 border-2 border-amber-400/50 shadow-md space-y-1">
+                <h4 className="font-black text-sm sm:text-base text-amber-300">🧠 1. Recruiter Intelligence</h4>
+                <p className="text-amber-100 text-xs sm:text-sm font-semibold leading-relaxed">Tracks recruiter response speeds, reply rates (%), portfolio request habits, and preferred hiring seniority levels.</p>
               </div>
 
-              <div className="p-3 rounded-xl bg-amber-950/50 border border-amber-500/30">
-                <h4 className="font-extrabold text-amber-300">🏢 2. Company Intelligence</h4>
-                <p className="text-amber-100/80 mt-1">Monitors employer callback ratios, response benchmarks, and flags ghosting risk.</p>
+              <div className="p-3.5 rounded-2xl bg-amber-950/80 border-2 border-amber-400/50 shadow-md space-y-1">
+                <h4 className="font-black text-sm sm:text-base text-amber-300">🏢 2. Company Intelligence</h4>
+                <p className="text-amber-100 text-xs sm:text-sm font-semibold leading-relaxed">Monitors employer callback ratios, response benchmarks, and flags ghosting risk.</p>
               </div>
 
-              <div className="p-3 rounded-xl bg-amber-950/50 border border-amber-500/30">
-                <h4 className="font-extrabold text-amber-300">📄 3. Document Intelligence</h4>
-                <p className="text-amber-100/80 mt-1">Automated PDF/Word CV parsing, keyword taxonomy extraction, and CV A/B performance matrix.</p>
+              <div className="p-3.5 rounded-2xl bg-amber-950/80 border-2 border-amber-400/50 shadow-md space-y-1">
+                <h4 className="font-black text-sm sm:text-base text-amber-300">📄 3. Document Intelligence</h4>
+                <p className="text-amber-100 text-xs sm:text-sm font-semibold leading-relaxed">Automated PDF/Word CV parsing, keyword taxonomy extraction, and CV A/B performance matrix.</p>
               </div>
 
-              <div className="p-3 rounded-xl bg-amber-950/50 border border-amber-500/30">
-                <h4 className="font-extrabold text-amber-300">📈 4. Market Intelligence</h4>
-                <p className="text-amber-100/80 mt-1">Real-time Swedish tech stack demand velocity (React ↑, .NET →, Python ↑, AI ↑) and regional density.</p>
+              <div className="p-3.5 rounded-2xl bg-amber-950/80 border-2 border-amber-400/50 shadow-md space-y-1">
+                <h4 className="font-black text-sm sm:text-base text-amber-300">📈 4. Market Intelligence</h4>
+                <p className="text-amber-100 text-xs sm:text-sm font-semibold leading-relaxed">Real-time Swedish tech stack demand velocity (React ↑, .NET →, Python ↑, AI ↑) and regional density.</p>
               </div>
 
-              <div className="p-3 rounded-xl bg-amber-950/50 border border-amber-500/30">
-                <h4 className="font-extrabold text-amber-300">🎓 5. Learning Intelligence</h4>
-                <p className="text-amber-100/80 mt-1">Upskilling recommendations and highest ROI course guidance (e.g. <em>Docker +18% Match Boost</em>).</p>
+              <div className="p-3.5 rounded-2xl bg-amber-950/80 border-2 border-amber-400/50 shadow-md space-y-1">
+                <h4 className="font-black text-sm sm:text-base text-amber-300">🎓 5. Learning Intelligence</h4>
+                <p className="text-amber-100 text-xs sm:text-sm font-semibold leading-relaxed">Upskilling recommendations and highest ROI course guidance (e.g. <em>Docker +18% Match Boost</em>).</p>
               </div>
 
-              <div className="p-3 rounded-xl bg-amber-950/50 border border-amber-500/30">
-                <h4 className="font-extrabold text-amber-300">💰 6. Salary Intelligence</h4>
-                <p className="text-amber-100/80 mt-1">Extracts SEK compensation figures (<em>45 000 – 65 000 SEK/mån</em>) and Swedish role benchmarks.</p>
+              <div className="p-3.5 rounded-2xl bg-amber-950/80 border-2 border-amber-400/50 shadow-md space-y-1">
+                <h4 className="font-black text-sm sm:text-base text-amber-300">💰 6. Salary Intelligence</h4>
+                <p className="text-amber-100 text-xs sm:text-sm font-semibold leading-relaxed">Extracts SEK compensation figures (<em>45 000 – 65 000 SEK/mån</em>) and Swedish role benchmarks.</p>
               </div>
 
-              <div className="p-3 rounded-xl bg-amber-950/50 border border-amber-500/30">
-                <h4 className="font-extrabold text-amber-300">🎯 7. Match Intelligence</h4>
-                <p className="text-amber-100/80 mt-1">Weighted scoring across Software, Systems, Quality, and Manufacturing domain taxonomies.</p>
+              <div className="p-3.5 rounded-2xl bg-amber-950/80 border-2 border-amber-400/50 shadow-md space-y-1">
+                <h4 className="font-black text-sm sm:text-base text-amber-300">🎯 7. Match Intelligence</h4>
+                <p className="text-amber-100 text-xs sm:text-sm font-semibold leading-relaxed">Weighted scoring across Software, Systems, Quality, and Manufacturing domain taxonomies.</p>
               </div>
 
-              <div className="p-3 rounded-xl bg-amber-950/50 border border-amber-500/30">
-                <h4 className="font-extrabold text-amber-300">🔮 8. Predictive Intelligence</h4>
-                <p className="text-amber-100/80 mt-1">Real-time interview probability predictions (37%) and Overall Career Scorecard (82 / 100).</p>
+              <div className="p-3.5 rounded-2xl bg-amber-950/80 border-2 border-amber-400/50 shadow-md space-y-1">
+                <h4 className="font-black text-sm sm:text-base text-amber-300">🔮 8. Predictive Intelligence</h4>
+                <p className="text-amber-100 text-xs sm:text-sm font-semibold leading-relaxed">Real-time interview probability predictions (37%) and Overall Career Scorecard (82 / 100).</p>
               </div>
             </div>
           </div>

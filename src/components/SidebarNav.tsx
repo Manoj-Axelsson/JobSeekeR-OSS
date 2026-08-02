@@ -171,19 +171,15 @@ export function SidebarNav({
           </Link>
         </div>
 
-        {/* Official Mascot Logo Card — Transparent Emblem Morphing into Background */}
+        {/* Official Mascot Logo Card — Enlarged Emblem filling max space without text */}
         <div className="pt-3 border-t border-amber-500/40 text-center">
-          <div className="p-3 bg-amber-950/40 border-2 border-amber-400/40 rounded-2xl shadow-2xl flex flex-col items-center justify-center space-y-2 backdrop-blur-md">
-            <div className="w-32 h-32 relative flex items-center justify-center">
+          <div className="p-2 bg-amber-950/40 border-2 border-amber-400/40 rounded-2xl shadow-2xl flex items-center justify-center backdrop-blur-md">
+            <div className="w-48 h-48 sm:w-52 sm:h-52 relative flex items-center justify-center p-1">
               <img
                 src="/logo.png"
                 alt="JobseekeR Platform Logo"
                 className="w-full h-full object-contain filter drop-shadow-2xl hover:scale-105 transition-transform duration-300"
               />
-            </div>
-            <div>
-              <p className="text-xs font-black text-amber-300 uppercase tracking-widest">JobseekeR™ OS</p>
-              <p className="text-[11px] text-amber-200/80 font-semibold mt-0.5">Talent Navigator Platform</p>
             </div>
           </div>
         </div>

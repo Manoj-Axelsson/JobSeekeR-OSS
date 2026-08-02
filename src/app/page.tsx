@@ -1374,18 +1374,18 @@ export default function Dashboard() {
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                           {recruiters.map((rec) => (
-                            <div key={rec.id} className={`p-4 rounded-xl border space-y-2.5 ${isDark ? "bg-slate-950 border-slate-800 text-slate-200" : "bg-slate-50 border-slate-200 text-slate-800"}`}>
+                            <div key={rec.id} className={`p-4 rounded-xl border space-y-2.5 ${isDark ? "bg-slate-950 border-slate-800 text-slate-200" : "bg-slate-100 border-slate-300 text-black"}`}>
                               <div className="flex items-center justify-between">
-                                <h4 className="font-extrabold text-base text-amber-400">{rec.name}</h4>
-                                <span className="text-xs font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                                <h4 className={`font-black text-base ${isDark ? "text-amber-300" : "text-black"}`}>{rec.name}</h4>
+                                <span className={`text-xs font-black px-2 py-0.5 rounded border ${isDark ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40" : "bg-emerald-100 text-emerald-950 border-emerald-300"}`}>
                                   {rec.replyRate}% Reply Rate
                                 </span>
                               </div>
-                              <p className="text-xs font-medium text-amber-200/80">{rec.company}</p>
-                              <div className="text-xs space-y-1 pt-2 border-t border-amber-500/20">
-                                <p><span className="font-bold text-amber-300">⏱️ Avg Response:</span> {rec.avgResponseDays} days</p>
-                                <p><span className="font-bold text-amber-300">🎓 Seniority Pref:</span> {rec.seniorityPreference}</p>
-                                <p><span className="font-bold text-amber-300">📁 Portfolio Request:</span> {rec.prefersPortfolio ? "Yes (High frequency)" : "Standard CV"}</p>
+                              <p className={`text-xs font-extrabold ${isDark ? "text-amber-200/80" : "text-slate-800"}`}>{rec.company}</p>
+                              <div className={`text-xs font-bold space-y-1 pt-2 border-t ${isDark ? "border-amber-500/20 text-slate-300" : "border-slate-300 text-black"}`}>
+                                <p><span className={`font-black ${isDark ? "text-amber-300" : "text-black"}`}>⏱️ Avg Response:</span> {rec.avgResponseDays} days</p>
+                                <p><span className={`font-black ${isDark ? "text-amber-300" : "text-black"}`}>🎓 Seniority Pref:</span> {rec.seniorityPreference}</p>
+                                <p><span className={`font-black ${isDark ? "text-amber-300" : "text-black"}`}>📁 Portfolio Request:</span> {rec.prefersPortfolio ? "Yes (High frequency)" : "Standard CV"}</p>
                               </div>
                             </div>
                           ))}
@@ -1396,26 +1396,26 @@ export default function Dashboard() {
                       <div className={`p-6 rounded-2xl border space-y-4 transition ${isDark ? "bg-slate-900/80 border-slate-800" : "bg-white border-slate-200 shadow-sm"}`}>
                         <h3 className={`text-lg sm:text-xl font-bold ${isDark ? "text-white" : "text-slate-900"} flex items-center space-x-2`}>
                           <span>💰 Swedish Salary Intelligence &amp; Market Benchmarks</span>
-                          <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                          <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${isDark ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30" : "bg-emerald-100 text-emerald-950 border-emerald-300"}`}>
                             SEK Compensation Parser
                           </span>
                         </h3>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          <div className={`p-4 rounded-xl border ${isDark ? "bg-slate-950 border-slate-800" : "bg-slate-50 border-slate-200"}`}>
-                            <p className="text-xs font-extrabold uppercase text-cyan-400">Fullstack Engineer Benchmark</p>
-                            <p className="text-2xl font-black text-white mt-1">52 000 – 68 000 <span className="text-xs font-semibold text-slate-400">SEK/mån</span></p>
-                            <p className="text-xs text-slate-400 mt-1">Stockholm &amp; Gothenburg • Senior Level</p>
+                          <div className={`p-4 rounded-xl border ${isDark ? "bg-slate-950 border-slate-800" : "bg-slate-100 border-slate-300 text-black"}`}>
+                            <p className={`text-xs font-black uppercase ${isDark ? "text-cyan-400" : "text-cyan-900"}`}>Fullstack Engineer Benchmark</p>
+                            <p className={`text-2xl font-black mt-1 ${isDark ? "text-white" : "text-black"}`}>52 000 – 68 000 <span className={`text-xs font-bold ${isDark ? "text-slate-400" : "text-slate-700"}`}>SEK/mån</span></p>
+                            <p className={`text-xs font-bold mt-1 ${isDark ? "text-slate-400" : "text-slate-800"}`}>Stockholm &amp; Gothenburg • Senior Level</p>
                           </div>
-                          <div className={`p-4 rounded-xl border ${isDark ? "bg-slate-950 border-slate-800" : "bg-slate-50 border-slate-200"}`}>
-                            <p className="text-xs font-extrabold uppercase text-purple-400">Systems Architect Benchmark</p>
-                            <p className="text-2xl font-black text-white mt-1">58 000 – 75 000 <span className="text-xs font-semibold text-slate-400">SEK/mån</span></p>
-                            <p className="text-xs text-slate-400 mt-1">Industrial R&amp;D &amp; Enterprise IT</p>
+                          <div className={`p-4 rounded-xl border ${isDark ? "bg-slate-950 border-slate-800" : "bg-slate-100 border-slate-300 text-black"}`}>
+                            <p className={`text-xs font-black uppercase ${isDark ? "text-purple-400" : "text-purple-900"}`}>Systems Architect Benchmark</p>
+                            <p className={`text-2xl font-black mt-1 ${isDark ? "text-white" : "text-black"}`}>58 000 – 75 000 <span className={`text-xs font-bold ${isDark ? "text-slate-400" : "text-slate-700"}`}>SEK/mån</span></p>
+                            <p className={`text-xs font-bold mt-1 ${isDark ? "text-slate-400" : "text-slate-800"}`}>Industrial R&amp;D &amp; Enterprise IT</p>
                           </div>
-                          <div className={`p-4 rounded-xl border ${isDark ? "bg-slate-950 border-slate-800" : "bg-slate-50 border-slate-200"}`}>
-                            <p className="text-xs font-extrabold uppercase text-emerald-400">Quality / Six Sigma Lead</p>
-                            <p className="text-2xl font-black text-white mt-1">48 000 – 62 000 <span className="text-xs font-semibold text-slate-400">SEK/mån</span></p>
-                            <p className="text-xs text-slate-400 mt-1">Continuous Improvement &amp; QA</p>
+                          <div className={`p-4 rounded-xl border ${isDark ? "bg-slate-950 border-slate-800" : "bg-slate-100 border-slate-300 text-black"}`}>
+                            <p className={`text-xs font-black uppercase ${isDark ? "text-emerald-400" : "text-emerald-900"}`}>Quality / Six Sigma Lead</p>
+                            <p className={`text-2xl font-black mt-1 ${isDark ? "text-white" : "text-black"}`}>48 000 – 62 000 <span className={`text-xs font-bold ${isDark ? "text-slate-400" : "text-slate-700"}`}>SEK/mån</span></p>
+                            <p className={`text-xs font-bold mt-1 ${isDark ? "text-slate-400" : "text-slate-800"}`}>Continuous Improvement &amp; QA</p>
                           </div>
                         </div>
                       </div>
@@ -1426,7 +1426,7 @@ export default function Dashboard() {
                           <div>
                             <h3 className={`text-lg sm:text-xl font-bold ${isDark ? "text-white" : "text-slate-900"} flex items-center space-x-2`}>
                               <span>🚀 Upskilling ROI &amp; Recommended Next Learning Steps</span>
-                              <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-purple-500/20 text-purple-400 border border-purple-500/30">
+                              <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${isDark ? "bg-purple-500/20 text-purple-400 border-purple-500/30" : "bg-purple-100 text-purple-950 border-purple-300"}`}>
                                 Match Boost Engine
                               </span>
                             </h3>
@@ -1438,21 +1438,21 @@ export default function Dashboard() {
 
                         <div className="space-y-3">
                           {upskilling.map((trend, idx) => (
-                            <div key={idx} className={`p-4 rounded-xl border flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 ${isDark ? "bg-slate-950 border-slate-800" : "bg-slate-50 border-slate-200"}`}>
+                            <div key={idx} className={`p-4 rounded-xl border flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 ${isDark ? "bg-slate-950 border-slate-800" : "bg-slate-100 border-slate-300 text-black"}`}>
                               <div className="flex items-center space-x-3">
-                                <span className="w-8 h-8 rounded-full bg-amber-400/20 border border-amber-400/40 text-amber-300 flex items-center justify-center font-bold text-sm shrink-0">
+                                <span className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-sm shrink-0 border ${isDark ? "bg-amber-400/20 border-amber-400/40 text-amber-300" : "bg-amber-300 border-amber-500 text-amber-950"}`}>
                                   #{idx + 1}
                                 </span>
                                 <div>
-                                  <h4 className="font-extrabold text-base text-white">{trend.skill}</h4>
-                                  <p className="text-xs text-amber-300 font-semibold">{trend.growthVelocity}</p>
+                                  <h4 className={`font-black text-base ${isDark ? "text-white" : "text-black"}`}>{trend.skill}</h4>
+                                  <p className={`text-xs font-bold ${isDark ? "text-amber-300" : "text-amber-900"}`}>{trend.growthVelocity}</p>
                                 </div>
                               </div>
                               <div className="flex items-center space-x-3">
-                                <span className="px-3 py-1 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-bold">
+                                <span className={`px-3 py-1 rounded-lg text-xs font-black border ${isDark ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30" : "bg-emerald-200 text-emerald-950 border-emerald-400"}`}>
                                   +{trend.scoreBoostPct}% Match Score Boost
                                 </span>
-                                <span className="px-3 py-1 rounded-lg bg-blue-500/20 text-blue-400 border border-blue-500/30 text-xs font-bold">
+                                <span className={`px-3 py-1 rounded-lg text-xs font-black border ${isDark ? "bg-blue-500/20 text-blue-400 border-blue-500/30" : "bg-blue-200 text-blue-950 border-blue-400"}`}>
                                   Appears in {trend.percentage}% of Roles
                                 </span>
                               </div>
