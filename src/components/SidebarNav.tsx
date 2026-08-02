@@ -171,16 +171,14 @@ export function SidebarNav({
           </Link>
         </div>
 
-        {/* Official Mascot Logo Card — Enlarged Emblem filling max space without text */}
+        {/* Official Mascot Logo Card — Fill Maximum Possible Width & Height Without Any Text */}
         <div className="pt-3 border-t border-amber-500/40 text-center">
-          <div className="p-2 bg-amber-950/40 border-2 border-amber-400/40 rounded-2xl shadow-2xl flex items-center justify-center backdrop-blur-md">
-            <div className="w-48 h-48 sm:w-52 sm:h-52 relative flex items-center justify-center p-1">
-              <img
-                src="/logo.png"
-                alt="JobseekeR Platform Logo"
-                className="w-full h-full object-contain filter drop-shadow-2xl hover:scale-105 transition-transform duration-300"
-              />
-            </div>
+          <div className="p-1.5 bg-amber-950/40 border-2 border-amber-400/40 rounded-2xl shadow-2xl flex items-center justify-center backdrop-blur-md overflow-hidden">
+            <img
+              src="/logo.png"
+              alt="RubberDuckWorks Logo"
+              className="w-full h-auto aspect-square max-w-[260px] object-contain filter drop-shadow-2xl hover:scale-105 transition-transform duration-300"
+            />
           </div>
         </div>
       </div>
