@@ -1176,7 +1176,7 @@ export default function Dashboard() {
                   </div>
                 )}
 
-                {/* TAB 5: INTELLIGENCE & MARKET TRENDS SUITE */}
+                {/* TAB 5: JOBSEEKER INTELLIGENCE SUITE */}
                 {activeTab === "intelligence" && (() => {
                   const overview = generateExecutiveCareerOverview(jobsList, appsList);
                   const recruiters = overview.recruiters;
@@ -1185,15 +1185,40 @@ export default function Dashboard() {
 
                   return (
                     <div className="space-y-7">
+                      {/* JobseekeR Intelligence Suite Umbrella Header */}
+                      <div className="bg-[#4d2708]/90 border-2 border-amber-300/80 rounded-2xl p-5 shadow-2xl text-amber-100 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                        <div className="flex items-center space-x-3">
+                          <span className="text-4xl">🤖</span>
+                          <div>
+                            <h2 className="text-2xl font-black text-amber-300 uppercase tracking-wide">
+                              JobseekeR™ Intelligence Suite
+                            </h2>
+                            <p className="text-xs sm:text-sm text-amber-200/90 font-semibold">
+                              All 8 AI Intelligence Pillars Unified Under One Umbrella
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex flex-wrap gap-2 text-xs font-black">
+                          <span className="px-3 py-1 rounded-lg bg-amber-400 text-amber-950 shadow-md">🧠 Recruiter</span>
+                          <span className="px-3 py-1 rounded-lg bg-amber-400 text-amber-950 shadow-md">🏢 Company</span>
+                          <span className="px-3 py-1 rounded-lg bg-amber-400 text-amber-950 shadow-md">📄 Document</span>
+                          <span className="px-3 py-1 rounded-lg bg-amber-400 text-amber-950 shadow-md">📈 Market</span>
+                          <span className="px-3 py-1 rounded-lg bg-amber-400 text-amber-950 shadow-md">🎓 Learning</span>
+                          <span className="px-3 py-1 rounded-lg bg-amber-400 text-amber-950 shadow-md">💰 Salary</span>
+                          <span className="px-3 py-1 rounded-lg bg-amber-400 text-amber-950 shadow-md">🎯 Match</span>
+                          <span className="px-3 py-1 rounded-lg bg-amber-400 text-amber-950 shadow-md">🔮 Predictive</span>
+                        </div>
+                      </div>
+
                       {/* Executive Career Intelligence Overview Card */}
                       <div className="bg-gradient-to-br from-[#4a2408] via-[#63340b] to-[#3a1b05] border-2 border-amber-300/80 rounded-2xl p-6 shadow-2xl text-amber-100 space-y-5">
                         <div className="flex items-center justify-between border-b border-amber-500/30 pb-4">
                           <div className="flex items-center space-x-3">
                             <span className="text-4xl">👑</span>
                             <div>
-                              <h2 className="text-2xl font-black text-amber-300 uppercase tracking-wide">
+                              <h3 className="text-2xl font-black text-amber-300 uppercase tracking-wide">
                                 Career Intelligence Overview
-                              </h2>
+                              </h3>
                               <p className="text-xs text-amber-200/90 font-medium">
                                 Executive Summary &amp; Real-Time Predictive Career Scorecard
                               </p>

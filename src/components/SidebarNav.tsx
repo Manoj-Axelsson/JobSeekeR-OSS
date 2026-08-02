@@ -94,7 +94,7 @@ export function SidebarNav({
           </div>
         </button>
 
-        {/* 📊 Intelligence & Market Trends Tab */}
+        {/* 🤖 JobseekeR Intelligence Suite Tab */}
         <button
           onClick={() => setActiveTab("intelligence")}
           className={`w-full p-3 rounded-xl font-bold text-sm transition-all duration-200 cursor-pointer flex items-center justify-between ${
@@ -104,11 +104,11 @@ export function SidebarNav({
           }`}
         >
           <div className="flex items-center space-x-3">
-            <span className="text-lg">📊</span>
-            <span>Intelligence &amp; Trends</span>
+            <span className="text-lg">🤖</span>
+            <span>Intelligence Suite</span>
           </div>
           <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-400 text-amber-950 uppercase tracking-wider">
-            AI
+            8 AI
           </span>
         </button>
 
