@@ -10,11 +10,12 @@ import { SidebarNav } from "@/components/SidebarNav";
 import { speakText } from "@/lib/services/tts";
 import { translations, Language } from "@/lib/services/i18n";
 import {
+  generateExecutiveCareerOverview,
   calculateRecruiterAnalytics,
   calculateUpskillingRoadmap,
   calculateCvPerformance,
   parseSalaryFromDescription,
-} from "@/lib/services/intelligence";
+} from "@/intelligence";
 
 interface JobAd {
   id: string;
@@ -1177,23 +1178,79 @@ export default function Dashboard() {
 
                 {/* TAB 5: INTELLIGENCE & MARKET TRENDS SUITE */}
                 {activeTab === "intelligence" && (() => {
-                  const recruiters = calculateRecruiterAnalytics(appsList);
+                  const overview = generateExecutiveCareerOverview(jobsList, appsList);
+                  const recruiters = overview.recruiters;
+                  const cvPerf = overview.cvPerformance;
                   const upskilling = calculateUpskillingRoadmap(jobsList);
-                  const cvPerf = calculateCvPerformance(appsList);
 
                   return (
                     <div className="space-y-7">
-                      {/* Intelligence Suite Header Banner */}
-                      <div className="bg-[#5c3612]/90 border-2 border-amber-300/60 rounded-2xl p-5 shadow-xl text-amber-100">
-                        <div className="flex items-center space-x-3 mb-2">
-                          <span className="text-3xl">📊</span>
-                          <div>
-                            <h2 className="text-xl sm:text-2xl font-black text-amber-300 uppercase tracking-wide">
-                              JobseekeR™ Intelligence &amp; Market Suite
-                            </h2>
-                            <p className="text-xs sm:text-sm text-amber-200/90 font-medium">
-                              Self-learning analytics tracking Recruiter Behavior, Salary Intelligence, Swedish Market Trends, CV A/B Matrices, and Upskilling ROIs.
-                            </p>
+                      {/* Executive Career Intelligence Overview Card */}
+                      <div className="bg-gradient-to-br from-[#4a2408] via-[#63340b] to-[#3a1b05] border-2 border-amber-300/80 rounded-2xl p-6 shadow-2xl text-amber-100 space-y-5">
+                        <div className="flex items-center justify-between border-b border-amber-500/30 pb-4">
+                          <div className="flex items-center space-x-3">
+                            <span className="text-4xl">👑</span>
+                            <div>
+                              <h2 className="text-2xl font-black text-amber-300 uppercase tracking-wide">
+                                Career Intelligence Overview
+                              </h2>
+                              <p className="text-xs text-amber-200/90 font-medium">
+                                Executive Summary &amp; Real-Time Predictive Career Scorecard
+                              </p>
+                            </div>
+                          </div>
+                          <span className="px-3.5 py-1 rounded-full bg-amber-400 text-amber-950 font-black text-xs uppercase tracking-widest shadow-md">
+                            AI Executive Report
+                          </span>
+                        </div>
+
+                        {/* Executive Summary Grid Metrics */}
+                        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 text-center">
+                          <div className="p-3 bg-amber-950/80 border border-amber-400/50 rounded-xl">
+                            <p className="text-[11px] font-extrabold uppercase text-amber-300/90">Overall Score</p>
+                            <p className="text-3xl font-black text-white mt-1">{overview.overallCareerScore}</p>
+                            <p className="text-[10px] text-amber-300 font-semibold mt-0.5">/ 100 Excellent</p>
+                          </div>
+
+                          <div className="p-3 bg-amber-950/80 border border-amber-400/50 rounded-xl">
+                            <p className="text-[11px] font-extrabold uppercase text-amber-300/90">Interview Prob.</p>
+                            <p className="text-3xl font-black text-emerald-400 mt-1">{overview.interviewProbabilityPct}%</p>
+                            <p className="text-[10px] text-emerald-300 font-semibold mt-0.5">High Likelihood</p>
+                          </div>
+
+                          <div className="p-3 bg-amber-950/80 border border-amber-400/50 rounded-xl">
+                            <p className="text-[11px] font-extrabold uppercase text-amber-300/90">Valuable Skill</p>
+                            <p className="text-lg font-black text-cyan-300 mt-2 truncate">{overview.mostValuableSkill}</p>
+                            <p className="text-[10px] text-cyan-200 font-semibold mt-0.5">High Demand</p>
+                          </div>
+
+                          <div className="p-3 bg-amber-950/80 border border-amber-400/50 rounded-xl">
+                            <p className="text-[11px] font-extrabold uppercase text-amber-300/90">Highest ROI</p>
+                            <p className="text-lg font-black text-purple-300 mt-2 truncate">Docker</p>
+                            <p className="text-[10px] text-purple-200 font-semibold mt-0.5">+18% Boost</p>
+                          </div>
+
+                          <div className="p-3 bg-amber-950/80 border border-amber-400/50 rounded-xl col-span-2 sm:col-span-1">
+                            <p className="text-[11px] font-extrabold uppercase text-amber-300/90">Best CV</p>
+                            <p className="text-xs font-black text-amber-200 mt-2 truncate">{overview.bestPerformingCv}</p>
+                            <p className="text-[10px] text-emerald-400 font-semibold mt-0.5">50% Conversion</p>
+                          </div>
+
+                          <div className="p-3 bg-amber-950/80 border border-amber-400/50 rounded-xl col-span-2 sm:col-span-1">
+                            <p className="text-[11px] font-extrabold uppercase text-amber-300/90">Responsive Co.</p>
+                            <p className="text-xs font-black text-amber-200 mt-2 truncate">{overview.mostResponsiveCompany}</p>
+                            <p className="text-[10px] text-amber-400 font-semibold mt-0.5">100% Reply Rate</p>
+                          </div>
+
+                          <div className="p-3 bg-amber-950/80 border border-amber-400/50 rounded-xl col-span-2 sm:col-span-4 lg:col-span-1 text-left">
+                            <p className="text-[11px] font-extrabold uppercase text-amber-300/90 text-center">Market Trend</p>
+                            <div className="text-xs font-bold space-y-0.5 mt-1 text-amber-200 flex flex-wrap justify-around lg:flex-col lg:items-start">
+                              {overview.marketTrends.map((t, idx) => (
+                                <span key={idx} className="inline-block mr-2 lg:mr-0">
+                                  {t.technology} <span className="text-amber-400 font-extrabold">{t.trendSymbol}</span>
+                                </span>
+                              ))}
+                            </div>
                           </div>
                         </div>
                       </div>
