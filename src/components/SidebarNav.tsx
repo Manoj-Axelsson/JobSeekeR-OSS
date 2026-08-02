@@ -123,14 +123,14 @@ export function SidebarNav({
           </Link>
         </div>
 
-        {/* Official Mascot Logo Card — Fixed & Visible Below Navigation Menu */}
+        {/* Official Mascot Logo Card — Transparent Emblem Morphing into Background */}
         <div className="pt-3 border-t border-amber-500/40 text-center">
-          <div className="p-3.5 bg-[#442509]/95 border-2 border-amber-400/60 rounded-xl shadow-xl flex flex-col items-center justify-center space-y-2">
-            <div className="w-28 h-28 relative flex items-center justify-center">
+          <div className="p-3 bg-amber-950/40 border-2 border-amber-400/40 rounded-2xl shadow-2xl flex flex-col items-center justify-center space-y-2 backdrop-blur-md">
+            <div className="w-32 h-32 relative flex items-center justify-center">
               <img
                 src="/logo.png"
                 alt="JobseekeR Platform Logo"
-                className="w-full h-full object-contain filter drop-shadow-xl hover:scale-105 transition-transform duration-300"
+                className="w-full h-full object-contain filter drop-shadow-2xl hover:scale-105 transition-transform duration-300"
               />
             </div>
             <div>
