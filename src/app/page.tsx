@@ -542,18 +542,18 @@ export default function Dashboard() {
 
                     {/* 💡 Today's Recommendation Synthesized Intelligence Card */}
                     {activeTab === "feed" && (
-                      <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-amber-950/80 via-orange-950/90 to-amber-900/80 border-2 border-amber-400/50 shadow-xl space-y-3">
-                        <div className="flex items-center justify-between">
+                      <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-r from-amber-950/90 via-orange-950 to-amber-900/90 border-2 border-amber-400/60 shadow-xl space-y-4">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
                           <div className="flex items-center space-x-2">
-                            <span className="text-xl">💡</span>
-                            <h3 className="text-sm sm:text-base font-black text-amber-300 uppercase tracking-wide">
+                            <span className="text-2xl">💡</span>
+                            <h3 className="text-base sm:text-lg font-black text-amber-300 uppercase tracking-wide">
                               Today&apos;s Recommendation
                             </h3>
                           </div>
                           {(() => {
                             const conf = calculatePredictiveConfidence(jobs, applications);
                             return (
-                              <span className="px-3 py-1 rounded-full text-xs font-extrabold bg-amber-950 text-amber-300 border border-amber-400/40 shadow-sm flex items-center space-x-1.5">
+                              <span className="px-3.5 py-1 rounded-full text-xs sm:text-sm font-extrabold bg-amber-950 text-amber-300 border border-amber-400/40 shadow-sm flex items-center space-x-1.5">
                                 <span>{conf.statusBadge}</span>
                                 <span>•</span>
                                 <span>Confidence: {conf.confidencePct}%</span>
@@ -562,14 +562,40 @@ export default function Dashboard() {
                           })()}
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
                           {generateTodaysRecommendations(jobs, applications).map((rec: RecommendationItem) => (
-                            <div key={rec.id} className="p-3.5 rounded-xl bg-amber-950/60 border border-amber-500/30 space-y-1.5">
-                              <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-amber-400 text-amber-950">
-                                {rec.priorityBadge}
-                              </span>
-                              <h4 className="font-extrabold text-xs text-amber-200">{rec.title}</h4>
-                              <p className="text-[11px] text-amber-100/80 leading-snug">{rec.rationale}</p>
+                            <div
+                              key={rec.id}
+                              onClick={() => {
+                                if (rec.actionType === "OPEN_JOB_MODAL" && rec.targetJobId) {
+                                  const target = jobs.find((j) => j.id === rec.targetJobId);
+                                  if (target) setSelectedJob(target);
+                                } else if (rec.actionType === "OPEN_DOC_UPLOADER") {
+                                  setShowDocUploader(true);
+                                } else if (rec.actionType === "NAVIGATE_TAB" && rec.targetTab) {
+                                  setActiveTab(rec.targetTab);
+                                }
+                              }}
+                              className="p-4 rounded-xl bg-amber-950/80 hover:bg-amber-900/90 border-2 border-amber-500/40 hover:border-amber-300 transition-all cursor-pointer shadow-md space-y-2.5 group flex flex-col justify-between"
+                            >
+                              <div className="space-y-2">
+                                <span className="text-xs font-black uppercase px-2.5 py-1 rounded-md bg-amber-400 text-amber-950 inline-block shadow-sm">
+                                  {rec.priorityBadge}
+                                </span>
+                                <h4 className="font-black text-sm sm:text-base text-amber-200 group-hover:text-amber-300 leading-snug">
+                                  {rec.title}
+                                </h4>
+                                <p className="text-xs sm:text-sm text-amber-100/90 leading-relaxed font-medium">
+                                  {rec.rationale}
+                                </p>
+                              </div>
+
+                              <div className="pt-2 border-t border-amber-500/30 flex items-center justify-between">
+                                <span className="text-xs sm:text-sm font-extrabold text-amber-300 group-hover:text-amber-200">
+                                  {rec.actionText}
+                                </span>
+                                <span className="text-amber-400 group-hover:translate-x-1 transition-transform font-bold">➔</span>
+                              </div>
                             </div>
                           ))}
                         </div>

@@ -51,18 +51,18 @@ export function OnboardingWizard({ isOpen, onClose, onComplete }: OnboardingWiza
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md">
-      <div className="bg-slate-900 border-2 border-amber-400/70 rounded-3xl p-6 sm:p-8 max-w-2xl w-full shadow-2xl relative text-amber-100 space-y-5">
+      <div className="bg-slate-900 border-2 border-amber-400/70 rounded-3xl p-6 sm:p-8 max-w-3xl w-full shadow-2xl relative text-amber-100 space-y-6">
         {/* Header & Step Indicator */}
         <div className="flex items-center justify-between border-b border-amber-500/30 pb-4">
           <div className="flex items-center space-x-3">
-            <div className="w-9 h-9 rounded-xl bg-amber-400 text-amber-950 font-black flex items-center justify-center text-base shadow-md">
+            <div className="w-10 h-10 rounded-xl bg-amber-400 text-amber-950 font-black flex items-center justify-center text-lg shadow-md">
               {step}
             </div>
             <div>
-              <h2 className="text-lg sm:text-xl font-black text-amber-300 uppercase tracking-wide">
+              <h2 className="text-xl sm:text-2xl font-black text-amber-300 uppercase tracking-wide">
                 JobseekeR™ Guided Onboarding
               </h2>
-              <p className="text-xs text-amber-200/90 font-medium">
+              <p className="text-xs sm:text-sm text-amber-200/90 font-bold mt-0.5">
                 {step === 1 && "Step 1 of 5: Welcome & Profile Identity"}
                 {step === 2 && "Step 2 of 5: Document Intelligence & CV Upload"}
                 {step === 3 && "Step 3 of 5: Target Roles & Score Threshold"}
@@ -71,7 +71,7 @@ export function OnboardingWizard({ isOpen, onClose, onComplete }: OnboardingWiza
               </p>
             </div>
           </div>
-          <span className="text-xs font-bold text-amber-400/90 bg-amber-950/80 border border-amber-500/30 px-3 py-1 rounded-full">
+          <span className="text-xs sm:text-sm font-black text-amber-400/90 bg-amber-950/80 border border-amber-500/30 px-3 py-1 rounded-full">
             Step {step} / 5
           </span>
         </div>

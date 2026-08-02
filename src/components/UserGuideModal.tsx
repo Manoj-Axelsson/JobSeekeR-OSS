@@ -15,33 +15,33 @@ export function UserGuideModal({ isOpen, onClose, onOpenOnboarding }: UserGuideM
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md">
-      <div className="bg-slate-900 border-2 border-amber-400/60 rounded-3xl p-6 sm:p-8 max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl relative text-amber-100 space-y-6">
+      <div className="bg-slate-900 border-2 border-amber-400/60 rounded-3xl p-6 sm:p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl relative text-amber-100 space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-amber-500/30 pb-4">
           <div className="flex items-center space-x-3">
-            <span className="text-3xl">📖</span>
+            <span className="text-3xl sm:text-4xl">📖</span>
             <div>
-              <h2 className="text-xl sm:text-2xl font-black text-amber-300 uppercase tracking-wide">
+              <h2 className="text-xl sm:text-3xl font-black text-amber-300 uppercase tracking-wide">
                 JobseekeR™ User Guide &amp; Documentation
               </h2>
-              <p className="text-xs text-amber-200/90 font-medium">
+              <p className="text-xs sm:text-sm text-amber-200/90 font-medium mt-0.5">
                 &ldquo;JobseekeR™ is an intelligence platform built to automate job searching.&rdquo;
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-xl bg-amber-950/80 hover:bg-amber-900 text-amber-300 border border-amber-500/40 text-sm font-bold transition cursor-pointer"
+            className="px-3.5 py-2 rounded-xl bg-amber-950/80 hover:bg-amber-900 text-amber-300 border border-amber-500/40 text-xs sm:text-sm font-bold transition cursor-pointer"
           >
             ✕ Close
           </button>
         </div>
 
         {/* User Guide Tab Navigation Pills */}
-        <div className="flex flex-wrap gap-2 text-xs font-bold border-b border-amber-500/20 pb-3">
+        <div className="flex flex-wrap gap-2 text-xs sm:text-sm font-bold border-b border-amber-500/20 pb-3">
           <button
             onClick={() => setGuideTab("quickstart")}
-            className={`px-3 py-1.5 rounded-xl transition cursor-pointer ${
+            className={`px-3.5 py-2 rounded-xl transition cursor-pointer ${
               guideTab === "quickstart"
                 ? "bg-amber-400 text-amber-950 font-black shadow-md"
                 : "bg-amber-950/60 text-amber-300 hover:bg-amber-900/80 border border-amber-500/30"
@@ -51,7 +51,7 @@ export function UserGuideModal({ isOpen, onClose, onOpenOnboarding }: UserGuideM
           </button>
           <button
             onClick={() => setGuideTab("intelligence")}
-            className={`px-3 py-1.5 rounded-xl transition cursor-pointer ${
+            className={`px-3.5 py-2 rounded-xl transition cursor-pointer ${
               guideTab === "intelligence"
                 ? "bg-amber-400 text-amber-950 font-black shadow-md"
                 : "bg-amber-950/60 text-amber-300 hover:bg-amber-900/80 border border-amber-500/30"
@@ -61,7 +61,7 @@ export function UserGuideModal({ isOpen, onClose, onOpenOnboarding }: UserGuideM
           </button>
           <button
             onClick={() => setGuideTab("privacy")}
-            className={`px-3 py-1.5 rounded-xl transition cursor-pointer ${
+            className={`px-3.5 py-2 rounded-xl transition cursor-pointer ${
               guideTab === "privacy"
                 ? "bg-amber-400 text-amber-950 font-black shadow-md"
                 : "bg-amber-950/60 text-amber-300 hover:bg-amber-900/80 border border-amber-500/30"
@@ -71,7 +71,7 @@ export function UserGuideModal({ isOpen, onClose, onOpenOnboarding }: UserGuideM
           </button>
           <button
             onClick={() => setGuideTab("evolution")}
-            className={`px-3 py-1.5 rounded-xl transition cursor-pointer ${
+            className={`px-3.5 py-2 rounded-xl transition cursor-pointer ${
               guideTab === "evolution"
                 ? "bg-amber-400 text-amber-950 font-black shadow-md"
                 : "bg-amber-950/60 text-amber-300 hover:bg-amber-900/80 border border-amber-500/30"
@@ -81,7 +81,7 @@ export function UserGuideModal({ isOpen, onClose, onOpenOnboarding }: UserGuideM
           </button>
           <button
             onClick={() => setGuideTab("scanner")}
-            className={`px-3 py-1.5 rounded-xl transition cursor-pointer ${
+            className={`px-3.5 py-2 rounded-xl transition cursor-pointer ${
               guideTab === "scanner"
                 ? "bg-amber-400 text-amber-950 font-black shadow-md"
                 : "bg-amber-950/60 text-amber-300 hover:bg-amber-900/80 border border-amber-500/30"
@@ -91,7 +91,7 @@ export function UserGuideModal({ isOpen, onClose, onOpenOnboarding }: UserGuideM
           </button>
           <button
             onClick={() => setGuideTab("pwa")}
-            className={`px-3 py-1.5 rounded-xl transition cursor-pointer ${
+            className={`px-3.5 py-2 rounded-xl transition cursor-pointer ${
               guideTab === "pwa"
                 ? "bg-amber-400 text-amber-950 font-black shadow-md"
                 : "bg-amber-950/60 text-amber-300 hover:bg-amber-900/80 border border-amber-500/30"
@@ -103,17 +103,17 @@ export function UserGuideModal({ isOpen, onClose, onOpenOnboarding }: UserGuideM
 
         {/* Tab 1: Quick Start Guide */}
         {guideTab === "quickstart" && (
-          <div className="space-y-4 text-xs sm:text-sm leading-relaxed">
-            <h3 className="text-lg font-extrabold text-amber-300 flex items-center space-x-2">
+          <div className="space-y-4 text-sm sm:text-base leading-relaxed">
+            <h3 className="text-lg sm:text-xl font-extrabold text-amber-300 flex items-center space-x-2">
               <span>🚀 Step-by-Step Quick Start Guide for New Visitors</span>
             </h3>
 
-            <div className="p-4 rounded-2xl bg-amber-950/40 border border-amber-400/40 space-y-3">
+            <div className="p-5 rounded-2xl bg-amber-950/40 border border-amber-400/40 space-y-4">
               <div className="flex items-start space-x-3">
-                <span className="w-6 h-6 rounded-full bg-amber-400 text-amber-950 font-black flex items-center justify-center text-xs shrink-0 mt-0.5">1</span>
+                <span className="w-7 h-7 rounded-full bg-amber-400 text-amber-950 font-black flex items-center justify-center text-sm shrink-0 mt-0.5">1</span>
                 <div>
-                  <h4 className="font-extrabold text-amber-200">Configure Your Profile &amp; Target Roles</h4>
-                  <p className="text-amber-100/80 text-xs mt-0.5">
+                  <h4 className="font-extrabold text-amber-200 text-base">Configure Your Profile &amp; Target Roles</h4>
+                  <p className="text-amber-100/90 text-sm mt-1">
                     Click <strong>&ldquo;🎯 Competence Profile&rdquo;</strong> in the sidebar to define your target job titles (e.g. <em>Fullstack Developer, Systems Engineer, Software Architect</em>) and set your preferred minimum match threshold (default: 50%).
                   </p>
                 </div>
