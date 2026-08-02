@@ -188,8 +188,8 @@ export default function LandingPage() {
 
       {/* Main Hero Section */}
       <section className="relative z-10 pt-10 pb-20 px-4 md:px-8 max-w-6xl mx-auto text-center flex-1 flex flex-col justify-center items-center">
-        {/* Prominent Official Mascot Logo Illustration Displayed Proportionately */}
-        <div className="mb-6 relative w-36 h-36 sm:w-48 sm:h-48 mx-auto flex items-center justify-center">
+        {/* Prominent Official Mascot Logo Illustration Displayed Proportionately (Enlarged Size) */}
+        <div className="mb-8 relative w-56 h-56 sm:w-72 sm:h-72 md:w-80 md:h-80 mx-auto flex items-center justify-center">
           <div className="absolute inset-0 bg-gradient-to-tr from-amber-400/20 to-orange-500/20 rounded-full blur-2xl animate-pulse pointer-events-none"></div>
           <img
             src="/logo.png"
