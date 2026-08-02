@@ -9,6 +9,12 @@ import { Navbar } from "@/components/Navbar";
 import { SidebarNav } from "@/components/SidebarNav";
 import { speakText } from "@/lib/services/tts";
 import { translations, Language } from "@/lib/services/i18n";
+import {
+  calculateRecruiterAnalytics,
+  calculateUpskillingRoadmap,
+  calculateCvPerformance,
+  parseSalaryFromDescription,
+} from "@/lib/services/intelligence";
 
 interface JobAd {
   id: string;
@@ -51,7 +57,7 @@ interface ScanLog {
 }
 
 export default function Dashboard() {
-  const [activeTab, setActiveTab] = useState<"feed" | "tracker" | "profile" | "logs">("feed");
+  const [activeTab, setActiveTab] = useState<"feed" | "tracker" | "profile" | "logs" | "intelligence">("feed");
   const [themeMode, setThemeMode] = useState<"light" | "dark" | "system">("light");
   const [isDark, setIsDark] = useState(false);
   const [currentLang, setCurrentLang] = useState<Language>("sv");
@@ -640,6 +646,20 @@ export default function Dashboard() {
                                     <span className={`text-[15px] ${isDark ? "text-slate-400" : "text-slate-500"}`}>
                                       Published: {new Date(job.publishedAt).toLocaleDateString("sv-SE")}
                                     </span>
+
+                                    {/* Salary Intelligence Badge */}
+                                    {(() => {
+                                      const salaryInfo = parseSalaryFromDescription(job.description);
+                                      if (salaryInfo.salaryRawText) {
+                                        return (
+                                          <span className="text-[13px] font-extrabold px-3 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm flex items-center space-x-1">
+                                            <span>💰</span>
+                                            <span>{salaryInfo.salaryRawText}</span>
+                                          </span>
+                                        );
+                                      }
+                                      return null;
+                                    })()}
                                   </div>
 
                                   {/* Title & Company */}
@@ -1154,6 +1174,170 @@ export default function Dashboard() {
                     </div>
                   </div>
                 )}
+
+                {/* TAB 5: INTELLIGENCE & MARKET TRENDS SUITE */}
+                {activeTab === "intelligence" && (() => {
+                  const recruiters = calculateRecruiterAnalytics(appsList);
+                  const upskilling = calculateUpskillingRoadmap(jobsList);
+                  const cvPerf = calculateCvPerformance(appsList);
+
+                  return (
+                    <div className="space-y-7">
+                      {/* Intelligence Suite Header Banner */}
+                      <div className="bg-[#5c3612]/90 border-2 border-amber-300/60 rounded-2xl p-5 shadow-xl text-amber-100">
+                        <div className="flex items-center space-x-3 mb-2">
+                          <span className="text-3xl">📊</span>
+                          <div>
+                            <h2 className="text-xl sm:text-2xl font-black text-amber-300 uppercase tracking-wide">
+                              JobseekeR™ Intelligence &amp; Market Suite
+                            </h2>
+                            <p className="text-xs sm:text-sm text-amber-200/90 font-medium">
+                              Self-learning analytics tracking Recruiter Behavior, Salary Intelligence, Swedish Market Trends, CV A/B Matrices, and Upskilling ROIs.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* SECTION 1: RECRUITER BEHAVIOR ANALYTICS */}
+                      <div className={`p-6 rounded-2xl border space-y-4 transition ${isDark ? "bg-slate-900/80 border-slate-800" : "bg-white border-slate-200 shadow-sm"}`}>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h3 className={`text-lg sm:text-xl font-bold ${isDark ? "text-white" : "text-slate-900"} flex items-center space-x-2`}>
+                              <span>👤 Recruiter Behavior Analytics</span>
+                              <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/40">
+                                Behavioral AI
+                              </span>
+                            </h3>
+                            <p className={`text-xs sm:text-sm mt-0.5 ${isDark ? "text-slate-400" : "text-slate-600"}`}>
+                              Tracks recruiter response speed, communication reliability, portfolio requirements, and hiring seniority preferences.
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                          {recruiters.map((rec) => (
+                            <div key={rec.id} className={`p-4 rounded-xl border space-y-2.5 ${isDark ? "bg-slate-950 border-slate-800 text-slate-200" : "bg-slate-50 border-slate-200 text-slate-800"}`}>
+                              <div className="flex items-center justify-between">
+                                <h4 className="font-extrabold text-base text-amber-400">{rec.name}</h4>
+                                <span className="text-xs font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                                  {rec.replyRate}% Reply Rate
+                                </span>
+                              </div>
+                              <p className="text-xs font-medium text-amber-200/80">{rec.company}</p>
+                              <div className="text-xs space-y-1 pt-2 border-t border-amber-500/20">
+                                <p><span className="font-bold text-amber-300">⏱️ Avg Response:</span> {rec.avgResponseDays} days</p>
+                                <p><span className="font-bold text-amber-300">🎓 Seniority Pref:</span> {rec.seniorityPreference}</p>
+                                <p><span className="font-bold text-amber-300">📁 Portfolio Request:</span> {rec.prefersPortfolio ? "Yes (High frequency)" : "Standard CV"}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* SECTION 2: SALARY INTELLIGENCE & SWEDISH ROLE BENCHMARKS */}
+                      <div className={`p-6 rounded-2xl border space-y-4 transition ${isDark ? "bg-slate-900/80 border-slate-800" : "bg-white border-slate-200 shadow-sm"}`}>
+                        <h3 className={`text-lg sm:text-xl font-bold ${isDark ? "text-white" : "text-slate-900"} flex items-center space-x-2`}>
+                          <span>💰 Swedish Salary Intelligence &amp; Market Benchmarks</span>
+                          <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                            SEK Compensation Parser
+                          </span>
+                        </h3>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div className={`p-4 rounded-xl border ${isDark ? "bg-slate-950 border-slate-800" : "bg-slate-50 border-slate-200"}`}>
+                            <p className="text-xs font-extrabold uppercase text-cyan-400">Fullstack Engineer Benchmark</p>
+                            <p className="text-2xl font-black text-white mt-1">52 000 – 68 000 <span className="text-xs font-semibold text-slate-400">SEK/mån</span></p>
+                            <p className="text-xs text-slate-400 mt-1">Stockholm &amp; Gothenburg • Senior Level</p>
+                          </div>
+                          <div className={`p-4 rounded-xl border ${isDark ? "bg-slate-950 border-slate-800" : "bg-slate-50 border-slate-200"}`}>
+                            <p className="text-xs font-extrabold uppercase text-purple-400">Systems Architect Benchmark</p>
+                            <p className="text-2xl font-black text-white mt-1">58 000 – 75 000 <span className="text-xs font-semibold text-slate-400">SEK/mån</span></p>
+                            <p className="text-xs text-slate-400 mt-1">Industrial R&amp;D &amp; Enterprise IT</p>
+                          </div>
+                          <div className={`p-4 rounded-xl border ${isDark ? "bg-slate-950 border-slate-800" : "bg-slate-50 border-slate-200"}`}>
+                            <p className="text-xs font-extrabold uppercase text-emerald-400">Quality / Six Sigma Lead</p>
+                            <p className="text-2xl font-black text-white mt-1">48 000 – 62 000 <span className="text-xs font-semibold text-slate-400">SEK/mån</span></p>
+                            <p className="text-xs text-slate-400 mt-1">Continuous Improvement &amp; QA</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* SECTION 3: UPSKILLING ROI & LEARNING ROADMAP */}
+                      <div className={`p-6 rounded-2xl border space-y-4 transition ${isDark ? "bg-slate-900/80 border-slate-800" : "bg-white border-slate-200 shadow-sm"}`}>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h3 className={`text-lg sm:text-xl font-bold ${isDark ? "text-white" : "text-slate-900"} flex items-center space-x-2`}>
+                              <span>🚀 Upskilling ROI &amp; Recommended Next Learning Steps</span>
+                              <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-purple-500/20 text-purple-400 border border-purple-500/30">
+                                Match Boost Engine
+                              </span>
+                            </h3>
+                            <p className={`text-xs sm:text-sm mt-0.5 ${isDark ? "text-slate-400" : "text-slate-600"}`}>
+                              Identifies top missing skills across all scanned Swedish positions and projects your calculated match score boost.
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="space-y-3">
+                          {upskilling.map((trend, idx) => (
+                            <div key={idx} className={`p-4 rounded-xl border flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 ${isDark ? "bg-slate-950 border-slate-800" : "bg-slate-50 border-slate-200"}`}>
+                              <div className="flex items-center space-x-3">
+                                <span className="w-8 h-8 rounded-full bg-amber-400/20 border border-amber-400/40 text-amber-300 flex items-center justify-center font-bold text-sm shrink-0">
+                                  #{idx + 1}
+                                </span>
+                                <div>
+                                  <h4 className="font-extrabold text-base text-white">{trend.skill}</h4>
+                                  <p className="text-xs text-amber-300 font-semibold">{trend.growthVelocity}</p>
+                                </div>
+                              </div>
+                              <div className="flex items-center space-x-3">
+                                <span className="px-3 py-1 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-bold">
+                                  +{trend.scoreBoostPct}% Match Score Boost
+                                </span>
+                                <span className="px-3 py-1 rounded-lg bg-blue-500/20 text-blue-400 border border-blue-500/30 text-xs font-bold">
+                                  Appears in {trend.percentage}% of Roles
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* SECTION 4: CV VERSION A/B PERFORMANCE MATRIX */}
+                      <div className={`p-6 rounded-2xl border space-y-4 transition ${isDark ? "bg-slate-900/80 border-slate-800" : "bg-white border-slate-200 shadow-sm"}`}>
+                        <h3 className={`text-lg sm:text-xl font-bold ${isDark ? "text-white" : "text-slate-900"} flex items-center space-x-2`}>
+                          <span>📄 CV Version A/B Performance Matrix</span>
+                        </h3>
+                        <div className="overflow-x-auto rounded-xl border border-slate-800">
+                          <table className="w-full text-left text-xs sm:text-sm">
+                            <thead className="bg-slate-950 text-slate-400 uppercase tracking-wider border-b border-slate-800">
+                              <tr>
+                                <th className="py-3 px-4">Resume Version</th>
+                                <th className="py-3 px-4">Applications</th>
+                                <th className="py-3 px-4">Interviews</th>
+                                <th className="py-3 px-4">Offers</th>
+                                <th className="py-3 px-4 text-right">Interview Conversion Rate</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-800 bg-slate-900/50">
+                              {cvPerf.map((cv, idx) => (
+                                <tr key={idx} className="hover:bg-slate-800/40 transition">
+                                  <td className="py-3 px-4 font-bold text-white">{cv.resumeVersion}</td>
+                                  <td className="py-3 px-4 text-slate-300">{cv.totalApplied}</td>
+                                  <td className="py-3 px-4 font-bold text-emerald-400">{cv.interviewsCount}</td>
+                                  <td className="py-3 px-4 font-bold text-purple-400">{cv.offersCount}</td>
+                                  <td className="py-3 px-4 text-right font-black text-amber-300 text-sm">
+                                    {cv.conversionRate}%
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
               </>
             )}
           </div>

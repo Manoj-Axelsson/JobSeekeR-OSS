@@ -4,8 +4,8 @@ import Link from "next/link";
 import { translations, Language } from "@/lib/services/i18n";
 
 interface SidebarNavProps {
-  activeTab: "feed" | "tracker" | "profile" | "logs";
-  setActiveTab: (tab: "feed" | "tracker" | "profile" | "logs") => void;
+  activeTab: "feed" | "tracker" | "profile" | "logs" | "intelligence";
+  setActiveTab: (tab: "feed" | "tracker" | "profile" | "logs" | "intelligence") => void;
   jobCount: number;
   appCount: number;
   currentLang?: Language;
@@ -92,6 +92,24 @@ export function SidebarNav({
             <span className="text-lg">🎯</span>
             <span>{t.competenceProfile}</span>
           </div>
+        </button>
+
+        {/* 📊 Intelligence & Market Trends Tab */}
+        <button
+          onClick={() => setActiveTab("intelligence")}
+          className={`w-full p-3 rounded-xl font-bold text-sm transition-all duration-200 cursor-pointer flex items-center justify-between ${
+            activeTab === "intelligence"
+              ? "bg-gradient-to-r from-amber-300 via-amber-400 to-orange-400 text-amber-950 shadow-xl shadow-amber-950/60 border border-amber-200/50 font-black scale-[1.02]"
+              : "bg-[#4e2c0e]/80 hover:bg-[#613712] text-amber-200 border border-amber-500/30"
+          }`}
+        >
+          <div className="flex items-center space-x-3">
+            <span className="text-lg">📊</span>
+            <span>Intelligence &amp; Trends</span>
+          </div>
+          <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-400 text-amber-950 uppercase tracking-wider">
+            AI
+          </span>
         </button>
 
         {/* ⚡ Monitor Logs Tab */}

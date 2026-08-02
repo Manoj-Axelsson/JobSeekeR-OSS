@@ -18,7 +18,7 @@ model UserAccount {
 
 model UserProfile {
   id              String   @id @default("user_main")
-  name            String   @default("JobseekeR User")
+  name            String   @default("Manoj John Axelsson")
   headline        String   @default("Software & Systems Engineer")
   location        String   @default("Sweden")
   languages       String   @default("English, Swedish")
@@ -39,6 +39,23 @@ model UserDocument {
   uploadedAt      DateTime @default(now())
 }
 
+model Recruiter {
+  id                  String        @id @default(uuid())
+  name                String
+  company             String?
+  email               String?
+  linkedinUrl         String?
+  avgResponseDays     Float         @default(6.0)
+  replyRate           Float         @default(100.0) // %
+  prefersPortfolio    Boolean       @default(false)
+  seniorityPreference String        @default("SENIOR") // JUNIOR, MID, SENIOR
+  notes               String?
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  applications        Application[]
+}
+
 model JobAd {
   id              String   @id @default(uuid())
   externalId      String   @unique // JobTech/Platsbanken job ID
@@ -55,6 +72,13 @@ model JobAd {
   missingSkills   String   // JSON string array
   domainScores    String   // JSON string object (software, systems, quality, manufacturing)
   status          String   @default("NEW") // NEW, SAVED, APPLIED, DISCARDED
+
+  // Salary Intelligence Fields
+  salaryMin       Int?
+  salaryMax       Int?
+  salaryCurrency  String?  @default("SEK")
+  salaryRawText   String?
+
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -62,16 +86,20 @@ model JobAd {
 }
 
 model Application {
-  id              String   @id @default(uuid())
+  id              String     @id @default(uuid())
   jobId           String
-  job             JobAd    @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  status          String   @default("APPLIED") // APPLIED, INTERVIEWING, OFFER, REJECTED
-  appliedAt       DateTime @default(now())
-  resumeVersion   String   @default("JobseekeR CV")
+  job             JobAd      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  recruiterId     String?
+  recruiter       Recruiter? @relation(fields: [recruiterId], references: [id], onDelete: SetNull)
+  status          String     @default("APPLIED") // APPLIED, INTERVIEWING, OFFER, REJECTED
+  responseOutcome String?    // PENDING, INTERVIEW_INVITE, GHOSTED, REJECTED, OFFER
+  responseTimeDays Int?
+  appliedAt       DateTime   @default(now())
+  resumeVersion   String     @default("Manoj Axelsson - Fullstack Architecture CV")
   notes           String?
-  monthlyTag      String   // e.g. "2026-07"
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  monthlyTag      String     // e.g. "2026-07"
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
 }
 
 model ScanLog {
@@ -83,4 +111,3 @@ model ScanLog {
   status          String   @default("SUCCESS") // SUCCESS, ERROR
   message         String?
 }
-

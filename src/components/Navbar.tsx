@@ -5,8 +5,8 @@ import Link from "next/link";
 import { translations, Language } from "@/lib/services/i18n";
 
 interface NavbarProps {
-  activeTab: "feed" | "tracker" | "profile" | "logs";
-  setActiveTab: (tab: "feed" | "tracker" | "profile" | "logs") => void;
+  activeTab: "feed" | "tracker" | "profile" | "logs" | "intelligence";
+  setActiveTab: (tab: "feed" | "tracker" | "profile" | "logs" | "intelligence") => void;
   profileName: string;
   jobCount: number;
   appCount: number;
