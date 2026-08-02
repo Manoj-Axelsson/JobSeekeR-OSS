@@ -92,11 +92,6 @@ export function Navbar({
                     <span className="text-[11px] font-semibold text-amber-200/90 border-t border-amber-500/30 pt-0.5 mt-0.5">SE Job Tech API</span>
                   </div>
                 </div>
-                {currentUser?.name || (profileName && profileName !== "JobseekeR User") ? (
-                  <p className="text-xs text-amber-300/90 font-bold mt-1">
-                    👤 {currentUser?.name || profileName}
-                  </p>
-                ) : null}
               </div>
             </Link>
           </div>
