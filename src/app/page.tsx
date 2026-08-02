@@ -675,10 +675,10 @@ export default function Dashboard() {
 
                                   {/* Title & Company */}
                                   <div>
-                                    <h2 className={`text-[22px] font-bold ${isDark ? "text-white" : "text-slate-900"}`}>
+                                    <h2 className={`text-[22px] font-black ${isDark ? "text-white" : "text-black"}`}>
                                       {job.title}
                                     </h2>
-                                    <p className={`text-[16px] font-medium mt-0.5 flex items-center space-x-2 ${isDark ? "text-slate-400" : "text-slate-600"}`}>
+                                    <p className={`text-[16px] font-bold mt-0.5 flex items-center space-x-2 ${isDark ? "text-slate-300" : "text-black"}`}>
                                       <span>🏢 {job.company}</span>
                                       <span>•</span>
                                       <span>📍 {job.location}</span>
@@ -798,27 +798,27 @@ export default function Dashboard() {
 
                                   {/* 2. DOMAIN BREAKDOWN BADGES */}
                                   <div>
-                                    <h4 className={`text-[16px] font-bold mb-2 ${isDark ? "text-slate-300" : "text-slate-700"}`}>
+                                    <h4 className={`text-[16px] font-extrabold mb-2 ${isDark ? "text-slate-300" : "text-black"}`}>
                                       Domain Match Fit:
                                     </h4>
                                     <div className="flex flex-wrap gap-2">
                                       {domainScoresObj.software > 0 && (
-                                        <span className={`text-[14px] px-3 py-1 rounded-md font-semibold ${isDark ? "bg-blue-500/10 text-blue-400 border border-blue-500/20" : "bg-blue-50 text-blue-800 border border-blue-200"}`}>
+                                        <span className={`text-[14px] px-3 py-1 rounded-md font-extrabold ${isDark ? "bg-blue-500/10 text-blue-400 border border-blue-500/20" : "bg-blue-100 text-blue-950 border border-blue-300"}`}>
                                           Software ({domainScoresObj.software}%)
                                         </span>
                                       )}
                                       {domainScoresObj.systems > 0 && (
-                                        <span className={`text-[14px] px-3 py-1 rounded-md font-semibold ${isDark ? "bg-purple-500/10 text-purple-400 border border-purple-500/20" : "bg-purple-50 text-purple-800 border border-purple-200"}`}>
+                                        <span className={`text-[14px] px-3 py-1 rounded-md font-extrabold ${isDark ? "bg-purple-500/10 text-purple-400 border border-purple-500/20" : "bg-purple-100 text-purple-950 border border-purple-300"}`}>
                                           Systems ({domainScoresObj.systems}%)
                                         </span>
                                       )}
                                       {domainScoresObj.quality > 0 && (
-                                        <span className={`text-[14px] px-3 py-1 rounded-md font-semibold ${isDark ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-emerald-50 text-emerald-800 border border-emerald-200"}`}>
+                                        <span className={`text-[14px] px-3 py-1 rounded-md font-extrabold ${isDark ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-emerald-100 text-emerald-950 border border-emerald-300"}`}>
                                           Quality ({domainScoresObj.quality}%)
                                         </span>
                                       )}
                                       {domainScoresObj.industrial > 0 && (
-                                        <span className={`text-[14px] px-3 py-1 rounded-md font-semibold ${isDark ? "bg-amber-500/10 text-amber-400 border border-amber-500/20" : "bg-amber-50 text-amber-800 border border-amber-200"}`}>
+                                        <span className={`text-[14px] px-3 py-1 rounded-md font-extrabold ${isDark ? "bg-amber-500/10 text-amber-400 border border-amber-500/20" : "bg-amber-100 text-amber-950 border border-amber-300"}`}>
                                           Manufacturing ({domainScoresObj.industrial}%)
                                         </span>
                                       )}
@@ -828,16 +828,16 @@ export default function Dashboard() {
                                   {/* 3. MATCHED SKILL TAGS */}
                                   {matchedSkillsArr.length > 0 && (
                                     <div>
-                                      <h4 className={`text-[16px] font-bold mb-2 ${isDark ? "text-slate-300" : "text-slate-700"}`}>
-                                        Matched Skills & Keywords:
+                                      <h4 className={`text-[16px] font-extrabold mb-2 ${isDark ? "text-slate-300" : "text-black"}`}>
+                                        Matched Skills &amp; Keywords:
                                       </h4>
                                       <div className="flex flex-wrap gap-2">
                                         {matchedSkillsArr.map((skill, idx) => (
                                           <span
                                             key={idx}
-                                            className={`text-[14px] px-3 py-1 rounded-md border font-semibold ${isDark
+                                            className={`text-[14px] px-3 py-1 rounded-md border font-bold ${isDark
                                               ? "bg-slate-950 text-slate-300 border-slate-800"
-                                              : "bg-slate-100 text-slate-800 border-slate-200"
+                                              : "bg-slate-200 text-black border-slate-400"
                                               }`}
                                           >
                                             ✓ {skill}
@@ -849,10 +849,10 @@ export default function Dashboard() {
 
                                   {/* 4. DESCRIPTION PREVIEW */}
                                   <div>
-                                    <h4 className={`text-[16px] font-bold mb-2 ${isDark ? "text-slate-300" : "text-slate-700"}`}>
+                                    <h4 className={`text-[16px] font-extrabold mb-2 ${isDark ? "text-slate-300" : "text-black"}`}>
                                       Job Overview:
                                     </h4>
-                                    <p className={`text-[17px] leading-relaxed whitespace-pre-line ${isDark ? "text-slate-400" : "text-slate-600"}`}>
+                                    <p className={`text-[17px] leading-relaxed whitespace-pre-line font-medium ${isDark ? "text-slate-300" : "text-black"}`}>
                                       {job.description}
                                     </p>
                                   </div>
