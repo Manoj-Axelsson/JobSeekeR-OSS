@@ -1,7 +1,7 @@
 {
-  "name": "JobseekeR™ - Swedish Job Scanner",
+  "name": "JobseekeR™ - Intelligence Platform",
   "short_name": "JobseekeR™",
-  "description": "Automated Swedish Job Market Scanner, Competence Engine & Application Tracker",
+  "description": "JobseekeR™ is an intelligence platform built to automate job searching.",
   "start_url": "/",
   "display": "standalone",
   "orientation": "any",

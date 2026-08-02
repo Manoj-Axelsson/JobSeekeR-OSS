@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "JobseekeR™ — Open Source Job Market Scanner",
-  description: "Automated daily Swedish job market scanner, CV competence matcher, and application tracking platform built for accessibility.",
+  description: "JobseekeR™ is an intelligence platform built to automate job searching.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,

@@ -198,10 +198,10 @@ export default function LandingPage() {
           />
         </div>
 
-        {/* Pulsing Badge */}
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#3d1803]/90 border border-amber-400/50 text-amber-300 text-xs font-bold tracking-wider uppercase mb-6 shadow-xl">
+        {/* Official Tagline Badge */}
+        <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-gradient-to-r from-amber-500/20 via-orange-500/30 to-amber-500/20 border-2 border-amber-400/60 text-amber-200 text-xs sm:text-sm font-black tracking-wide uppercase mb-6 shadow-2xl backdrop-blur-md">
           <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping"></span>
-          Direct API Connection to Arbetsförmedlingen JobTech
+          JobseekeR™ is an intelligence platform built to automate job searching.
         </div>
 
         {/* Prominent Hero Title */}
@@ -214,7 +214,7 @@ export default function LandingPage() {
         </h2>
 
         <p className="mt-6 text-lg sm:text-xl text-amber-100/90 max-w-2xl font-normal leading-relaxed">
-          Evaluates real-time Swedish job postings daily at 12:00 PM against your uploaded CVs &amp; competence certificates, calculates weighted match scores, and maintains an automated 12-month rolling data archive.
+          JobseekeR™ evaluates real-time Swedish job postings daily at 12:00 PM against your uploaded CVs &amp; competence certificates, calculates weighted match scores, and maintains an automated rolling application tracker.
         </p>
 
         {/* Hero Action Buttons */}

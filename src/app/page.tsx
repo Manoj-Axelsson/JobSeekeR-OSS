@@ -1193,8 +1193,8 @@ export default function Dashboard() {
                             <h2 className="text-2xl font-black text-amber-300 uppercase tracking-wide">
                               JobseekeR™ Intelligence Suite
                             </h2>
-                            <p className="text-xs sm:text-sm text-amber-200/90 font-semibold">
-                              All 8 AI Intelligence Pillars Unified Under One Umbrella
+                            <p className="text-xs sm:text-sm text-amber-200/90 font-bold italic">
+                              "JobseekeR™ is an intelligence platform built to automate job searching."
                             </p>
                           </div>
                         </div>
