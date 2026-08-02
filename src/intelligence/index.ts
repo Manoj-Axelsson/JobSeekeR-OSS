@@ -7,5 +7,7 @@ export * from "./salary";
 export * from "./cv";
 export * from "./match";
 export * from "./predictive";
+export * from "./prediction";
 export * from "./scoring";
+export * from "./recommendations";
 export * from "./analytics";

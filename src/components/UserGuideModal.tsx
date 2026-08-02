@@ -9,7 +9,7 @@ interface UserGuideModalProps {
 }
 
 export function UserGuideModal({ isOpen, onClose, onOpenOnboarding }: UserGuideModalProps) {
-  const [guideTab, setGuideTab] = useState<"quickstart" | "intelligence" | "scanner" | "tracking" | "pwa">("quickstart");
+  const [guideTab, setGuideTab] = useState<"quickstart" | "intelligence" | "scanner" | "tracking" | "pwa" | "privacy" | "evolution">("quickstart");
 
   if (!isOpen) return null;
 
@@ -41,53 +41,63 @@ export function UserGuideModal({ isOpen, onClose, onOpenOnboarding }: UserGuideM
         <div className="flex flex-wrap gap-2 text-xs font-bold border-b border-amber-500/20 pb-3">
           <button
             onClick={() => setGuideTab("quickstart")}
-            className={`px-3.5 py-2 rounded-xl transition cursor-pointer ${
+            className={`px-3 py-1.5 rounded-xl transition cursor-pointer ${
               guideTab === "quickstart"
                 ? "bg-amber-400 text-amber-950 font-black shadow-md"
                 : "bg-amber-950/60 text-amber-300 hover:bg-amber-900/80 border border-amber-500/30"
             }`}
           >
-            🚀 1. Quick Start
+            🚀 Quick Start
           </button>
           <button
             onClick={() => setGuideTab("intelligence")}
-            className={`px-3.5 py-2 rounded-xl transition cursor-pointer ${
+            className={`px-3 py-1.5 rounded-xl transition cursor-pointer ${
               guideTab === "intelligence"
                 ? "bg-amber-400 text-amber-950 font-black shadow-md"
                 : "bg-amber-950/60 text-amber-300 hover:bg-amber-900/80 border border-amber-500/30"
             }`}
           >
-            🤖 2. Intelligence Suite
+            🤖 Intelligence Suite
+          </button>
+          <button
+            onClick={() => setGuideTab("privacy")}
+            className={`px-3 py-1.5 rounded-xl transition cursor-pointer ${
+              guideTab === "privacy"
+                ? "bg-amber-400 text-amber-950 font-black shadow-md"
+                : "bg-amber-950/60 text-amber-300 hover:bg-amber-900/80 border border-amber-500/30"
+            }`}
+          >
+            🔒 Privacy &amp; Data Ownership
+          </button>
+          <button
+            onClick={() => setGuideTab("evolution")}
+            className={`px-3 py-1.5 rounded-xl transition cursor-pointer ${
+              guideTab === "evolution"
+                ? "bg-amber-400 text-amber-950 font-black shadow-md"
+                : "bg-amber-950/60 text-amber-300 hover:bg-amber-900/80 border border-amber-500/30"
+            }`}
+          >
+            🧠 Understanding Intelligence
           </button>
           <button
             onClick={() => setGuideTab("scanner")}
-            className={`px-3.5 py-2 rounded-xl transition cursor-pointer ${
+            className={`px-3 py-1.5 rounded-xl transition cursor-pointer ${
               guideTab === "scanner"
                 ? "bg-amber-400 text-amber-950 font-black shadow-md"
                 : "bg-amber-950/60 text-amber-300 hover:bg-amber-900/80 border border-amber-500/30"
             }`}
           >
-            ⚡ 3. Scanner &amp; Importer
-          </button>
-          <button
-            onClick={() => setGuideTab("tracking")}
-            className={`px-3.5 py-2 rounded-xl transition cursor-pointer ${
-              guideTab === "tracking"
-                ? "bg-amber-400 text-amber-950 font-black shadow-md"
-                : "bg-amber-950/60 text-amber-300 hover:bg-amber-900/80 border border-amber-500/30"
-            }`}
-          >
-            📋 4. Application Tracker
+            ⚡ Scanner
           </button>
           <button
             onClick={() => setGuideTab("pwa")}
-            className={`px-3.5 py-2 rounded-xl transition cursor-pointer ${
+            className={`px-3 py-1.5 rounded-xl transition cursor-pointer ${
               guideTab === "pwa"
                 ? "bg-amber-400 text-amber-950 font-black shadow-md"
                 : "bg-amber-950/60 text-amber-300 hover:bg-amber-900/80 border border-amber-500/30"
             }`}
           >
-            📱 5. Mobile PWA Install
+            📱 Mobile PWA
           </button>
         </div>
 
@@ -190,6 +200,43 @@ export function UserGuideModal({ isOpen, onClose, onOpenOnboarding }: UserGuideM
               <div className="p-3 rounded-xl bg-amber-950/50 border border-amber-500/30">
                 <h4 className="font-extrabold text-amber-300">🔮 8. Predictive Intelligence</h4>
                 <p className="text-amber-100/80 mt-1">Real-time interview probability predictions (37%) and Overall Career Scorecard (82 / 100).</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Tab 3: Privacy & Data Ownership */}
+        {guideTab === "privacy" && (
+          <div className="space-y-4 text-xs sm:text-sm leading-relaxed">
+            <h3 className="text-lg font-extrabold text-amber-300">🔒 Privacy &amp; Data Ownership Architecture</h3>
+            <div className="p-4 rounded-2xl bg-amber-950/40 border border-amber-400/40 space-y-3">
+              <h4 className="font-extrabold text-amber-200">Local-First Device Storage (SQLite)</h4>
+              <p className="text-amber-100/80 text-xs">
+                Your career data, uploaded CVs, match scores, and application histories are stored locally on your device in an embedded SQLite database (`prisma/dev.db`). No personal career data is sent to external servers or sold to data brokers.
+              </p>
+              <h4 className="font-extrabold text-amber-200">User Data Ownership</h4>
+              <p className="text-amber-100/80 text-xs">
+                You own 100% of your career data. You can export your data or clear your local database anytime from <strong>⚙️ Settings</strong>.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Tab 4: Understanding Intelligence */}
+        {guideTab === "evolution" && (
+          <div className="space-y-4 text-xs sm:text-sm leading-relaxed">
+            <h3 className="text-lg font-extrabold text-amber-300">🧠 Understanding Intelligence &amp; Confidence Evolution</h3>
+            <div className="p-4 rounded-2xl bg-amber-950/40 border border-amber-400/40 space-y-3">
+              <h4 className="font-extrabold text-amber-200">Evidence-Based Confidence Model</h4>
+              <p className="text-amber-100/80 text-xs">
+                JobseekeR™ does not use arbitrary or fake predictions. As you apply to positions, log recruiter responses, and evaluate jobs, the Intelligence Suite accumulates statistical evidence and advances through three activation states:
+              </p>
+              <div className="flex items-center space-x-2 text-xs font-bold pt-1">
+                <span className="px-2.5 py-1 rounded bg-amber-950 text-amber-300 border border-amber-500/30">🌱 0-30%: Learning</span>
+                <span>→</span>
+                <span className="px-2.5 py-1 rounded bg-amber-900 text-amber-200 border border-amber-400/40">⚡ 31-70%: Ready</span>
+                <span>→</span>
+                <span className="px-2.5 py-1 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">🎯 71-100%: High Confidence</span>
               </div>
             </div>
           </div>
