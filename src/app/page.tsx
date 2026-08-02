@@ -5,6 +5,7 @@ import { evaluateJobMatch, MatchResult } from "@/lib/services/matcher";
 import { OnboardingWizard } from "@/components/OnboardingWizard";
 import { AuthModal } from "@/components/AuthModal";
 import { DocumentUploader } from "@/components/DocumentUploader";
+import { UserGuideModal } from "@/components/UserGuideModal";
 import { Navbar } from "@/components/Navbar";
 import { SidebarNav } from "@/components/SidebarNav";
 import { speakText } from "@/lib/services/tts";
@@ -77,9 +78,10 @@ export default function Dashboard() {
   const [selectedJob, setSelectedJob] = useState<JobAd | null>(null);
   const [modalTab, setModalTab] = useState<"analysis" | "description">("analysis");
 
-  // Onboarding & Auth Modals state
+  // Onboarding & Auth & User Guide Modals state
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showUserGuide, setShowUserGuide] = useState(false);
   const [currentUser, setCurrentUser] = useState<{ name: string; email: string } | null>(null);
   const [showDocUploader, setShowDocUploader] = useState(false);
 
@@ -369,6 +371,7 @@ export default function Dashboard() {
         onToggleDocUploader={() => setShowDocUploader(!showDocUploader)}
         onOpenOnboarding={() => setShowOnboarding(true)}
         onOpenAuth={() => setShowAuthModal(true)}
+        onOpenUserGuide={() => setShowUserGuide(true)}
         onLogout={() => setCurrentUser(null)}
         currentUser={currentUser}
         themeMode={themeMode}
@@ -384,6 +387,12 @@ export default function Dashboard() {
           isOpen={showOnboarding}
           onClose={() => setShowOnboarding(false)}
           onComplete={fetchData}
+        />
+
+        <UserGuideModal
+          isOpen={showUserGuide}
+          onClose={() => setShowUserGuide(false)}
+          onOpenOnboarding={() => setShowOnboarding(true)}
         />
 
         <AuthModal
@@ -406,6 +415,7 @@ export default function Dashboard() {
             jobCount={filteredJobs.length}
             appCount={appsList.length}
             currentLang={currentLang}
+            onOpenUserGuide={() => setShowUserGuide(true)}
           />
 
           {/* Main Dashboard Content Area */}

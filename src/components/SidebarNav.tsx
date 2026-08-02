@@ -9,6 +9,7 @@ interface SidebarNavProps {
   jobCount: number;
   appCount: number;
   currentLang?: Language;
+  onOpenUserGuide?: () => void;
 }
 
 export function SidebarNav({
@@ -17,6 +18,7 @@ export function SidebarNav({
   jobCount,
   appCount,
   currentLang = "sv",
+  onOpenUserGuide,
 }: SidebarNavProps) {
   const t = translations[currentLang] || translations.sv;
 
@@ -127,8 +129,21 @@ export function SidebarNav({
           </div>
         </button>
 
-        {/* Home Link to Landing Page */}
-        <div className="pt-2 border-t border-amber-500/30">
+        {/* Home Link to Landing Page & User Guide */}
+        <div className="pt-2 border-t border-amber-500/30 space-y-2">
+          {onOpenUserGuide && (
+            <button
+              onClick={onOpenUserGuide}
+              className="w-full p-3 rounded-xl font-bold text-sm bg-[#5c330c]/90 hover:bg-[#703f10] text-amber-200 border border-amber-400/50 flex items-center justify-between transition-all cursor-pointer shadow-md"
+            >
+              <div className="flex items-center space-x-3">
+                <span className="text-lg">📖</span>
+                <span className="font-extrabold text-amber-300">User Guide &amp; Docs</span>
+              </div>
+              <span className="text-xs font-semibold text-amber-400">↗</span>
+            </button>
+          )}
+
           <Link
             href="/landing"
             className="w-full p-3 rounded-xl font-bold text-sm bg-gradient-to-r from-amber-900/80 to-orange-950/80 hover:from-amber-800 hover:to-orange-900 text-amber-200 border border-amber-500/40 flex items-center justify-between transition-all"

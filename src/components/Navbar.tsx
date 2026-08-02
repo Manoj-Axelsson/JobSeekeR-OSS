@@ -15,6 +15,7 @@ interface NavbarProps {
   onToggleDocUploader: () => void;
   onOpenOnboarding: () => void;
   onOpenAuth: () => void;
+  onOpenUserGuide?: () => void;
   onLogout?: () => void;
   currentUser: { name: string; email: string } | null;
   themeMode: "light" | "dark" | "system";
@@ -37,6 +38,7 @@ export function Navbar({
   onToggleDocUploader,
   onOpenOnboarding,
   onOpenAuth,
+  onOpenUserGuide,
   onLogout,
   currentUser,
   themeMode,
@@ -165,6 +167,22 @@ export function Navbar({
 
                   {/* Quick Action Links */}
                   <div className="space-y-1.5 pt-1">
+                    {onOpenUserGuide && (
+                      <button
+                        onClick={() => {
+                          onOpenUserGuide();
+                          setUserDropdownOpen(false);
+                        }}
+                        className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold bg-[#5c330c] hover:bg-[#724010] text-amber-200 border border-amber-400/50 flex items-center justify-between cursor-pointer transition-all shadow-sm"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <span>📖</span>
+                          <span className="font-extrabold text-amber-300">User Guide &amp; Docs</span>
+                        </div>
+                        <span className="text-amber-400 font-bold">↗</span>
+                      </button>
+                    )}
+
                     <button
                       onClick={() => {
                         onOpenOnboarding();
@@ -174,7 +192,7 @@ export function Navbar({
                     >
                       <div className="flex items-center space-x-2">
                         <span>⚙️</span>
-                        <span>Profile &amp; Search Setup</span>
+                        <span>Profile &amp; Guided Setup</span>
                       </div>
                       <span className="text-amber-400">↗</span>
                     </button>
