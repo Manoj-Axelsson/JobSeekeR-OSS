@@ -8,7 +8,7 @@ Helping jobseekers make evidence-based career decisions through intelligent soft
 
 ---
 
-[![Release](https://img.shields.io/badge/release-v1.1.0-blue.svg)](package.json)
+[![Release](https://img.shields.io/badge/release-v1.0.1-blue.svg)](package.json)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![PWA Ready](https://img.shields.io/badge/PWA-Ready-success.svg)](public/manifest.json)
 [![Accessibility](https://img.shields.io/badge/WCAG-2.1%20AA-success.svg)]()
