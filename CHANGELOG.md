@@ -5,6 +5,18 @@ All notable changes to **JobSeekeR™** will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.2] - 2026-08-03
+
+### Added & Improved
+- **Mobile Responsive Navbar**: Built a responsive navigation header for `Navbar.tsx` and `landing/page.tsx` featuring responsive logo brand scaling (`text-2xl` to `text-5xl`), a compact quick-scan mobile action bar, and an animated mobile hamburger menu drawer panel.
+- **Mobile Menu Drawer**: Integrated complete navigation tab switching (Feed, Tracker, Profile, Intelligence, Logs, Settings), quick actions (Home, Run Job Scan, User Profile, Upload Files, Guided Setup), Language Selector (Swedish, English, Norwegian, Danish), Accessibility/Audio TTS, and Theme Mode directly inside the mobile navbar drawer.
+- **Application-Wide Interactive Button Hover & Active Design System**: Added enhanced micro-interactions, `hover:scale-105`, `hover:shadow-xl`, `hover:shadow-amber-400/40`, active scale compression (`active:scale-95`), and smooth transitions across all buttons in `Navbar`, `SidebarNav`, `LandingPage`, and UI modals.
+
+### Fixed
+- **Mobile Viewport Overflow**: Resolved desktop button horizontal overflow and layout clipping on mobile viewports (< 768px).
+
+---
+
 ## [1.0.1] - 2026-08-03
 
 ### Changed & Dynamic Intelligence Upgrade
