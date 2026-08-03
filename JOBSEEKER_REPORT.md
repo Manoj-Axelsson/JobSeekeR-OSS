@@ -1,15 +1,15 @@
-# Atlas Talent Navigator: Comprehensive Technical Report & Customization Blueprint
+# JobSeekeR: Comprehensive Technical Report & Customization Blueprint
 
 **Author:** Manoj John Axelsson  
-**Project:** Atlas Talent Navigator  
-**Repository:** [github.com/Manoj-Axelsson/atlas-talent-navigator](https://github.com/Manoj-Axelsson/atlas-talent-navigator)  
+**Project:** JobSeekeR  
+**Repository:** [github.com/Manoj-Axelsson/JobSeekeR-OSS](https://github.com/Manoj-Axelsson/JobSeekeR-OSS)  
 **Date:** July 28, 2026  
 
 ---
 
 ## 1. Executive Summary & Purpose
 
-**Atlas Talent Navigator** is an automated daily job market scanner, multi-domain skill matching engine, and monthly application tracking dashboard designed for the Swedish job market. 
+**JobSeekeR** is an automated daily job market scanner, multi-domain skill matching engine, and monthly application tracking dashboard designed for the Swedish job market. 
 
 Every day at **12:00 PM (noon)**, the application automatically fetches newly published job advertisements from Sweden's official public job database (**Arbetsförmedlingen JobTech API**), evaluates each job posting against a candidate's specific competence profile, calculates a weighted **Match Score (0-100%)**, generates **Cover Letter Pitch Strategies**, and logs applications on a monthly basis.
 
@@ -49,7 +49,7 @@ The application is built on a modern, high-performance, self-contained architect
 The system can be configured to target any specialized job search criteria in Sweden or internationally.
 
 ### A. Configuring Target Job Keywords & Roles
-Search queries are managed in [`src/lib/services/jobtech.ts`](file:///Users/manoj-axelsson/Development/atlas-talent-navigator/src/lib/services/jobtech.ts#L16). 
+Search queries are managed in [`src/lib/services/jobtech.ts`](file:///Users/manoj-axelsson/Development/JobSeekeR-OSS/src/lib/services/jobtech.ts#L16). 
 You can customize the `keywords` array to search for specific roles:
 
 ```typescript
@@ -89,14 +89,14 @@ Under the **Monthly Application Tracker** tab, all applied positions are organiz
 
 ### Step 1: Clone the Repository
 ```bash
-git clone https://github.com/Manoj-Axelsson/atlas-talent-navigator.git
-cd atlas-talent-navigator
+git clone https://github.com/Manoj-Axelsson/JobSeekeR-OSS.git
+cd JobSeekeR-OSS
 npm install
 ```
 
 ### Step 2: "Train" (Configure) the Model to a New Candidate Profile
 
-#### 1. Update the Candidate Profile Seed ([`prisma/seed.ts`](file:///Users/manoj-axelsson/Development/atlas-talent-navigator/prisma/seed.ts))
+#### 1. Update the Candidate Profile Seed ([`prisma/seed.ts`](file:///Users/manoj-axelsson/Development/JobSeekeR-OSS/prisma/seed.ts))
 Replace Manoj's profile data with the new candidate's name, headline, target roles, and skill domains:
 
 ```typescript
@@ -115,7 +115,7 @@ const newCandidateProfile = {
 };
 ```
 
-#### 3. Customize Skill Taxonomy & Keywords ([`src/lib/services/matcher.ts`](file:///Users/manoj-axelsson/Development/atlas-talent-navigator/src/lib/services/matcher.ts#L22))
+#### 3. Customize Skill Taxonomy & Keywords ([`src/lib/services/matcher.ts`](file:///Users/manoj-axelsson/Development/JobSeekeR-OSS/src/lib/services/matcher.ts#L22))
 Modify the `TAXONOMY` object in `matcher.ts` to reflect the candidate's core domain keywords:
 
 ```typescript

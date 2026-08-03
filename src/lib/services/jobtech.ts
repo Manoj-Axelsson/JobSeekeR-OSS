@@ -41,7 +41,7 @@ export async function fetchSwedishJobs(keywords: string[] = [
       const res = await fetch(url, {
         headers: {
           "Accept": "application/json",
-          "User-Agent": "AtlasTalentNavigator/1.0",
+          "User-Agent": "JobSeekeR/1.0",
         },
         next: { revalidate: 0 },
       });

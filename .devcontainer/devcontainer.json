@@ -1,5 +1,5 @@
 {
-  "name": "Atlas Talent Navigator",
+  "name": "JobSeekeR",
   "image": "mcr.microsoft.com/devcontainers/typescript-node:1-20-bookworm",
   "forwardPorts": [
     3000

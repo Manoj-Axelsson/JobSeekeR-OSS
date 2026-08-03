@@ -10,10 +10,11 @@ Thank you for your interest in contributing to **JobseekeR™ — An intelligenc
 ## Getting Started
 1. Fork the repository on GitHub.
 2. Clone your fork locally:
-   ```bash
-   git clone https://github.com/YOUR-USERNAME/atlas-talent-navigator.git
-   cd atlas-talent-navigator
-   ```
+  ```bash
+git clone https://github.com/Manoj-Axelsson/JobSeekeR-OSS.git
+
+cd JobSeekeR-OSS
+```
 3. Install dependencies:
    ```bash
    npm install

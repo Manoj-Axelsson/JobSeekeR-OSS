@@ -10,8 +10,8 @@
 
 1. **Clone the Repository**:
    ```bash
-   git clone https://github.com/Manoj-Axelsson/atlas-talent-navigator.git
-   cd atlas-talent-navigator
+   git clone https://github.com/Manoj-Axelsson/JobSeekeR-OSS.git
+   cd JobSeekeR-OSS
    ```
 
 2. **Install Dependencies**:

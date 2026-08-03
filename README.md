@@ -1,76 +1,177 @@
-# JobseekeR™ Intelligence Suite
+# JobSeekeR™ OSS
 
-> **"JobseekeR™ is an intelligence platform built to automate job searching."**
+### Open-Source Career Intelligence Platform
 
-[![Version](https://img.shields.io/badge/version-v1.0.0--rc1-amber.svg)](file:///Users/manoj-axelsson/Development/atlas-talent-navigator/package.json)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](file:///Users/manoj-axelsson/Development/atlas-talent-navigator/LICENSE)
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)]()
-[![PWA Ready](https://img.shields.io/badge/PWA-iOS%2FAndroid%2FMac%2FWin-blue.svg)](file:///Users/manoj-axelsson/Development/atlas-talent-navigator/public/manifest.json)
-[![WCAG 2.1 AA](https://img.shields.io/badge/Accessibility-WCAG%202.1%20AA-success.svg)]()
+Helping jobseekers make evidence-based career decisions through intelligent software—not guesswork.
+
+🌐 **Live Demo:** https://jobseeker.website
 
 ---
 
-## 🌟 Overview
-
-**JobseekeR™** connects directly to Sweden's official **Arbetsförmedlingen JobTech API** and external career links (LinkedIn, Platsbanken) to automatically scan, score, match, and organize job postings using local-first career intelligence.
-
-Developed by **RubberDuckWorks — ENGINEER • THINK • BUILD • IMPROVE**.
-
----
-
-## 🤖 The 8 Pillars of JobseekeR™ Intelligence Suite
-
-1. 🧠 **Recruiter Intelligence**: Tracks recruiter response speeds, reply rates, and portfolio requirements.
-2. 🏢 **Company Intelligence**: Monitors employer callback ratios and flags ghosting risk.
-3. 📄 **Document Intelligence**: Automated PDF/Word CV parsing & skill taxonomy extraction.
-4. 📈 **Market Intelligence**: Real-time Swedish tech stack demand trends (`React ↑`, `.NET →`, `Python ↑`, `AI ↑`).
-5. 🎓 **Learning Intelligence**: Upskilling recommendations with highest ROI course projections (*Docker +18% Boost*).
-6. 💰 **Salary Intelligence**: Swedish SEK salary range parser (*45 000 – 65 000 SEK/mån*).
-7. 🎯 **Match Intelligence**: Multi-domain fit scoring across Software, Systems, Quality, and Manufacturing taxonomies.
-8. 🔮 **Predictive Intelligence**: Evidence-based mathematical interview probability predictions and progressive activation states.
+[![Release](https://img.shields.io/badge/release-v1.0.0--rc1-blue.svg)](package.json)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![PWA Ready](https://img.shields.io/badge/PWA-Ready-success.svg)](public/manifest.json)
+[![Accessibility](https://img.shields.io/badge/WCAG-2.1%20AA-success.svg)]()
 
 ---
 
-## 🔒 Local-First Privacy Architecture
+# 🌟 Overview
 
-JobseekeR™ operates under a strict **local-first privacy philosophy**. All candidate CVs, application logs, match scores, and profile details are stored locally on your device in an embedded SQLite database (`prisma/dev.db`). No personal career data is sent to external servers or data brokers.
+JobSeekeR™ OSS is an open-source Career Intelligence Platform designed to help jobseekers automate job discovery, analyze opportunities, optimize application material and make evidence-based career decisions.
 
----
+Unlike traditional job boards, JobSeekeR™ combines recruiter analytics, company intelligence, document parsing, labor market insights and predictive recommendations into a single privacy-first application.
 
-## 📱 Progressive Web App (PWA) & 1-Click Installer
-
-JobseekeR™ is a Progressive Web App ready for 1-click installation:
-- **iPhone / iPad**: Open Safari → Share → **Add to Home Screen**.
-- **Android**: Open Chrome → Tap **Install JobseekeR App**.
-- **Mac & Windows**: Click the **Install App** icon in the browser address bar.
+Built around Sweden's official **Arbetsförmedlingen JobTech API**, the platform has been architected for future expansion into the Nordic labor market.
 
 ---
 
-## 📁 Architecture & Documentation
+# ✨ Key Features
 
-- 📄 [Architecture Decision Records (ADRs)](file:///Users/manoj-axelsson/Development/atlas-talent-navigator/docs/architecture/)
-- 🧠 [Intelligence Subsystems Guide](file:///Users/manoj-axelsson/Development/atlas-talent-navigator/docs/INTELLIGENCE_SUBSYSTEMS.md)
-- 🖥️ [Tauri Desktop Packaging Readiness](file:///Users/manoj-axelsson/Development/atlas-talent-navigator/docs/TAURI_READINESS.md)
-- ⚖️ [MIT License](file:///Users/manoj-axelsson/Development/atlas-talent-navigator/LICENSE)
-- 🤝 [Contribution Guidelines](file:///Users/manoj-axelsson/Development/atlas-talent-navigator/CONTRIBUTING.md)
+- 🤖 Automated job scanning
+- 🎯 Multi-domain job matching
+- 📄 Intelligent CV & certificate parsing
+- 📋 Application tracking
+- 📈 Labour market analytics
+- 💰 Salary intelligence
+- 🎓 Learning ROI recommendations
+- 🔮 Predictive career intelligence
+- 📱 Progressive Web App (PWA)
+- 🔒 Local-first privacy architecture
 
 ---
 
-## 🚀 Quick Start for Developers
+# 🧠 Intelligence Platform
+
+| Intelligence               | Purpose                                                      |
+|----------------------------|--------------------------------------------------------------|
+| 🧠 Recruiter Intelligence  | Analyse recruiter behaviour and response patterns            |
+| 🏢 Company Intelligence    | Track employer responsiveness and callback rates             |
+| 📄 Document Intelligence   | Parse CVs and certificates into structured competences       |
+| 📈 Market Intelligence     | Analyse Swedish labour market demand and technology trends   |
+| 🎓 Learning Intelligence   | Recommend the highest ROI upskilling opportunities           |
+| 💰 Salary Intelligence     | Parse and compare Swedish salary ranges                      |
+| 🎯 Match Intelligence      | Multi-domain competence and role fit analysis                |
+| 🔮 Predictive Intelligence | Evidence-based recommendations powered by real user activity |
+
+---
+
+# 🔒 Privacy First
+
+JobSeekeR™ follows a strict **local-first architecture**.
+
+Candidate profiles, CVs, applications, match scores and personal career data remain under the user's control using an embedded SQLite database.
+
+No personal career information is shared with external data brokers or third-party analytics platforms.
+
+---
+
+# 📱 Progressive Web App
+
+Install JobSeekeR™ directly from your browser.
+
+Supported platforms:
+
+- 🍎 iPhone & iPad
+- 🤖 Android
+- 💻 macOS
+- 🪟 Windows
+
+No installation package is required.
+
+---
+
+# 🏗️ Technology Stack
+
+| Layer          | Technology                     |
+|----------------|--------------------------------|
+| Frontend       | Next.js + React                |
+| Language       | TypeScript                     |
+| Database       | Prisma ORM + SQLite            |
+| Styling        | Tailwind CSS                   |
+| Authentication | Local Authentication           |
+| Deployment     | Vercel                         |
+| Data Source    | Arbetsförmedlingen JobTech API |
+
+---
+
+# 📁 Documentation
+
+- 📄 [Architecture Decision Records](docs/architecture/ADR-001-local-first-architecture.md)
+- 🧠 [Intelligence Subsystems Guide](docs/INTELLIGENCE_SUBSYSTEMS.md)
+- 🛣️ [v1.1 Nordic & SaaS Roadmap](docs/roadmap/ROADMAP_v1.1_NORDIC_SAAS.md)
+- 🖥️ [Tauri Desktop Readiness](docs/TAURI_READINESS.md)
+- 📋 [Release Checklist](docs/RELEASE_CHECKLIST.md)
+- ⚖️ [MIT License](LICENSE)
+- 🤝 [Contribution Guidelines](CONTRIBUTING.md)
+
+---
+
+# 🚀 Quick Start
+
+Clone the repository
 
 ```bash
-# Clone the repository
-git clone https://github.com/Manoj-Axelsson/atlas-talent-navigator.git
-cd atlas-talent-navigator
+git clone https://github.com/Manoj-Axelsson/JobSeekeR-OSS.git
+cd JobSeekeR-OSS
+```
 
-# Install dependencies
+Install dependencies
+
+```bash
 npm install
+```
 
-# Run database migrations
+Prepare the database
+
+```bash
 npx prisma db push
+```
 
-# Start the dev server
+Run the development server
+
+```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Open your browser
+
+```
+http://localhost:3000
+```
+
+---
+
+# 🛣️ Roadmap
+
+## Version 1.1 (Target: September / October 2026 ~ 6 Weeks)
+*Detailed Specification: [docs/roadmap/ROADMAP_v1.1_NORDIC_SAAS.md](docs/roadmap/ROADMAP_v1.1_NORDIC_SAAS.md)*
+
+- 📬 **SaaS Jobs Digest Parser & LinkedIn Feed Scraper**
+- 🇸🇪 **Swedish & Remote (EMEA / Europe) Location Filtering**
+- 🌍 **Nordic Market Open APIs** (🇸🇪 Sweden, 🇳🇴 Norway, 🇩🇰 Denmark, 🇫🇮 Finland)
+- 🤝 **Rootr Ecosystem Local-First Integration Hooks** (`/api/rootr/export`)
+- 🌐 **Nordic Country & Region Filter Tabs UI**
+
+---
+
+# 🤝 Contributing
+
+Contributions are welcome.
+
+Please read the [Contribution Guidelines](CONTRIBUTING.md) before submitting pull requests.
+
+---
+
+# 📄 License
+
+This project is released under the MIT License.
+
+See the [LICENSE](LICENSE) file for details.
+
+---
+
+# 🦆 RubberDuckWorks
+
+Developed inside the **RubberDuckWorks Engineering Systems Laboratory**.
+
+> **ENGINEER • THINK • BUILD • IMPROVE**

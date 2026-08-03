@@ -1,6 +1,6 @@
-# How to Download, Setup, and Customize Atlas Talent Navigator for Your Job Search
+# How to Download, Setup, and Customize JobSeekeR for Your Job Search
 
-Welcome! **Atlas Talent Navigator** is an automated daily job market scanner, skill matching engine, and monthly application tracking dashboard. It queries official Swedish job listings (from Arbetsförmedlingen JobTech API) every day at **12:00 PM (noon)** and evaluates them against a candidate's custom competence profile.
+Welcome! **JobSeekeR™** is an automated daily job market scanner, skill matching engine, and monthly application tracking dashboard. It queries official Swedish job listings (from Arbetsförmedlingen JobTech API) every day at **12:00 PM (noon)** and evaluates them against a candidate's custom competence profile.
 
 This guide explains how **anyone** can download this dashboard, run it on their computer for **free**, and customize ("train") it for their own specific career goals.
 
@@ -34,10 +34,10 @@ Open your terminal (or Command Prompt) and run:
 
 ```bash
 # Clone the repository
-git clone https://github.com/Manoj-Axelsson/atlas-talent-navigator.git
+git clone https://github.com/Manoj-Axelsson/JobSeekeR-OSS.git
 
 # Navigate into the project folder
-cd atlas-talent-navigator
+cd JobSeekeR-OSS
 
 # Install dependencies
 npm install
