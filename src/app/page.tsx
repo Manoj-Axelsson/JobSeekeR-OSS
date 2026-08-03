@@ -850,7 +850,11 @@ export default function Dashboard() {
                                             : "bg-slate-100 text-slate-800 border-slate-300 hover:bg-slate-200"
                                             }`}
                                         >
-                                          <span>↗️ Apply on Platsbanken</span>
+                                          <span>
+                                            {job.id.startsWith("li_") || (job.webpageUrl && job.webpageUrl.includes("linkedin.com"))
+                                              ? "↗️ Apply on LinkedIn"
+                                              : "↗️ Apply on Platsbanken"}
+                                          </span>
                                         </a>
                                       )}
 
@@ -1740,7 +1744,9 @@ export default function Dashboard() {
                   rel="noreferrer"
                   className="px-5 py-2.5 bg-emerald-600 text-white text-[17px] font-bold rounded-xl hover:bg-emerald-500 transition shadow-sm"
                 >
-                  Apply on Platsbanken ↗
+                  {selectedJob.id.startsWith("li_") || (selectedJob.webpageUrl && selectedJob.webpageUrl.includes("linkedin.com"))
+                    ? "Apply on LinkedIn ↗"
+                    : "Apply on Platsbanken ↗"}
                 </a>
               )}
             </div>
