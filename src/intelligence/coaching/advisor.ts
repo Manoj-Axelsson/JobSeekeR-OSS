@@ -8,6 +8,14 @@ import { CoachingAdviceResult } from "./types";
 import { OpportunityEntity } from "../opportunity/types";
 import { CandidateStrategyProfile } from "../positioning/types";
 
+function sanitizeText(str: string): string {
+  if (!str) return "";
+  return str
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
+    .replace(/<[^>]+>/g, "")
+    .trim();
+}
+
 export class ApplicationCoachingAdvisor {
   /**
    * Generates career strategist coaching guidance for candidate Anna
@@ -19,11 +27,15 @@ export class ApplicationCoachingAdvisor {
     const keyInterviewTalkingPoints: string[] = [];
     const coachingGuidance: string[] = [];
 
+    const cleanTitle = sanitizeText(opp.title);
+    const cleanCompany = sanitizeText(opp.company);
+    const cleanRoleTitle = sanitizeText(candidate.targetRoleTitle);
+
     // 1. Authentic Narrative Theme based on candidate's real verified achievements
     const primaryEvidence = candidate.verifiedEvidence[0];
     const authenticNarrativeTheme = primaryEvidence
       ? `Demonstrated track record of delivering measurable outcomes in ${primaryEvidence.associatedCompetency} (${primaryEvidence.achievementText}).`
-      : `Experienced ${candidate.targetRoleTitle} dedicated to structured problem solving and operational quality.`;
+      : `Experienced ${cleanRoleTitle} dedicated to structured problem solving and operational quality.`;
 
     // 2. Formulate authentic interview talking points
     candidate.verifiedEvidence.forEach((item) => {
@@ -37,7 +49,9 @@ export class ApplicationCoachingAdvisor {
     coachingGuidance.push("Do not attempt to rewrite your background with buzzwords; emphasize verified evidence.");
     coachingGuidance.push("Be prepared to explain how your transferable skills directly mitigate any experience gaps.");
 
-    const coverLetterHook = `As a ${candidate.targetRoleTitle} with verified background in ${candidate.superpowers.join(" and ")}, I am drawn to ${opp.company}'s commitment to excellence in ${opp.title}.`;
+    const cleanSuperpowers = candidate.superpowers.map(sanitizeText).filter(Boolean).join(" and ");
+
+    const coverLetterHook = `As a ${cleanRoleTitle} with verified background in ${cleanSuperpowers || "engineering"}, I am drawn to ${cleanCompany}'s commitment to excellence in ${cleanTitle}.`;
 
     return {
       authenticNarrativeTheme,
