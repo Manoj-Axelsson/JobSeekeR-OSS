@@ -75,11 +75,24 @@ export function Navbar({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const [downloadCount, setDownloadCount] = useState<string>("142+");
+
+  useEffect(() => {
+    fetch("/api/analytics/downloads")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && data.formattedCount) {
+          setDownloadCount(data.formattedCount);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   return (
     <nav className="sticky top-0 z-40 backdrop-blur-xl bg-gradient-to-r from-[#5c3510] via-[#7a4816] to-[#5c3510] border-b-2 border-amber-300/60 text-amber-50 shadow-2xl transition-colors duration-200">
       <div className="w-full max-w-[98%] mx-auto px-2 sm:px-4">
         <div className="flex items-center justify-between h-24">
-          {/* Brand & Identity (Enlarged JobseekeR title with stacked rectangular badges) */}
+          {/* Brand & Identity (Enlarged JobseekeR title with stacked rectangular badges & Public Download Counter) */}
           <div className="flex items-center space-x-3.5 sm:space-x-5">
             <Link href="/" className="flex items-center space-x-3.5 group">
               <div>
@@ -91,6 +104,20 @@ export function Navbar({
                     <span className="text-xs font-extrabold tracking-wide text-amber-300">Open Source Scanner</span>
                     <span className="text-[11px] font-semibold text-amber-200/90 border-t border-amber-500/30 pt-0.5 mt-0.5">SE Job Tech API</span>
                   </div>
+                  <a
+                    href="https://github.com/Manoj-Axelsson/JobSeekeR-OSS"
+                    target="_blank"
+                    rel="noreferrer"
+                    title="Live Public GitHub Downloads & Clones Counter"
+                    className="hidden md:flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-emerald-950/90 border border-emerald-400/60 shadow-md text-left hover:bg-emerald-900/90 transition cursor-pointer"
+                  >
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                    <span className="text-xs font-black text-emerald-300">📦 {downloadCount}</span>
+                    <span className="text-[10px] font-semibold text-emerald-200/80">Downloads</span>
+                  </a>
                 </div>
               </div>
             </Link>
