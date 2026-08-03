@@ -98,7 +98,7 @@ No installation package is required.
 
 - 📄 [Architecture Decision Records](docs/architecture/ADR-001-local-first-architecture.md)
 - 🧠 [Intelligence Subsystems Guide](docs/INTELLIGENCE_SUBSYSTEMS.md)
-- 🛣️ [v1.1 Nordic & SaaS Roadmap](docs/roadmap/ROADMAP_v1.1_NORDIC_SAAS.md)
+- 🛣️ [v2.0 Nordic & SaaS Roadmap](docs/roadmap/ROADMAP_v2.0_NORDIC_SAAS.md)
 - 🖥️ [Tauri Desktop Readiness](docs/TAURI_READINESS.md)
 - 📋 [Release Checklist](docs/RELEASE_CHECKLIST.md)
 - ⚖️ [MIT License](LICENSE)
@@ -143,8 +143,8 @@ http://localhost:3000
 
 # 🛣️ Roadmap
 
-## Version 1.1 (Target: September / October 2026 ~ 6 Weeks)
-*Detailed Specification: [docs/roadmap/ROADMAP_v1.1_NORDIC_SAAS.md](docs/roadmap/ROADMAP_v1.1_NORDIC_SAAS.md)*
+## Version 2.0 (Target: September / October 2026 ~ 6 Weeks)
+*Detailed Specification: [docs/roadmap/ROADMAP_v2.0_NORDIC_SAAS.md](docs/roadmap/ROADMAP_v2.0_NORDIC_SAAS.md)*
 
 - 📬 **SaaS Jobs Digest Parser & LinkedIn Feed Scraper**
 - 🇸🇪 **Swedish & Remote (EMEA / Europe) Location Filtering**

@@ -1,6 +1,6 @@
-# 🛣️ JobSeekeR v1.1 Roadmap & Architectural Specification
+# 🛣️ JobSeekeR v2.0 Roadmap & Architectural Specification
 
-**Target Milestone:** September / October 2026 (~6 Weeks Window)  
+**Target Milestone:** Version 2.0 (v2.0.0) — September / October 2026 (~6 Weeks Window)  
 **Status:** Planned / Queued  
 **Focus:** SaaS Jobs Digest Parser, Swedish/Remote Filter Engine, Nordic Market Expansion, Rootr Ecosystem Integration
 
@@ -8,7 +8,7 @@
 
 ## 📅 Schedule & Strategy
 
-JobSeekeR v1.0.0 will run in production for 6 weeks to collect real-world user feedback and usage metrics. In **September / October 2026**, Version 1.1 will be executed according to this specification.
+JobSeekeR v1.1.0 will run in production for 6 weeks to collect real-world user feedback and usage metrics. In **September / October 2026**, **Version 2.0** will be executed according to this specification as a major platform release.
 
 ---
 
