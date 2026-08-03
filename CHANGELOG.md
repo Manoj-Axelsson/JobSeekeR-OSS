@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Domain-Aware Pitch Strategy Engine**: Rewrote `evaluateJobMatch()` in `matcher.ts` to generate tailored cover letter opening hooks, gap mitigation strategies, and bullet points specific to the position's domain (Automation & Production, Quality Engineering, Systems Engineering, or Software Engineering).
 - **Dynamic Apply Labels**: Automatically detects job listing source, rendering `↗️ Apply on LinkedIn` for LinkedIn listings and `↗️ Apply on Platsbanken` for JobTech listings.
 - **Dynamic Intelligence Suite Math**: Replaced static mock values with mathematical models for company response rates, document skills counts, upskilling ROI roadmaps, recruiter analytics, CV conversion metrics, market trends, and overall career scorecards.
+- **Public Live Download & Clone Counter**: Added `/api/analytics/downloads` API route and live glowing counter badge in `Navbar.tsx` displaying real-time public GitHub downloads, clones, and community interest.
 
 ### Fixed
 - Fixed unclickability issue on Card 1 ("View Matched Positions Feed") when user was already on the `feed` tab.
