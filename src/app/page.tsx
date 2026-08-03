@@ -1341,20 +1341,22 @@ export default function Dashboard() {
 
                           <div className="p-3 bg-amber-950/80 border border-amber-400/50 rounded-xl">
                             <p className="text-[11px] font-extrabold uppercase text-amber-300/90">Highest ROI</p>
-                            <p className="text-lg font-black text-purple-300 mt-2 truncate">Docker</p>
-                            <p className="text-[10px] text-purple-200 font-semibold mt-0.5">+18% Boost</p>
+                            <p className="text-xs font-black text-purple-300 mt-2 truncate" title={overview.highestRoiCourse}>{overview.highestRoiCourse}</p>
+                            <p className="text-[10px] text-purple-200 font-semibold mt-0.5">Top Skill Demand</p>
                           </div>
 
                           <div className="p-3 bg-amber-950/80 border border-amber-400/50 rounded-xl col-span-2 sm:col-span-1">
                             <p className="text-[11px] font-extrabold uppercase text-amber-300/90">Best CV</p>
                             <p className="text-xs font-black text-amber-200 mt-2 truncate">{overview.bestPerformingCv}</p>
-                            <p className="text-[10px] text-emerald-400 font-semibold mt-0.5">50% Conversion</p>
+                            <p className="text-[10px] text-emerald-400 font-semibold mt-0.5">
+                              {cvPerf.length > 0 ? `${cvPerf[0].conversionRate}% Conversion` : "Target Fit"}
+                            </p>
                           </div>
 
                           <div className="p-3 bg-amber-950/80 border border-amber-400/50 rounded-xl col-span-2 sm:col-span-1">
                             <p className="text-[11px] font-extrabold uppercase text-amber-300/90">Responsive Co.</p>
                             <p className="text-xs font-black text-amber-200 mt-2 truncate">{overview.mostResponsiveCompany}</p>
-                            <p className="text-[10px] text-amber-400 font-semibold mt-0.5">100% Reply Rate</p>
+                            <p className="text-[10px] text-amber-400 font-semibold mt-0.5">Tracked Applications</p>
                           </div>
 
                           <div className="p-3 bg-amber-950/80 border border-amber-400/50 rounded-xl col-span-2 sm:col-span-4 lg:col-span-1 text-left">

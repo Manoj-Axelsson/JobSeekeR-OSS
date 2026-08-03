@@ -10,42 +10,33 @@ export interface RecruiterMetric {
   totalApplications: number;
 }
 
-export function calculateRecruiterAnalytics(applications: any[]): RecruiterMetric[] {
-  const defaultRecruiters: RecruiterMetric[] = [
-    {
-      id: "rec_1",
-      name: "Anna Svensson",
-      company: "Volvo Group / Academic Work",
-      avgResponseDays: 4.5,
-      replyRate: 100,
-      prefersPortfolio: true,
-      seniorityPreference: "Senior (5+ yrs)",
-      totalInterviews: 3,
-      totalApplications: 4,
-    },
-    {
-      id: "rec_2",
-      name: "Erik Lindqvist",
-      company: "Scania R&D IT",
-      avgResponseDays: 6.0,
-      replyRate: 85,
-      prefersPortfolio: false,
-      seniorityPreference: "Mid-Senior Engineer",
-      totalInterviews: 2,
-      totalApplications: 3,
-    },
-    {
-      id: "rec_3",
-      name: "Sofia Berg",
-      company: "Spotify & Tech Talent",
-      avgResponseDays: 3.2,
-      replyRate: 95,
-      prefersPortfolio: true,
-      seniorityPreference: "Fullstack / Systems Lead",
-      totalInterviews: 4,
-      totalApplications: 5,
-    },
-  ];
+export function calculateRecruiterAnalytics(applications: any[] = []): RecruiterMetric[] {
+  if (!applications || applications.length === 0) {
+    return [];
+  }
 
-  return defaultRecruiters;
+  const recruiterMap: Record<string, { company: string; total: number; interviews: number }> = {};
+  applications.forEach((app) => {
+    const company = app.company || "Direct Employer";
+    const key = `${company}`;
+    if (!recruiterMap[key]) {
+      recruiterMap[key] = { company, total: 0, interviews: 0 };
+    }
+    recruiterMap[key].total += 1;
+    if (app.status === "INTERVIEWING" || app.status === "OFFER") {
+      recruiterMap[key].interviews += 1;
+    }
+  });
+
+  return Object.entries(recruiterMap).map(([comp, data], i) => ({
+    id: `rec_${i + 1}`,
+    name: `Talent Acquisition (${comp})`,
+    company: comp,
+    avgResponseDays: 4.5,
+    replyRate: Math.round((data.interviews / data.total) * 100) || 50,
+    prefersPortfolio: true,
+    seniorityPreference: "Target Fit",
+    totalInterviews: data.interviews,
+    totalApplications: data.total,
+  }));
 }
