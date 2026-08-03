@@ -1,3 +1,5 @@
+import { decisionSupportEngine, DecisionSupportContext } from "../../intelligence";
+
 export interface MatchResult {
   matchScore: number;
   matchedSkills: string[];
@@ -18,6 +20,7 @@ export interface MatchResult {
       suggestedBulletPoints: string[];
     };
   };
+  decisionSupport?: DecisionSupportContext;
 }
 
 const TAXONOMY = {
@@ -85,32 +88,9 @@ export function evaluateJobMatch(
     }
   }
 
-  // Weighted overall match score calculation
-  const maxDomainScore = Math.max(
-    domainScores.software, 
-    domainScores.systems, 
-    domainScores.quality, 
-    domainScores.industrial
-  );
-  
-  const avgDomainScore = (domainScores.software + domainScores.systems + domainScores.quality + domainScores.industrial) / 4;
-
-  // Title bonus matching
-  let titleBonus = 0;
-  const titleLower = title.toLowerCase();
-  if (titleLower.includes("developer") || titleLower.includes("engineer") || titleLower.includes("fullstack") || titleLower.includes("system") || titleLower.includes("quality") || titleLower.includes("manufacturing") || titleLower.includes("architect") || titleLower.includes("automation")) {
-    titleBonus = 15;
-  }
-
-  const customSkillsBonus = Math.min(30, customSkillsMatchedCount * 8);
-
-  const rawScore = Math.round((maxDomainScore * 0.5) + (avgDomainScore * 0.2) + titleBonus + customSkillsBonus);
-  const matchScore = Math.min(100, Math.max(20, rawScore));
-
   // Detect external missing skills mentioned in description
   for (const tech of EXTERNAL_TECH) {
     if (text.includes(tech)) {
-      // Check if it's already in matched set
       const isMatched = Array.from(matchedSet).some(m => m.toLowerCase() === tech);
       if (!isMatched) {
         missingSet.add(capitalize(tech));
@@ -121,91 +101,48 @@ export function evaluateJobMatch(
   const matchedSkills = Array.from(matchedSet).slice(0, 10);
   const missingSkills = Array.from(missingSet).slice(0, 6);
 
+  // Synthesize 5-Stage Decision Support Engine
+  const oppEntity = {
+    id: "opp-live",
+    title,
+    company: "Employer Posting",
+    location: "Sweden",
+    description,
+    workingModel: (text.includes("remote") ? "REMOTE" : text.includes("hybrid") ? "HYBRID" : "ON_SITE") as "REMOTE" | "HYBRID" | "ON_SITE",
+  };
+
+  const candidateProfile = {
+    name: userName || "Anna",
+    targetRoleTitle: userHeadline || "Engineer",
+    superpowers: Array.from(matchedSet).slice(0, 3),
+    verifiedEvidence: matchedSkills.map((s, idx) => ({
+      id: `ev-${idx}`,
+      achievementText: `Demonstrated capability in ${s}`,
+      associatedCompetency: s,
+    })),
+  };
+
+  const preferences = {
+    targetRoles: [title],
+    preferredLocations: ["Sweden"],
+    skills: matchedSkills,
+    workingModelPreference: oppEntity.workingModel,
+  };
+
+  const decisionSupport = decisionSupportEngine.evaluateDecisionSupport(oppEntity, candidateProfile, preferences);
+
   // Generate Narrative Analysis for Cover Letter & Pitch Strategy
-  const whyMatched: string[] = [];
-  const whatLacking: string[] = [];
-  const keyStrengthsToLeadWith: string[] = [];
+  const whyMatched: string[] = [decisionSupport.stage1Opportunity.pursuitRecommendation];
+  const whatLacking: string[] = decisionSupport.stage3Positioning.missingEvidenceWarnings.length > 0
+    ? decisionSupport.stage3Positioning.missingEvidenceWarnings
+    : ["No critical skill gaps identified. Your profile covers the core requirements for this position."];
 
-  if (domainScores.software >= 30) {
-    whyMatched.push("Strong alignment with your Software Engineering competencies. You demonstrate hands-on capability in software development and clean architecture.");
-    keyStrengthsToLeadWith.push("Software Engineering & Modular Architecture");
-  }
-  if (domainScores.systems >= 30) {
-    whyMatched.push("Excellent fit for your Systems Engineering & Requirements Management background. The role demands structured systems thinking and lifecycle management.");
-    keyStrengthsToLeadWith.push("Systems Engineering & Requirements Management");
-  }
-  if (domainScores.quality >= 30) {
-    whyMatched.push("Direct match for your Quality Assurance and Quality Engineering experience (Six Sigma, DMAIC, FMEA, continuous improvement).");
-    keyStrengthsToLeadWith.push("Quality Assurance & Data-Driven Process Quality Improvement");
-  }
-  if (domainScores.industrial >= 30) {
-    whyMatched.push("Strong relevance to your Industrial & Manufacturing background (Automation, Lean production, CAD/CAM, assembly optimization).");
-    keyStrengthsToLeadWith.push("Industrial Automation & Production Operations Experience");
-  }
-
-  if (whyMatched.length === 0) {
-    whyMatched.push("General engineering and analytical relevance matching your broad technical background.");
-    keyStrengthsToLeadWith.push("Cross-functional engineering problem solving and analytical adaptability");
-  }
-
-  // What is lacking analysis
-  if (missingSkills.length > 0) {
-    whatLacking.push(`Specific tools or technologies requested in the job posting that are not explicitly highlighted in your primary skill list: ${missingSkills.join(", ")}.`);
-  } else {
-    whatLacking.push("No critical skill gaps identified. Your technical profile covers the core requirements for this position.");
-  }
-
-  // Contextual Cover Letter Pitch Strategy
-  const matchedSkillsList = matchedSkills.length > 0 ? matchedSkills.slice(0, 4).join(", ") : "technical problem solving";
-  const openingHook = `As a candidate with a strong background in ${userHeadline || "Engineering"}, I am highly motivated by the ${title} position. My proven track record in ${matchedSkillsList} directly aligns with your technical and operational requirements.`;
-
-  const gapMitigationStrategy = missingSkills.length > 0
-    ? `For missing competencies (${missingSkills.slice(0, 3).join(", ")}), emphasize your rapid technical adaptability, fast learning curve, and cross-domain engineering foundation.`
-    : "Emphasize how your technical background allows you to contribute immediately without onboarding delays.";
-
-  // Dynamic Bullet Points based on matched domains & skills
-  const suggestedBulletPoints: string[] = [];
-
-  if (domainScores.industrial >= 30) {
-    const indSkills = matchedSkills.filter(s => ["automation", "manufacturing", "assembly", "cad", "cam", "lean", "plant"].some(k => s.toLowerCase().includes(k))).join(", ") || "automation & production engineering";
-    suggestedBulletPoints.push(
-      `Automation & Production Operations: Applied ${indSkills} to optimize throughput, maintain operational reliability, and streamline assembly workflows.`
-    );
-  }
-
-  if (domainScores.quality >= 30) {
-    const qualSkills = matchedSkills.filter(s => ["quality", "qa", "sigma", "fmea", "lean", "audit", "validation"].some(k => s.toLowerCase().includes(k))).join(", ") || "quality engineering";
-    suggestedBulletPoints.push(
-      `Quality Assurance & Process Control: Utilized ${qualSkills} methodology to eliminate bottlenecks, ensure ISO/industry compliance, and drive continuous process improvement.`
-    );
-  }
-
-  if (domainScores.systems >= 30) {
-    const sysSkills = matchedSkills.filter(s => ["systems", "requirement", "validation", "verification", "architecture"].some(k => s.toLowerCase().includes(k))).join(", ") || "systems engineering";
-    suggestedBulletPoints.push(
-      `Systems Engineering & Requirements Management: Managed ${sysSkills} and technical specifications across complex multi-disciplinary lifecycles.`
-    );
-  }
-
-  if (domainScores.software >= 30) {
-    const softSkills = matchedSkills.filter(s => ["react", "typescript", "next", "node", "sql", "git", "python", "docker"].some(k => s.toLowerCase().includes(k))).join(", ") || "modern software engineering";
-    suggestedBulletPoints.push(
-      `Software Engineering & Tooling: Built scalable software applications using ${softSkills} with clean modular architecture.`
-    );
-  }
-
-  // Fallback bullet point if domain score matches were generic
-  if (suggestedBulletPoints.length === 0) {
-    suggestedBulletPoints.push(
-      `Technical Execution & Problem Solving: Leveraged ${matchedSkillsList} to deliver measurable outcomes in high-rigor engineering environments.`
-    );
-    suggestedBulletPoints.push(
-      `Cross-Functional Collaboration: Translated complex operational and client requirements into clear, actionable technical specifications.`
-    );
-  }
+  const openingHook = decisionSupport.stage4Coaching.coverLetterHook;
+  const gapMitigationStrategy = decisionSupport.stage3Positioning.transferableHighlight || "Highlight your rapid technical adaptability and transferable engineering foundations.";
+  const suggestedBulletPoints = decisionSupport.stage4Coaching.keyInterviewTalkingPoints.slice(0, 3);
 
   return {
-    matchScore,
+    matchScore: decisionSupport.stage1Opportunity.score,
     matchedSkills,
     missingSkills,
     domainScores,
@@ -214,11 +151,12 @@ export function evaluateJobMatch(
       whatLacking,
       coverLetterPitch: {
         openingHook,
-        keyStrengthsToLeadWith,
+        keyStrengthsToLeadWith: decisionSupport.stage3Positioning.strongestCompetencies.slice(0, 3),
         gapMitigationStrategy,
-        suggestedBulletPoints: suggestedBulletPoints.slice(0, 3),
+        suggestedBulletPoints,
       },
     },
+    decisionSupport,
   };
 }
 

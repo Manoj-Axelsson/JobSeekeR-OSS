@@ -5,6 +5,19 @@ All notable changes to **JobSeekeR™** will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2026-08-04
+
+### Added & Architecture Overhaul
+- **AXIS JobSeekR Intelligence Framework v2.0**: Shifted platform focus from AI content generation to an authentic, human-centred Decision Support Platform ("*AI assists. Humans decide.*").
+- **Phase 0 & 1: Competency Domain Model & Graph Engine (`src/intelligence/competency/`)**: Built canonical competency taxonomy nodes, relationship edges (`IS_CHILD_OF`, `ENABLES`, `REQUIRES`, `EQUIVALENT_TO`), and multi-hop graph transferability calculations with explainable rationale.
+- **Phase 2: Opportunity Intelligence Engine (`src/intelligence/opportunity/`)**: Implemented 5-tier opportunity classification (`🌟 Excellent Match`, `🟢 Strong Match`, `🟡 Potential Match`, `🚀 Stretch Opportunity`, `⚪ Low Priority`) answering "*Should Anna pursue this?*".
+- **Phase 3: Positioning Intelligence Engine (`src/intelligence/positioning/`)**: Implemented candidate profile analyzer answering "*How should Anna present her existing evidence?*", advising structural layout recommendations and missing evidence warnings without content fabrication.
+- **Phase 4: Application Coaching Engine (`src/intelligence/coaching/`)**: Added career strategist coaching advisor answering "*How can Anna communicate this authentically?*", generating interview talking points and cover letter hooks while enforcing a strict non-fabrication guarantee.
+- **Phase 5: Decision Support Engine (`src/intelligence/decision/`)**: Integrated all 4 intelligence sub-engines into a unified 5-stage Decision Support flow answering "*Anna decides whether to apply*".
+- **Independent Vitest Unit Test Suites**: Created unit test coverage across `competency.test.ts`, `opportunity.test.ts`, `positioning.test.ts`, `coaching.test.ts`, `decision.test.ts`, and `matcher.test.ts`.
+
+---
+
 ## [1.0.2] - 2026-08-03
 
 ### Added & Improved
@@ -32,17 +45,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed unclickability issue on Card 1 ("View Matched Positions Feed") when user was already on the `feed` tab.
 - Fixed hardcoded "Version 8 (Fullstack Architecture)" and "50% conversion rate" static text across recommendation cards and summary widgets.
 - Fixed hardcoded "Docker & Kubernetes" upskilling recommendations for non-software engineering candidate profiles.
-
----
-
-## [1.0.0-rc1] - 2026-08-02
-
-### Added
-- **Unified 8-Pillar JobseekeR™ Intelligence Suite**: Modular architecture under `src/intelligence/` (`recruiter`, `company`, `document`, `market`, `learning`, `salary`, `match`, `prediction`).
-- **Mathematical Confidence Model**: Evidence-based formula calculated from candidate application logs with non-punitive states (`🌱 Learning` → `⚡ Ready` → `🎯 High Confidence`).
-- **"Today's Recommendation" Synthesized Card**: Daily actionable synthesis card on feed header.
-- **Consolidated Settings**: Coherent settings section categorized into `Account`, `Career`, `Automation`, `Accessibility`, `Privacy`, and `About`.
-- **PWA Installation**: Cross-platform 1-click installation manifest (`public/manifest.json`).
-- **Accessibility & TTS**: High-contrast black font rules for sight impairment, Web Speech API TTS audio reader, and WCAG 2.1 AA focus rings.
-- **Architecture Documentation**: ADRs 001–003, `docs/INTELLIGENCE_SUBSYSTEMS.md`, and `docs/TAURI_READINESS.md`.
-- **Community Standards**: Open-source MIT License, `CONTRIBUTING.md`, and `.github/` templates.
