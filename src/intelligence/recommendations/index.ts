@@ -7,60 +7,121 @@ export interface RecommendationItem {
   priorityBadge: string;
   targetJobId?: string;
   targetTab?: "feed" | "tracker" | "profile" | "logs" | "intelligence" | "settings";
-  actionType?: "OPEN_JOB_MODAL" | "OPEN_DOC_UPLOADER" | "OPEN_ONBOARDING" | "NAVIGATE_TAB";
+  actionType?: "OPEN_JOB_MODAL" | "OPEN_DOC_UPLOADER" | "OPEN_ONBOARDING" | "NAVIGATE_TAB" | "TRIGGER_SCAN";
 }
 
 export function generateTodaysRecommendations(jobs: any[] = [], applications: any[] = []): RecommendationItem[] {
   const recommendations: RecommendationItem[] = [];
 
   // 1. Top Matched Job Opportunity Recommendation
-  const topMatched = jobs.filter((j) => (j.matchScore || 0) >= 75 && j.status !== "APPLIED")[0];
-  if (topMatched) {
+  const unapplied = jobs
+    .filter((j) => j.status !== "APPLIED")
+    .sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0));
+
+  if (unapplied.length > 0) {
+    const topMatched = unapplied[0];
+    const jobTitle = topMatched.headline || topMatched.title || "Top Position";
     recommendations.push({
-      id: "rec_job_1",
+      id: "rec_job_top",
       type: "JOB_APPLICATION",
-      title: `Apply to ${topMatched.title} at ${topMatched.company}`,
-      actionText: "Open Position & Pitch Strategy 🚀",
-      rationale: `Evaluated ${topMatched.matchScore}% competence match fit against your profile taxonomy.`,
+      title: `Apply: ${jobTitle} (${topMatched.company || "Direct Employer"})`,
+      actionText: "Open Pitch Strategy & Apply 🚀",
+      rationale: `Top position fit evaluated at ${topMatched.matchScore || 0}% match score against your profile.`,
       priorityBadge: "🔥 Top Action Today",
       targetJobId: topMatched.id,
       actionType: "OPEN_JOB_MODAL",
     });
   } else {
     recommendations.push({
-      id: "rec_job_default",
+      id: "rec_job_scan",
       type: "JOB_APPLICATION",
-      title: "Review Today's Matched Swedish Opportunities",
-      actionText: "View Matched Positions Feed 🔍",
-      rationale: "High match positions evaluated from Arbetsförmedlingen JobTech API.",
+      title: "Run Daily Swedish Job Market Scan",
+      actionText: "Fetch Latest Listings ⚡",
+      rationale: "Scan Arbetsförmedlingen JobTech Open Data API for newly published postings today.",
       priorityBadge: "🔥 Top Action Today",
-      targetTab: "feed",
-      actionType: "NAVIGATE_TAB",
+      actionType: "TRIGGER_SCAN",
     });
   }
 
-  // 2. CV Version Recommendation based on real A/B conversion rates
-  recommendations.push({
-    id: "rec_cv_1",
-    type: "CV_OPTIMIZATION",
-    title: "Use Version 8 (Fullstack Architecture CV)",
-    actionText: "Upload & Update CV Document 📁",
-    rationale: "CV Version 8 demonstrates 50% interview conversion rate across submitted applications.",
-    priorityBadge: "📄 High Conversion CV",
-    actionType: "OPEN_DOC_UPLOADER",
-  });
+  // 2. Dynamic Application & CV Intelligence
+  const appliedCount = applications.length;
+  const savedCount = jobs.filter((j) => j.status === "SAVED").length;
 
-  // 3. Upskilling Recommendation
-  recommendations.push({
-    id: "rec_skill_1",
-    type: "UPSKILLING",
-    title: "Complete Docker & Kubernetes Fundamentals",
-    actionText: "View Learning Roadmap 🎓",
-    rationale: "Docker appears in 72% of missed senior positions in your target roles (+18% boost).",
-    priorityBadge: "🎓 Highest ROI Course",
-    targetTab: "intelligence",
-    actionType: "NAVIGATE_TAB",
-  });
+  if (appliedCount > 0) {
+    recommendations.push({
+      id: "rec_cv_tracker",
+      type: "CV_OPTIMIZATION",
+      title: `Aktivitetsrapport: ${appliedCount} Positions Logged`,
+      actionText: "View Application Tracker 📋",
+      rationale: "Review active applications, update response statuses, and export monthly report.",
+      priorityBadge: "📄 Application Tracker",
+      targetTab: "tracker",
+      actionType: "NAVIGATE_TAB",
+    });
+  } else if (savedCount > 0) {
+    recommendations.push({
+      id: "rec_cv_saved",
+      type: "CV_OPTIMIZATION",
+      title: `${savedCount} Saved Positions Ready to Apply`,
+      actionText: "Review Saved Positions 📌",
+      rationale: "Open your saved target listings and generate tailored cover letter opening hooks.",
+      priorityBadge: "📌 Saved Opportunities",
+      targetTab: "feed",
+      actionType: "NAVIGATE_TAB",
+    });
+  } else {
+    recommendations.push({
+      id: "rec_cv_upload",
+      type: "CV_OPTIMIZATION",
+      title: "Upload Your CV & Certificates",
+      actionText: "Upload CV Document 📁",
+      rationale: "Upload PDF or DOCX to extract technical competences and boost position match accuracy.",
+      priorityBadge: "📄 CV Intelligence",
+      actionType: "OPEN_DOC_UPLOADER",
+    });
+  }
+
+  // 3. Dynamic Skill & Market Insight Recommendation
+  const skillCounts: Record<string, number> = {};
+  for (const j of jobs) {
+    if (Array.isArray(j.missingKeywords)) {
+      for (const kw of j.missingKeywords) {
+        if (kw && typeof kw === "string") {
+          const cleanKw = kw.trim();
+          if (cleanKw) {
+            skillCounts[cleanKw] = (skillCounts[cleanKw] || 0) + 1;
+          }
+        }
+      }
+    }
+  }
+
+  const topMissing = Object.entries(skillCounts).sort((a, b) => b[1] - a[1])[0];
+
+  if (topMissing) {
+    const [skillName, count] = topMissing;
+    recommendations.push({
+      id: "rec_skill_demand",
+      type: "UPSKILLING",
+      title: `High Demand Skill: Add "${skillName}"`,
+      actionText: "Update Profile Skills ⚙️",
+      rationale: `"${skillName}" is requested in ${count} open position(s) in your target market search.`,
+      priorityBadge: "🎓 In-Demand Competence",
+      targetTab: "profile",
+      actionType: "NAVIGATE_TAB",
+    });
+  } else {
+    recommendations.push({
+      id: "rec_skill_profile",
+      type: "UPSKILLING",
+      title: "Customize Target Roles & Competences",
+      actionText: "Configure Profile ⚙️",
+      rationale: "Configure target roles, skills, and minimum match score threshold in your profile.",
+      priorityBadge: "⚙️ Competence Profile",
+      targetTab: "profile",
+      actionType: "NAVIGATE_TAB",
+    });
+  }
 
   return recommendations;
 }

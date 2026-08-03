@@ -574,6 +574,8 @@ export default function Dashboard() {
                                   setShowDocUploader(true);
                                 } else if (rec.actionType === "NAVIGATE_TAB" && rec.targetTab) {
                                   setActiveTab(rec.targetTab);
+                                } else if (rec.actionType === "TRIGGER_SCAN") {
+                                  triggerJobScan();
                                 }
                               }}
                               className="p-4 rounded-xl bg-amber-950/80 hover:bg-amber-900/90 border-2 border-amber-500/40 hover:border-amber-300 transition-all cursor-pointer shadow-md space-y-2.5 group flex flex-col justify-between"
