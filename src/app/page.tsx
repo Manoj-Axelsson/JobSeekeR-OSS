@@ -19,6 +19,7 @@ import {
   parseSalaryFromDescription,
   calculatePredictiveConfidence,
   generateTodaysRecommendations,
+  calculateSalaryBenchmarks,
   RecommendationItem,
 } from "@/intelligence";
 
@@ -92,6 +93,9 @@ export default function Dashboard() {
   // Aktivitetsrapport State
   const [showAktivitetsrapport, setShowAktivitetsrapport] = useState(false);
   const [copiedReport, setCopiedReport] = useState(false);
+
+  // User profile state for intelligence and guidance
+  const [userProfile, setUserProfile] = useState<any>(null);
 
   // Import Job URL state
   const [importUrlInput, setImportUrlInput] = useState("");
@@ -191,6 +195,7 @@ export default function Dashboard() {
       const profRes = await fetch("/api/profile");
       if (profRes.ok) {
         const profData = await profRes.json();
+        setUserProfile(profData);
         if (profData.name) setProfileName(profData.name);
         if (profData.minMatchScore) setMinScore(profData.minMatchScore);
         if (Array.isArray(profData.excludedCompanies)) setExcludedCompanies(profData.excludedCompanies);
@@ -1272,6 +1277,17 @@ export default function Dashboard() {
                   const recruiters = overview.recruiters;
                   const cvPerf = overview.cvPerformance;
                   const upskilling = calculateUpskillingRoadmap(jobsList);
+                  const salaryBenchmarks = calculateSalaryBenchmarks(userProfile?.targetRoles || [], jobsList);
+
+                  // Calculate profile setup completeness score
+                  const customSkillsCount = userProfile?.skills?.custom?.length || 0;
+                  const targetRolesCount = userProfile?.targetRoles?.length || 0;
+                  const isNameSet = profileName && profileName !== "JobseekeR Candidate" && profileName !== "Candidate";
+
+                  let completenessScore = 25;
+                  if (isNameSet) completenessScore += 25;
+                  if (targetRolesCount > 0) completenessScore += 25;
+                  if (customSkillsCount > 0) completenessScore += 25;
 
                   return (
                     <div className="space-y-7">
@@ -1299,6 +1315,50 @@ export default function Dashboard() {
                           <span className="px-3 py-1 rounded-lg bg-amber-400 text-amber-950 shadow-md">🔮 Predictive</span>
                         </div>
                       </div>
+
+                      {/* Candidate Profile Setup Guidance Banner */}
+                      {completenessScore < 100 && (
+                        <div className={`p-5 rounded-2xl border-2 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4 transition-all ${
+                          isDark
+                            ? "bg-gradient-to-r from-amber-950/90 via-amber-900/70 to-slate-900 border-amber-400/50 text-amber-100"
+                            : "bg-gradient-to-r from-amber-500/10 via-amber-100/70 to-amber-50 border-amber-400 text-amber-950 shadow-md"
+                        }`}>
+                          <div className="flex items-start space-x-3.5">
+                            <span className="text-3xl sm:text-4xl shrink-0">🎯</span>
+                            <div className="space-y-1">
+                              <div className="flex items-center space-x-2">
+                                <h3 className="font-extrabold text-base sm:text-lg">
+                                  Candidate Profile Setup: <span className="text-amber-400 font-black">{completenessScore}% Complete</span>
+                                </h3>
+                                <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-amber-400/20 text-amber-300 border border-amber-400/40">
+                                  Action Needed
+                                </span>
+                              </div>
+                              <p className="text-xs sm:text-sm opacity-90 leading-relaxed max-w-2xl">
+                                {customSkillsCount === 0
+                                  ? "Upload your CV documents to extract your technical skills and unlock personalized candidate match scoring, recruiter analytics, and Swedish salary benchmarks."
+                                  : "Configure your candidate profile and target roles to maximize search scanner accuracy and career AI insights."}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex flex-wrap items-center gap-2.5 shrink-0 w-full md:w-auto">
+                            <button
+                              onClick={() => setShowDocUploader((prev) => !prev)}
+                              className="flex-1 md:flex-none px-4 py-2.5 bg-amber-400 hover:bg-amber-300 text-amber-950 font-black text-xs rounded-xl shadow-md transition cursor-pointer flex items-center justify-center space-x-1.5"
+                            >
+                              <span>📁</span>
+                              <span>{showDocUploader ? "Hide Uploader" : "Upload CV & Docs"}</span>
+                            </button>
+                            <button
+                              onClick={() => setShowOnboarding(true)}
+                              className="flex-1 md:flex-none px-4 py-2.5 bg-amber-950/80 hover:bg-amber-900 text-amber-200 border border-amber-400/50 font-bold text-xs rounded-xl transition cursor-pointer flex items-center justify-center space-x-1.5"
+                            >
+                              <span>⚙️</span>
+                              <span>Configure Profile</span>
+                            </button>
+                          </div>
+                        </div>
+                      )}
 
                       {/* Executive Career Intelligence Overview Card */}
                       <div className="bg-gradient-to-br from-[#4a2408] via-[#63340b] to-[#3a1b05] border-2 border-amber-300/80 rounded-2xl p-6 shadow-2xl text-amber-100 space-y-5">
@@ -1388,24 +1448,33 @@ export default function Dashboard() {
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                          {recruiters.map((rec) => (
-                            <div key={rec.id} className={`p-4 rounded-xl border space-y-2.5 ${isDark ? "bg-slate-950 border-slate-800 text-slate-200" : "bg-slate-100 border-slate-300 text-black"}`}>
-                              <div className="flex items-center justify-between">
-                                <h4 className={`font-black text-base ${isDark ? "text-amber-300" : "text-black"}`}>{rec.name}</h4>
-                                <span className={`text-xs font-black px-2 py-0.5 rounded border ${isDark ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40" : "bg-emerald-100 text-emerald-950 border-emerald-300"}`}>
-                                  {rec.replyRate}% Reply Rate
-                                </span>
+                        {recruiters.length === 0 ? (
+                          <div className={`p-5 rounded-xl border text-center space-y-2 ${isDark ? "bg-slate-950/60 border-slate-800 text-slate-400" : "bg-slate-50 border-slate-200 text-slate-600"}`}>
+                            <p className="text-sm font-bold text-amber-400">👤 No tracked applications yet</p>
+                            <p className="text-xs">
+                              Mark job ads as <strong className="text-emerald-400">"Applied"</strong> in your Daily Feed to start tracking recruiter response rates, average reply times, and hiring preference analytics!
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                            {recruiters.map((rec) => (
+                              <div key={rec.id} className={`p-4 rounded-xl border space-y-2.5 ${isDark ? "bg-slate-950 border-slate-800 text-slate-200" : "bg-slate-100 border-slate-300 text-black"}`}>
+                                <div className="flex items-center justify-between">
+                                  <h4 className={`font-black text-base ${isDark ? "text-amber-300" : "text-black"}`}>{rec.name}</h4>
+                                  <span className={`text-xs font-black px-2 py-0.5 rounded border ${isDark ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40" : "bg-emerald-100 text-emerald-950 border-emerald-300"}`}>
+                                    {rec.replyRate}% Reply Rate
+                                  </span>
+                                </div>
+                                <p className={`text-xs font-extrabold ${isDark ? "text-amber-200/80" : "text-slate-800"}`}>{rec.company}</p>
+                                <div className={`text-xs font-bold space-y-1 pt-2 border-t ${isDark ? "border-amber-500/20 text-slate-300" : "border-slate-300 text-black"}`}>
+                                  <p><span className={`font-black ${isDark ? "text-amber-300" : "text-black"}`}>⏱️ Avg Response:</span> {rec.avgResponseDays} days</p>
+                                  <p><span className={`font-black ${isDark ? "text-amber-300" : "text-black"}`}>🎓 Seniority Pref:</span> {rec.seniorityPreference}</p>
+                                  <p><span className={`font-black ${isDark ? "text-amber-300" : "text-black"}`}>📁 Portfolio Request:</span> {rec.prefersPortfolio ? "Yes (High frequency)" : "Standard CV"}</p>
+                                </div>
                               </div>
-                              <p className={`text-xs font-extrabold ${isDark ? "text-amber-200/80" : "text-slate-800"}`}>{rec.company}</p>
-                              <div className={`text-xs font-bold space-y-1 pt-2 border-t ${isDark ? "border-amber-500/20 text-slate-300" : "border-slate-300 text-black"}`}>
-                                <p><span className={`font-black ${isDark ? "text-amber-300" : "text-black"}`}>⏱️ Avg Response:</span> {rec.avgResponseDays} days</p>
-                                <p><span className={`font-black ${isDark ? "text-amber-300" : "text-black"}`}>🎓 Seniority Pref:</span> {rec.seniorityPreference}</p>
-                                <p><span className={`font-black ${isDark ? "text-amber-300" : "text-black"}`}>📁 Portfolio Request:</span> {rec.prefersPortfolio ? "Yes (High frequency)" : "Standard CV"}</p>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
 
                       {/* SECTION 2: SALARY INTELLIGENCE & SWEDISH ROLE BENCHMARKS */}
@@ -1413,26 +1482,29 @@ export default function Dashboard() {
                         <h3 className={`text-lg sm:text-xl font-bold ${isDark ? "text-white" : "text-slate-900"} flex items-center space-x-2`}>
                           <span>💰 Swedish Salary Intelligence &amp; Market Benchmarks</span>
                           <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${isDark ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30" : "bg-emerald-100 text-emerald-950 border-emerald-300"}`}>
-                            SEK Compensation Parser
+                            SEK Compensation Engine
                           </span>
                         </h3>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          <div className={`p-4 rounded-xl border ${isDark ? "bg-slate-950 border-slate-800" : "bg-slate-100 border-slate-300 text-black"}`}>
-                            <p className={`text-xs font-black uppercase ${isDark ? "text-cyan-400" : "text-cyan-900"}`}>Fullstack Engineer Benchmark</p>
-                            <p className={`text-2xl font-black mt-1 ${isDark ? "text-white" : "text-black"}`}>52 000 – 68 000 <span className={`text-xs font-bold ${isDark ? "text-slate-400" : "text-slate-700"}`}>SEK/mån</span></p>
-                            <p className={`text-xs font-bold mt-1 ${isDark ? "text-slate-400" : "text-slate-800"}`}>Stockholm &amp; Gothenburg • Senior Level</p>
-                          </div>
-                          <div className={`p-4 rounded-xl border ${isDark ? "bg-slate-950 border-slate-800" : "bg-slate-100 border-slate-300 text-black"}`}>
-                            <p className={`text-xs font-black uppercase ${isDark ? "text-purple-400" : "text-purple-900"}`}>Systems Architect Benchmark</p>
-                            <p className={`text-2xl font-black mt-1 ${isDark ? "text-white" : "text-black"}`}>58 000 – 75 000 <span className={`text-xs font-bold ${isDark ? "text-slate-400" : "text-slate-700"}`}>SEK/mån</span></p>
-                            <p className={`text-xs font-bold mt-1 ${isDark ? "text-slate-400" : "text-slate-800"}`}>Industrial R&amp;D &amp; Enterprise IT</p>
-                          </div>
-                          <div className={`p-4 rounded-xl border ${isDark ? "bg-slate-950 border-slate-800" : "bg-slate-100 border-slate-300 text-black"}`}>
-                            <p className={`text-xs font-black uppercase ${isDark ? "text-emerald-400" : "text-emerald-900"}`}>Quality / Six Sigma Lead</p>
-                            <p className={`text-2xl font-black mt-1 ${isDark ? "text-white" : "text-black"}`}>48 000 – 62 000 <span className={`text-xs font-bold ${isDark ? "text-slate-400" : "text-slate-700"}`}>SEK/mån</span></p>
-                            <p className={`text-xs font-bold mt-1 ${isDark ? "text-slate-400" : "text-slate-800"}`}>Continuous Improvement &amp; QA</p>
-                          </div>
+                          {salaryBenchmarks.map((bm, idx) => {
+                            const colors = [
+                              { badge: isDark ? "text-cyan-400" : "text-cyan-900" },
+                              { badge: isDark ? "text-purple-400" : "text-purple-900" },
+                              { badge: isDark ? "text-emerald-400" : "text-emerald-900" },
+                            ][idx % 3];
+
+                            return (
+                              <div key={idx} className={`p-4 rounded-xl border ${isDark ? "bg-slate-950 border-slate-800" : "bg-slate-100 border-slate-300 text-black"}`}>
+                                <p className={`text-xs font-black uppercase ${colors.badge}`}>{bm.roleTitle}</p>
+                                <p className={`text-2xl font-black mt-1 ${isDark ? "text-white" : "text-black"}`}>
+                                  {bm.minSalary.toLocaleString("sv-SE")} – {bm.maxSalary.toLocaleString("sv-SE")}{" "}
+                                  <span className={`text-xs font-bold ${isDark ? "text-slate-400" : "text-slate-700"}`}>{bm.currency}</span>
+                                </p>
+                                <p className={`text-xs font-bold mt-1 ${isDark ? "text-slate-400" : "text-slate-800"}`}>{bm.scope}</p>
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
 
