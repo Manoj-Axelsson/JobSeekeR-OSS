@@ -98,32 +98,31 @@ export function Navbar({
           {/* Brand & Identity (Responsive sizing, stacked badges & Public Download Counter) */}
           <div className="flex items-center space-x-2 sm:space-x-4">
             <Link href="/" className="flex items-center space-x-2 sm:space-x-3.5 group">
-              <div>
-                <div className="flex items-center space-x-2 sm:space-x-3">
-                  <span className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white drop-shadow-xl group-hover:scale-[1.02] transition-transform duration-200">
-                    JobseekeR<span className="text-amber-400 text-sm sm:text-xl lg:text-2xl align-super font-extrabold ml-0.5">™</span>
-                  </span>
-                  <div className="hidden sm:inline-flex flex-col px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-xl bg-[#361804]/90 border border-amber-400/60 shadow-md text-left group-hover:border-amber-300 transition-colors">
-                    <span className="text-[10px] sm:text-xs font-extrabold tracking-wide text-amber-300">Open Source Scanner</span>
-                    <span className="text-[9px] sm:text-[11px] font-semibold text-amber-200/90 border-t border-amber-500/30 pt-0.5 mt-0.5">SE Job Tech API</span>
-                  </div>
-                  <a
-                    href="https://github.com/Manoj-Axelsson/JobSeekeR-OSS"
-                    target="_blank"
-                    rel="noreferrer"
-                    title="Live Public GitHub Downloads & Clones Counter"
-                    className="hidden xl:flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-emerald-950/90 border border-emerald-400/60 shadow-md text-left hover:bg-emerald-900/90 hover:scale-105 hover:border-emerald-300 transition cursor-pointer"
-                  >
-                    <span className="relative flex h-2 w-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                    </span>
-                    <span className="text-xs font-black text-emerald-300">📦 {downloadCount}</span>
-                    <span className="text-[10px] font-semibold text-emerald-200/80">Downloads</span>
-                  </a>
+              <div className="flex items-center space-x-2 sm:space-x-3">
+                <span className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white drop-shadow-xl group-hover:scale-[1.02] transition-transform duration-200">
+                  JobseekeR<span className="text-amber-400 text-sm sm:text-xl lg:text-2xl align-super font-extrabold ml-0.5">™</span>
+                </span>
+                <div className="hidden sm:inline-flex flex-col px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-xl bg-[#361804]/90 border border-amber-400/60 shadow-md text-left group-hover:border-amber-300 transition-colors">
+                  <span className="text-[10px] sm:text-xs font-extrabold tracking-wide text-amber-300">Open Source Scanner</span>
+                  <span className="text-[9px] sm:text-[11px] font-semibold text-amber-200/90 border-t border-amber-500/30 pt-0.5 mt-0.5">SE Job Tech API</span>
                 </div>
               </div>
             </Link>
+
+            <a
+              href="https://github.com/Manoj-Axelsson/JobSeekeR-OSS"
+              target="_blank"
+              rel="noreferrer"
+              title="Live Public GitHub Downloads & Clones Counter"
+              className="hidden xl:flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-emerald-950/90 border border-emerald-400/60 shadow-md text-left hover:bg-emerald-900/90 hover:scale-105 hover:border-emerald-300 transition cursor-pointer"
+            >
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              <span className="text-xs font-black text-emerald-300">📦 {downloadCount}</span>
+              <span className="text-[10px] font-semibold text-emerald-200/80">Downloads</span>
+            </a>
           </div>
 
           {/* Desktop Top Action Buttons (Visible on lg and larger viewports) */}
