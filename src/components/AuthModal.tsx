@@ -13,6 +13,7 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -32,6 +33,7 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
           email,
           password,
           name: mode === "register" ? name : undefined,
+          rememberMe,
         }),
       });
 
@@ -55,7 +57,7 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
       <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative text-slate-100">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-slate-400 hover:text-white text-lg font-bold p-2"
+          className="absolute top-4 right-4 text-slate-400 hover:text-white text-lg font-bold p-2 cursor-pointer"
         >
           ✕
         </button>
@@ -87,6 +89,8 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
               <input
                 type="text"
                 required
+                name="name"
+                autoComplete="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Jane Doe"
@@ -102,6 +106,8 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
             <input
               type="email"
               required
+              name="email"
+              autoComplete="username email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="user@jobseeker.app"
@@ -116,6 +122,8 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
             <input
               type="password"
               required
+              name="password"
+              autoComplete={mode === "login" ? "current-password" : "new-password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
@@ -123,10 +131,22 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
             />
           </div>
 
+          <div className="flex items-center justify-between py-1">
+            <label className="flex items-center space-x-2 text-xs text-slate-300 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="w-4 h-4 rounded border-slate-700 bg-slate-950 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+              />
+              <span>Remember me (Keep signed in for 30 days)</span>
+            </label>
+          </div>
+
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 px-4 rounded-xl text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 transition-all shadow-lg shadow-indigo-600/30"
+            className="w-full py-3 px-4 rounded-xl text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 transition-all shadow-lg shadow-indigo-600/30 cursor-pointer"
           >
             {loading ? "Processing..." : mode === "login" ? "Sign In" : "Register Account"}
           </button>
