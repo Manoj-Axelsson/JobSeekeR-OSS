@@ -332,7 +332,7 @@ export function UserGuideModal({ isOpen, onClose, onOpenOnboarding }: UserGuideM
 
         {/* Footer */}
         <div className="pt-4 border-t border-amber-500/30 flex items-center justify-between">
-          <p className="text-[11px] text-amber-300/80 font-bold">JobseekeR™ OS v1.0 • MIT Open Source</p>
+          <p className="text-[11px] text-amber-300/80 font-bold">© RubberDuckWorks • Developed by Manoj Axelsson • MIT Open Source</p>
           <button
             onClick={onClose}
             className="px-5 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-amber-950 font-black text-xs uppercase tracking-wider shadow-md transition cursor-pointer"

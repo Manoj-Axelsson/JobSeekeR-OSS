@@ -1532,6 +1532,23 @@ export default function Dashboard() {
         </div>
       </main>
 
+      {/* Footer */}
+      <footer className={`py-6 px-4 border-t text-center text-xs transition-colors ${
+        isDark ? "border-slate-800 text-slate-400 bg-slate-950" : "border-slate-200 text-slate-600 bg-slate-100/50"
+      }`}>
+        <p>
+          © {new Date().getFullYear()} <strong className={isDark ? "text-slate-300" : "text-slate-700"}>RubberDuckWorks</strong> • Developed by <strong className={isDark ? "text-slate-300" : "text-slate-700"}>Manoj Axelsson</strong>. JobseekeR™ is Open Source software released under the{" "}
+          <a
+            href="https://opensource.org/licenses/MIT"
+            target="_blank"
+            rel="noreferrer"
+            className="underline hover:text-amber-500 transition-colors"
+          >
+            MIT License
+          </a>.
+        </p>
+      </footer>
+
       {/* FULL JOB & MATCH ANALYSIS MODAL */}
       {selectedJob && jobAnalysis && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">

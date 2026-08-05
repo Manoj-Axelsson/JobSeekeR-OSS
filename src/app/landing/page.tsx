@@ -306,9 +306,9 @@ export default function LandingPage() {
             <div className="w-12 h-12 rounded-xl bg-amber-400/20 border border-amber-400/40 text-amber-300 flex items-center justify-center text-2xl mb-4 font-bold group-hover:scale-110 transition-transform">
               🎯
             </div>
-            <h3 className="text-xl font-extrabold text-white">Multi-Domain AI Matcher</h3>
+            <h3 className="text-xl font-extrabold text-white">Dynamic AI Match Engine</h3>
             <p className="mt-2 text-sm text-amber-200/80 leading-relaxed">
-              Evaluates Software, Systems Engineering, Quality Assurance (Six Sigma), and Manufacturing roles with weighted domain algorithms.
+              Evaluates job ad requirements against your uploaded CVs, candidate profile, and target competencies using weighted matching algorithms.
             </p>
           </div>
 
@@ -347,7 +347,7 @@ export default function LandingPage() {
       {/* Footer */}
       <footer id="open-source" className="relative z-10 border-t border-amber-500/30 py-8 px-4 text-center text-xs text-amber-200/70 bg-[#1c0c03]/80 backdrop-blur-md">
         <p>
-          JobseekeR™ is Open Source software released under the <a href="https://opensource.org/licenses/MIT" target="_blank" rel="noreferrer" className="underline hover:text-white transition-colors">MIT License</a>.
+          © {new Date().getFullYear()} RubberDuckWorks • Developed by Manoj Axelsson. JobseekeR™ is Open Source software released under the <a href="https://opensource.org/licenses/MIT" target="_blank" rel="noreferrer" className="underline hover:text-white transition-colors">MIT License</a>.
         </p>
       </footer>
 
