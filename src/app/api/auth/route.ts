@@ -26,6 +26,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const { action, email, password, name, rememberMe } = await req.json();
+    const normalizedEmail = (email || "").trim().toLowerCase();
 
     if (action === "logout") {
       const response = NextResponse.json({ success: true, message: "Logged out" });
@@ -40,11 +41,11 @@ export async function POST(req: NextRequest) {
     }
 
     if (action === "register") {
-      if (!email || !password || !name) {
+      if (!normalizedEmail || !password || !name) {
         return NextResponse.json({ error: "Name, Email, and Password are required" }, { status: 400 });
       }
 
-      const existing = await db.userAccount.findUnique({ where: { email } });
+      const existing = await db.userAccount.findUnique({ where: { email: normalizedEmail } });
       if (existing) {
         return NextResponse.json({ error: "Account with this email already exists" }, { status: 400 });
       }
@@ -53,7 +54,7 @@ export async function POST(req: NextRequest) {
 
       const user = await db.userAccount.create({
         data: {
-          email,
+          email: normalizedEmail,
           name,
           passwordHash,
         },
@@ -102,11 +103,11 @@ export async function POST(req: NextRequest) {
     }
 
     if (action === "login") {
-      if (!email || !password) {
+      if (!normalizedEmail || !password) {
         return NextResponse.json({ error: "Email and password required" }, { status: 400 });
       }
 
-      const user = await db.userAccount.findUnique({ where: { email } });
+      const user = await db.userAccount.findUnique({ where: { email: normalizedEmail } });
       if (!user) {
         return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
       }
@@ -134,6 +135,28 @@ export async function POST(req: NextRequest) {
       });
 
       return response;
+    }
+
+    if (action === "reset-password") {
+      if (!normalizedEmail || !password) {
+        return NextResponse.json({ error: "Email and new password are required" }, { status: 400 });
+      }
+
+      const user = await db.userAccount.findUnique({ where: { email: normalizedEmail } });
+      if (!user) {
+        return NextResponse.json({ error: "No account found with this email address" }, { status: 404 });
+      }
+
+      const passwordHash = Buffer.from(password).toString("base64");
+      await db.userAccount.update({
+        where: { email: normalizedEmail },
+        data: { passwordHash },
+      });
+
+      return NextResponse.json({
+        success: true,
+        message: "Password reset successfully. You may now log in with your new password.",
+      });
     }
 
     return NextResponse.json({ error: "Invalid action" }, { status: 400 });
