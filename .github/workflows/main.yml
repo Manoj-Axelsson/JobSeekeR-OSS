@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [ main, Develop ]
 
+env:
+  DATABASE_URL: "file:./dev.db"
+
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
