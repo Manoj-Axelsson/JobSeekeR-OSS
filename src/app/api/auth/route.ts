@@ -136,6 +136,28 @@ export async function POST(req: NextRequest) {
       return response;
     }
 
+    if (action === "reset-password") {
+      if (!email || !password) {
+        return NextResponse.json({ error: "Email and new password are required" }, { status: 400 });
+      }
+
+      const user = await db.userAccount.findUnique({ where: { email } });
+      if (!user) {
+        return NextResponse.json({ error: "No account found with this email address" }, { status: 404 });
+      }
+
+      const passwordHash = Buffer.from(password).toString("base64");
+      await db.userAccount.update({
+        where: { email },
+        data: { passwordHash },
+      });
+
+      return NextResponse.json({
+        success: true,
+        message: "Password reset successfully. You may now log in with your new password.",
+      });
+    }
+
     return NextResponse.json({ error: "Invalid action" }, { status: 400 });
   } catch (error: any) {
     return NextResponse.json({ error: error.message || "Authentication error" }, { status: 500 });
