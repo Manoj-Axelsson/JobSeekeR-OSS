@@ -188,9 +188,36 @@ export default function Dashboard() {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "logout" }),
+      });
+    } catch (e) {
+      console.error("Logout error:", e);
+    } finally {
+      setCurrentUser(null);
+    }
+  };
+
   async function fetchData() {
     setLoading(true);
     try {
+      // Check persistent auth session
+      try {
+        const authRes = await fetch("/api/auth");
+        if (authRes.ok) {
+          const authData = await authRes.json();
+          if (authData.authenticated && authData.user) {
+            setCurrentUser(authData.user);
+          }
+        }
+      } catch (e) {
+        console.error("Session restore error:", e);
+      }
+
       // Fetch profile
       const profRes = await fetch("/api/profile");
       if (profRes.ok) {
@@ -381,7 +408,7 @@ export default function Dashboard() {
         onOpenOnboarding={() => setShowOnboarding(true)}
         onOpenAuth={() => setShowAuthModal(true)}
         onOpenUserGuide={() => setShowUserGuide(true)}
-        onLogout={() => setCurrentUser(null)}
+        onLogout={handleLogout}
         currentUser={currentUser}
         themeMode={themeMode}
         setThemeMode={setThemeMode}
