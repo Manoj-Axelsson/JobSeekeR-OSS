@@ -14,6 +14,7 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -35,6 +36,8 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
     setError(null);
     setSuccessMessage(null);
 
+    const cleanEmail = email.trim().toLowerCase();
+
     if (mode === "forgot") {
       if (password !== confirmPassword) {
         setError("Passwords do not match");
@@ -54,9 +57,9 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: mode === "forgot" ? "reset-password" : mode,
-          email,
+          email: cleanEmail,
           password,
-          name: mode === "register" ? name : undefined,
+          name: mode === "register" ? name.trim() : undefined,
           rememberMe,
         }),
       });
@@ -182,16 +185,26 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
                   </button>
                 )}
               </div>
-              <input
-                type="password"
-                required
-                name="password"
-                autoComplete={mode === "login" ? "current-password" : "new-password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500"
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  required
+                  name="password"
+                  autoComplete={mode === "login" ? "current-password" : "new-password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 pr-20 text-sm text-slate-200 focus:outline-none focus:border-indigo-500 font-mono tracking-wide"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 text-xs py-1 px-2 rounded-lg bg-slate-800/60 hover:bg-slate-800 border border-slate-700/50 cursor-pointer transition-colors"
+                  title={showPassword ? "Hide password" : "Show password to verify case sensitivity"}
+                >
+                  {showPassword ? "🙈 Hide" : "👁️ Show"}
+                </button>
+              </div>
             </div>
 
             {mode === "forgot" && (
@@ -199,21 +212,42 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
                 <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
                   Confirm New Password
                 </label>
-                <input
-                  type="password"
-                  required
-                  name="confirmPassword"
-                  autoComplete="new-password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500"
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    required
+                    name="confirmPassword"
+                    autoComplete="new-password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 pr-20 text-sm text-slate-200 focus:outline-none focus:border-indigo-500 font-mono tracking-wide"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 text-xs py-1 px-2 rounded-lg bg-slate-800/60 hover:bg-slate-800 border border-slate-700/50 cursor-pointer transition-colors"
+                  >
+                    {showPassword ? "🙈 Hide" : "👁️ Show"}
+                  </button>
+                </div>
               </div>
             )}
 
+            <div className="flex items-center justify-between py-1">
+              <label className="flex items-center space-x-2 text-xs text-slate-400 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={showPassword}
+                  onChange={(e) => setShowPassword(e.target.checked)}
+                  className="w-3.5 h-3.5 rounded border-slate-700 bg-slate-950 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                />
+                <span>Show password text (check case sensitivity & typos)</span>
+              </label>
+            </div>
+
             {mode === "login" && (
-              <div className="flex items-center justify-between py-1">
+              <div className="flex items-center justify-between pb-1">
                 <label className="flex items-center space-x-2 text-xs text-slate-300 cursor-pointer">
                   <input
                     type="checkbox"
