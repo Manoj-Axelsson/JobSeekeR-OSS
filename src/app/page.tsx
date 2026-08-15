@@ -39,7 +39,29 @@ interface JobAd {
   missingSkills: string; // JSON string array
   domainScores: string; // JSON string object
   status: "NEW" | "SAVED" | "APPLIED" | "DISCARDED";
+  feedType?: "PRIMARY" | "DISCOVERY";
+  eligibilityStatus?: "ELIGIBLE" | "INELIGIBLE" | "DISCARDED";
+  capabilityScore?: number;
+  intentScore?: number;
+  probableOccupations?: string; // JSON string array
   applications?: Application[];
+  profileEvaluations?: JobProfileEvaluation[];
+}
+
+export interface JobProfileEvaluation {
+  id: string;
+  jobId: string;
+  searchProfileId: string;
+  feedType: "PRIMARY" | "DISCOVERY";
+  eligibilityStatus: "ELIGIBLE" | "INELIGIBLE" | "DISCARDED";
+  capabilityScore: number;
+  intentScore: number;
+  totalMatchScore: number;
+  searchProfile?: {
+    id: string;
+    name: string;
+    isPrimary: boolean;
+  };
 }
 
 interface Application {
@@ -131,6 +153,11 @@ export default function Dashboard() {
 
   // Track expanded accordion cards by Job ID
   const [expandedJobIds, setExpandedJobIds] = useState<Set<string>>(new Set());
+
+  // V2 Constitutional Feed Separation & Search Profile Track State
+  const [v2FeedTab, setV2FeedTab] = useState<"PRIMARY" | "DISCOVERY">("PRIMARY");
+  const [searchProfilesList, setSearchProfilesList] = useState<any[]>([]);
+  const [selectedProfileId, setSelectedProfileId] = useState<string>("ALL");
 
   // Profile states
   const [minScore, setMinScore] = useState(45);
@@ -226,6 +253,9 @@ export default function Dashboard() {
         if (profData.name) setProfileName(profData.name);
         if (profData.minMatchScore) setMinScore(profData.minMatchScore);
         if (Array.isArray(profData.excludedCompanies)) setExcludedCompanies(profData.excludedCompanies);
+        if (profData.searchProfiles && Array.isArray(profData.searchProfiles)) {
+          setSearchProfilesList(profData.searchProfiles);
+        }
       }
 
       // Fetch jobs
@@ -653,43 +683,125 @@ export default function Dashboard() {
                             }`}
                         />
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <span className="text-[17px] font-medium text-amber-300">Status:</span>
-                        <select
-                          value={statusFilter}
-                          onChange={(e) => setStatusFilter(e.target.value)}
-                          className="border border-amber-500/40 rounded-xl px-4 py-3 text-[17px] focus:outline-none focus:ring-1 focus:ring-amber-400 bg-[#251304] text-amber-100 font-bold cursor-pointer"
-                        >
-                          <option value="ALL">{t.statusAll}</option>
-                          <option value="NEW">New Jobs</option>
-                          <option value="SAVED">Saved Jobs</option>
-                          <option value="APPLIED">{t.statusApplied}</option>
-                        </select>
+                      <div className="flex flex-wrap items-center gap-3">
+                        {searchProfilesList.length > 0 && (
+                          <div className="flex items-center space-x-2">
+                            <span className="text-[15px] font-bold text-amber-300">Search Track:</span>
+                            <select
+                              value={selectedProfileId}
+                              onChange={(e) => setSelectedProfileId(e.target.value)}
+                              className="border border-amber-500/40 rounded-xl px-3 py-3 text-[15px] focus:outline-none focus:ring-1 focus:ring-amber-400 bg-[#251304] text-amber-100 font-bold cursor-pointer"
+                            >
+                              <option value="ALL">All Active Tracks</option>
+                              {searchProfilesList.map((sp) => (
+                                <option key={sp.id} value={sp.id}>
+                                  {sp.isPrimary ? "📍 " : "🌐 "}{sp.name}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        )}
+
+                        <div className="flex items-center space-x-2">
+                          <span className="text-[17px] font-medium text-amber-300">Status:</span>
+                          <select
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                            className="border border-amber-500/40 rounded-xl px-4 py-3 text-[17px] focus:outline-none focus:ring-1 focus:ring-amber-400 bg-[#251304] text-amber-100 font-bold cursor-pointer"
+                          >
+                            <option value="ALL">{t.statusAll}</option>
+                            <option value="NEW">New Jobs</option>
+                            <option value="SAVED">Saved Jobs</option>
+                            <option value="APPLIED">{t.statusApplied}</option>
+                          </select>
+                        </div>
                       </div>
                     </div>
 
+                    {/* V2 CONSTITUTIONAL FEED SEPARATION TABS (PRIMARY VS DISCOVERY) */}
+                    <div className="p-1.5 rounded-2xl bg-[#361c07] border-2 border-amber-400/50 shadow-xl flex flex-col sm:flex-row gap-2">
+                      <button
+                        onClick={() => setV2FeedTab("PRIMARY")}
+                        className={`flex-1 py-3 px-4 rounded-xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer flex items-center justify-center space-x-2 ${
+                          v2FeedTab === "PRIMARY"
+                            ? "bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg border border-emerald-300 scale-[1.01]"
+                            : "bg-[#241203] text-amber-200 hover:bg-[#4a2709] border border-amber-500/30"
+                        }`}
+                      >
+                        <span className="text-base sm:text-lg">📍</span>
+                        <div className="text-left">
+                          <p className="font-black leading-none text-white">📍 Primary Feed</p>
+                          <p className="text-[10px] sm:text-[11px] font-medium opacity-90">Find me what I asked for (Strict Territory & Intent)</p>
+                        </div>
+                      </button>
+
+                      <button
+                        onClick={() => setV2FeedTab("DISCOVERY")}
+                        className={`flex-1 py-3 px-4 rounded-xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer flex items-center justify-center space-x-2 ${
+                          v2FeedTab === "DISCOVERY"
+                            ? "bg-gradient-to-r from-indigo-500 via-purple-600 to-pink-600 text-white shadow-lg border border-indigo-300 scale-[1.01]"
+                            : "bg-[#241203] text-amber-200 hover:bg-[#4a2709] border border-amber-500/30"
+                        }`}
+                      >
+                        <span className="text-base sm:text-lg">🌐</span>
+                        <div className="text-left">
+                          <p className="font-black leading-none text-white">🌐 Discovery Feed</p>
+                          <p className="text-[10px] sm:text-[11px] font-medium opacity-90">Show me valuable things outside my normal search</p>
+                        </div>
+                      </button>
+                    </div>
+
                     {/* Job List Accordions */}
-                    {filteredJobs.length === 0 ? (
+                    {filteredJobs.filter(j => {
+                      if (selectedProfileId !== "ALL" && j.profileEvaluations?.length) {
+                        const evalForProfile = j.profileEvaluations.find(pe => pe.searchProfileId === selectedProfileId);
+                        if (evalForProfile) return (evalForProfile.feedType || "PRIMARY") === v2FeedTab;
+                      }
+                      return (j.feedType || "PRIMARY") === v2FeedTab;
+                    }).length === 0 ? (
                       <div
                         className="text-center py-16 rounded-2xl border bg-[#381f09]/80 border-amber-500/40 shadow-xl"
                       >
-                        <h3 className="text-[23px] font-bold text-amber-100">{t.noJobsFound}</h3>
+                        <h3 className="text-[23px] font-bold text-amber-100">
+                          {v2FeedTab === "PRIMARY" ? "No Primary Territory Jobs Found" : "No Discovery Opportunities Found"}
+                        </h3>
                         <p className="text-[17px] mt-1 text-amber-200/70">
-                          Try running a job scan or adjusting your search filters.
+                          {v2FeedTab === "PRIMARY"
+                            ? "Try running a job scan or adjusting your target search profile."
+                            : "No out-of-territory discovery opportunities meeting exploration criteria."}
                         </p>
                         <button
                           onClick={triggerJobScan}
-                          className="mt-4 px-6 py-3 bg-linear-to-r from-amber-400 to-orange-500 text-amber-950 text-[17px] font-black rounded-xl hover:opacity-90 transition shadow-lg"
+                          className="mt-4 px-6 py-3 bg-linear-to-r from-amber-400 to-orange-500 text-amber-950 text-[17px] font-black rounded-xl hover:opacity-90 transition shadow-lg cursor-pointer"
                         >
                           ⚡ {t.runJobScan}
                         </button>
                       </div>
                     ) : (
                       <div className="space-y-4">
-                        {filteredJobs.map((job) => {
+                        {filteredJobs
+                          .filter((job) => {
+                            if (selectedProfileId !== "ALL" && job.profileEvaluations?.length) {
+                              const evalForProfile = job.profileEvaluations.find(pe => pe.searchProfileId === selectedProfileId);
+                              if (evalForProfile) return (evalForProfile.feedType || "PRIMARY") === v2FeedTab;
+                            }
+                            return (job.feedType || "PRIMARY") === v2FeedTab;
+                          })
+                          .map((job) => {
                           const matchedSkillsArr: string[] = JSON.parse(job.matchedSkills || "[]");
                           const domainScoresObj = JSON.parse(job.domainScores || "{}");
                           const isExpanded = expandedJobIds.has(job.id);
+
+                          // Active profile evaluation if specific profile selected
+                          const profileEval = selectedProfileId !== "ALL"
+                            ? job.profileEvaluations?.find(pe => pe.searchProfileId === selectedProfileId)
+                            : undefined;
+
+                          const effectiveFeedType = profileEval ? profileEval.feedType : (job.feedType || "PRIMARY");
+                          const effectiveMatchScore = profileEval ? profileEval.totalMatchScore : job.matchScore;
+                          const effectiveCapability = profileEval ? profileEval.capabilityScore : (job.capabilityScore || job.matchScore);
+                          const effectiveIntent = profileEval ? profileEval.intentScore : (job.intentScore || job.matchScore);
+                          const isPrimary = effectiveFeedType === "PRIMARY";
 
                           return (
                             <div
@@ -702,14 +814,25 @@ export default function Dashboard() {
                               {/* ACCORDION COLLAPSED HEADER */}
                               <div className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
                                 <div className="flex-1 space-y-2">
-                                  {/* Top Row: Score Badge + Status */}
-                                  <div className="flex items-center space-x-3">
+                                  {/* Top Row: V2 Feed Badge + Score Badges + Status */}
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    {/* Constitutional Feed Badge */}
                                     <span
-                                      className={`px-3.5 py-1 rounded-full text-[16px] font-bold shadow-sm ${job.matchScore >= 75
+                                      className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-wide border shadow-sm ${
+                                        isPrimary
+                                          ? "bg-emerald-500/20 text-emerald-300 border-emerald-400/40"
+                                          : "bg-indigo-500/20 text-indigo-300 border-indigo-400/40"
+                                      }`}
+                                    >
+                                      {isPrimary ? "📍 Primary Feed" : "🌐 Discovery Feed"}
+                                    </span>
+
+                                    <span
+                                      className={`px-3.5 py-1 rounded-full text-[16px] font-bold shadow-sm ${effectiveMatchScore >= 75
                                         ? isDark
                                           ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30"
                                           : "bg-emerald-50 text-emerald-700 border border-emerald-300"
-                                        : job.matchScore >= 55
+                                        : effectiveMatchScore >= 55
                                           ? isDark
                                             ? "bg-amber-500/10 text-amber-400 border border-amber-500/30"
                                             : "bg-amber-50 text-amber-700 border border-amber-300"
@@ -718,7 +841,12 @@ export default function Dashboard() {
                                             : "bg-slate-100 text-slate-600"
                                         }`}
                                     >
-                                      {job.matchScore}% Match
+                                      {effectiveMatchScore}% Match
+                                    </span>
+
+                                    {/* Capability vs Intent Score Badges */}
+                                    <span className="text-xs font-semibold px-2.5 py-0.5 rounded-md bg-slate-800 text-slate-300 border border-slate-700">
+                                      Capability: {effectiveCapability}% • Intent: {effectiveIntent}%
                                     </span>
 
                                     <span
@@ -757,6 +885,7 @@ export default function Dashboard() {
                                     <span className={`text-[15px] ${isDark ? "text-slate-400" : "text-slate-500"}`}>
                                       Published: {new Date(job.publishedAt).toLocaleDateString("sv-SE")}
                                     </span>
+
 
                                     {/* Salary Intelligence Badge */}
                                     {(() => {
