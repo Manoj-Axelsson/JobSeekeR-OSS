@@ -33,6 +33,11 @@ export async function GET(request: Request) {
       ],
       include: {
         applications: true,
+        profileEvaluations: {
+          include: {
+            searchProfile: true,
+          },
+        },
       },
     });
 
