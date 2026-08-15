@@ -25,6 +25,7 @@ architectural decisions.
 | [ADR-001](ADR-001-local-first-architecture.md) | Local-First Architecture |
 | [ADR-002](ADR-002-progressive-onboarding-and-confidence-model.md) | Progressive Onboarding & Confidence Model |
 | [ADR-003](ADR-003-evidence-based-recommendations-and-settings.md) | Evidence-Based Recommendations & Settings |
+| [ADR-004](ADR-004-decoupled-career-search-and-territory-domain-model.md) | Decoupled Career, Search & Territory Domain Model |
 
 ---
 
