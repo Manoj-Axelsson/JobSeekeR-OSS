@@ -1,12 +1,18 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { ensureV2ProfilesExist } from "@/lib/services/pipeline/seedV2";
 
 export async function GET() {
   try {
+    await ensureV2ProfilesExist();
+
     let profile = await db.userProfile.findFirst();
+    const careerProfile = await db.careerProfile.findFirst();
+    const searchProfiles = await db.searchProfile.findMany({
+      include: { territory: true },
+    });
 
     if (!profile) {
-      // Create initial profile if none exists
       profile = await db.userProfile.create({
         data: {
           id: "user_main",
@@ -38,6 +44,27 @@ export async function GET() {
       targetRoles: JSON.parse(profile.targetRoles || "[]"),
       skills: JSON.parse(profile.skills || "{}"),
       excludedCompanies: JSON.parse(profile.excludedCompanies || "[]"),
+      v2: {
+        careerProfile: careerProfile ? {
+          ...careerProfile,
+          skills: JSON.parse(careerProfile.skills || "[]"),
+          experience: JSON.parse(careerProfile.experience || "[]"),
+          qualifications: JSON.parse(careerProfile.qualifications || "[]"),
+          currentRoles: JSON.parse(careerProfile.currentRoles || "[]"),
+        } : null,
+        searchProfiles: searchProfiles.map(sp => ({
+          ...sp,
+          targetOccupations: JSON.parse(sp.targetOccupations || "[]"),
+          targetIndustries: JSON.parse(sp.targetIndustries || "[]"),
+          workModes: JSON.parse(sp.workModes || "[]"),
+          employmentPreferences: JSON.parse(sp.employmentPreferences || "[]"),
+          mustHave: JSON.parse(sp.mustHave || "[]"),
+          prefer: JSON.parse(sp.prefer || "[]"),
+          niceToHave: JSON.parse(sp.niceToHave || "[]"),
+          exclude: JSON.parse(sp.exclude || "[]"),
+          explore: JSON.parse(sp.explore || "[]"),
+        })),
+      },
     });
   } catch (error: any) {
     return NextResponse.json({ error: error.message || "Failed to fetch profile" }, { status: 500 });
@@ -73,6 +100,15 @@ export async function PUT(req: Request) {
           id: "user_main",
           ...dataToSave,
         },
+      });
+    }
+
+    // Keep CareerProfile headline synchronized
+    const career = await db.careerProfile.findFirst();
+    if (career) {
+      await db.careerProfile.update({
+        where: { id: career.id },
+        data: { headline: dataToSave.headline },
       });
     }
 

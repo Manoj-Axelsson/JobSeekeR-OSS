@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { fetchSwedishJobs } from "@/lib/services/jobtech";
 import { fetchLinkedInSwedishJobs } from "@/lib/services/linkedin";
 import { evaluateJobMatch } from "@/lib/services/matcher";
+import { ensureV2ProfilesExist } from "@/lib/services/pipeline/seedV2";
 
 export async function GET() {
   return handleScrape();
@@ -20,7 +21,38 @@ async function handleScrape() {
   let expiredCount = 0;
 
   try {
-    // 1. Enforce 14-Day Strict Cutoff Policy on existing NEW and SAVED jobs
+    // 1. Ensure V2 CareerProfile, SearchProfile(s), and SearchTerritory exist
+    await ensureV2ProfilesExist();
+
+    const activeSearchProfiles = await db.searchProfile.findMany({
+      include: { territory: true },
+    });
+
+    const activeCareerProfile = await db.careerProfile.findFirst();
+
+    // Parse candidate skills from CareerProfile
+    let candidateSkills: string[] = ["React", "TypeScript", "Next.js", "Systems Engineering"];
+    if (activeCareerProfile?.skills) {
+      try {
+        const raw = JSON.parse(activeCareerProfile.skills);
+        if (Array.isArray(raw)) candidateSkills = raw;
+      } catch {}
+    }
+
+    // Dynamic Ingestion Terms: Aggregate targetOccupations and prefer terms across ALL active SearchProfiles
+    const combinedSearchTerms = new Set<string>();
+    activeSearchProfiles.forEach((sp) => {
+      try {
+        const occs = JSON.parse(sp.targetOccupations || "[]");
+        const prefs = JSON.parse(sp.prefer || "[]");
+        occs.forEach((o: string) => o && combinedSearchTerms.add(o));
+        prefs.forEach((p: string) => p && combinedSearchTerms.add(p));
+      } catch {}
+    });
+
+    const searchTermsArray = Array.from(combinedSearchTerms);
+
+    // Enforce 14-Day Cutoff Policy on existing jobs
     const fourteenDaysAgo = new Date();
     fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
 
@@ -39,87 +71,189 @@ async function handleScrape() {
 
     expiredCount = expireResult.count;
 
-    // 2. Fetch fresh Swedish job listings from Arbetsförmedlingen JobTech API
-    const rawJobTechAds = await fetchSwedishJobs();
-    
-    // 3. Fetch fresh Swedish job listings from LinkedIn Jobs
-    const rawLinkedInAds = await fetchLinkedInSwedishJobs();
+    // 2. Fetch fresh listings using dynamic SearchProfile terms
+    const rawJobTechAds = await fetchSwedishJobs(searchTermsArray);
+    const rawLinkedInAds = await fetchLinkedInSwedishJobs(searchTermsArray);
 
     totalFound = rawJobTechAds.length + rawLinkedInAds.length;
 
-    const userProfile = await db.userProfile.findUnique({ where: { id: "user_manoj" } });
-    const minScore = userProfile?.minMatchScore ?? 45;
+    // Helper to process and persist a raw job ad against ALL active Search Profiles
+    async function processVacancy(
+      externalId: string,
+      title: string,
+      company: string,
+      location: string,
+      description: string,
+      webpageUrl: string,
+      source: string,
+      publishedAt: Date,
+      deadline: Date | null
+    ) {
+      // Create or update canonical JobAd opportunity record
+      const existingJob = await db.jobAd.findUnique({
+        where: { externalId },
+      });
 
-    // Process JobTech Ads
-    for (const ad of rawJobTechAds) {
-      const city = ad.workplace_address?.city || ad.workplace_address?.municipality || "Sweden";
-      const descText = ad.description?.text || "";
-      const match = evaluateJobMatch(ad.headline, descText);
+      let jobRecord = existingJob;
+      let isNewJob = false;
 
-      if (match.matchScore >= minScore) {
-        totalMatched++;
+      // Primary default match score (highest overall evaluation)
+      let highestOverallMatchScore = 0;
+      let primaryFeedType: "PRIMARY" | "DISCOVERY" = "DISCOVERY";
 
-        const existing = await db.jobAd.findUnique({
-          where: { externalId: ad.id },
+      if (!jobRecord) {
+        isNewJob = true;
+        jobRecord = await db.jobAd.create({
+          data: {
+            externalId,
+            title,
+            company,
+            location,
+            description: description.slice(0, 3000),
+            webpageUrl,
+            source,
+            publishedAt,
+            deadline,
+            matchScore: 0,
+            matchedSkills: "[]",
+            missingSkills: "[]",
+            domainScores: "{}",
+            status: "NEW",
+          },
         });
+      }
 
-        if (!existing) {
-          newAdded++;
-          await db.jobAd.create({
-            data: {
-              externalId: ad.id,
-              title: ad.headline,
-              company: ad.employer?.name || "Unknown Company",
-              location: city,
-              description: descText.slice(0, 3000),
-              webpageUrl: ad.webpage_url || `https://platsbanken.se/arbetsforetag/${ad.id}`,
-              source: "Arbetsförmedlingen JobTech",
-              publishedAt: new Date(ad.publication_date || Date.now()),
-              deadline: ad.application_deadline ? new Date(ad.application_deadline) : null,
-              matchScore: match.matchScore,
+      let evaluatedProfileCount = 0;
+
+      // Multi-SearchProfile Evaluation: Evaluate against EVERY active candidate Search Profile independently
+      for (const sp of activeSearchProfiles) {
+        let prefs = undefined;
+        try {
+          prefs = {
+            mustHave: JSON.parse(sp.mustHave || "[]"),
+            prefer: JSON.parse(sp.prefer || "[]"),
+            niceToHave: JSON.parse(sp.niceToHave || "[]"),
+            exclude: JSON.parse(sp.exclude || "[]"),
+            explore: JSON.parse(sp.explore || "[]"),
+            targetOccupations: JSON.parse(sp.targetOccupations || "[]"),
+          };
+        } catch {}
+
+        let territory = undefined;
+        if (sp.territory) {
+          try {
+            territory = {
+              countries: JSON.parse(sp.territory.countries || "[\"SE\"]"),
+              regions: JSON.parse(sp.territory.regions || "[]"),
+              municipalities: JSON.parse(sp.territory.municipalities || "[]"),
+              cities: JSON.parse(sp.territory.cities || "[]"),
+              remotePolicy: sp.territory.remotePolicy as any,
+              discoveryPolicy: sp.territory.discoveryPolicy as any,
+            };
+          } catch {}
+        }
+
+        const match = evaluateJobMatch(
+          title,
+          description,
+          candidateSkills,
+          "JobseekeR Candidate",
+          activeCareerProfile?.headline || "Software & Systems Engineer",
+          company,
+          location,
+          prefs,
+          territory
+        );
+
+        if (match.matchScore > highestOverallMatchScore) {
+          highestOverallMatchScore = match.matchScore;
+          if (sp.isPrimary) primaryFeedType = match.feedType;
+        }
+
+        if (match.matchScore >= (sp.minMatchScore ?? 40) && match.eligibilityStatus !== "DISCARDED") {
+          evaluatedProfileCount++;
+
+          // Upsert JobAdSearchProfile evaluation join record
+          await db.jobAdSearchProfile.upsert({
+            where: {
+              jobId_searchProfileId: {
+                jobId: jobRecord.id,
+                searchProfileId: sp.id,
+              },
+            },
+            create: {
+              jobId: jobRecord.id,
+              searchProfileId: sp.id,
+              feedType: match.feedType,
+              eligibilityStatus: match.eligibilityStatus,
+              capabilityScore: match.capabilityScore,
+              intentScore: match.intentScore,
+              totalMatchScore: match.matchScore,
               matchedSkills: JSON.stringify(match.matchedSkills),
               missingSkills: JSON.stringify(match.missingSkills),
-              domainScores: JSON.stringify(match.domainScores),
-              status: "NEW",
+              probableOccupations: JSON.stringify(match.probableOccupations),
+            },
+            update: {
+              feedType: match.feedType,
+              eligibilityStatus: match.eligibilityStatus,
+              capabilityScore: match.capabilityScore,
+              intentScore: match.intentScore,
+              totalMatchScore: match.matchScore,
+              matchedSkills: JSON.stringify(match.matchedSkills),
+              missingSkills: JSON.stringify(match.missingSkills),
+              probableOccupations: JSON.stringify(match.probableOccupations),
             },
           });
         }
+      }
+
+      if (evaluatedProfileCount > 0) {
+        totalMatched++;
+        if (isNewJob) newAdded++;
+
+        // Update JobAd overall score and feedType
+        await db.jobAd.update({
+          where: { id: jobRecord.id },
+          data: {
+            matchScore: highestOverallMatchScore,
+            feedType: primaryFeedType,
+          },
+        });
       }
     }
 
-    // Process LinkedIn Ads
+    // Process JobTech ads
+    for (const ad of rawJobTechAds) {
+      const city = ad.workplace_address?.city || ad.workplace_address?.municipality || "Sweden";
+      const descText = ad.description?.text || "";
+      const companyName = ad.employer?.name || "Unknown Company";
+
+      await processVacancy(
+        ad.id,
+        ad.headline,
+        companyName,
+        city,
+        descText,
+        ad.webpage_url || `https://platsbanken.se/arbetsforetag/${ad.id}`,
+        "Arbetsförmedlingen JobTech",
+        new Date(ad.publication_date || Date.now()),
+        ad.application_deadline ? new Date(ad.application_deadline) : null
+      );
+    }
+
+    // Process LinkedIn ads
     for (const ad of rawLinkedInAds) {
-      const match = evaluateJobMatch(ad.headline, ad.description);
-
-      if (match.matchScore >= minScore) {
-        totalMatched++;
-
-        const existing = await db.jobAd.findUnique({
-          where: { externalId: ad.id },
-        });
-
-        if (!existing) {
-          newAdded++;
-          await db.jobAd.create({
-            data: {
-              externalId: ad.id,
-              title: ad.headline,
-              company: ad.company,
-              location: ad.location,
-              description: ad.description,
-              webpageUrl: ad.webpageUrl,
-              source: "LinkedIn Jobs",
-              publishedAt: new Date(ad.publicationDate || Date.now()),
-              deadline: null,
-              matchScore: match.matchScore,
-              matchedSkills: JSON.stringify(match.matchedSkills),
-              missingSkills: JSON.stringify(match.missingSkills),
-              domainScores: JSON.stringify(match.domainScores),
-              status: "NEW",
-            },
-          });
-        }
-      }
+      await processVacancy(
+        ad.id,
+        ad.headline,
+        ad.company,
+        ad.location,
+        ad.description,
+        ad.webpageUrl,
+        "LinkedIn Jobs",
+        new Date(ad.publicationDate || Date.now()),
+        null
+      );
     }
 
     const scanLog = await db.scanLog.create({
@@ -129,7 +263,7 @@ async function handleScrape() {
         totalMatched,
         newAdded,
         status: "SUCCESS",
-        message: `Scanned ${totalFound} Swedish jobs (${rawJobTechAds.length} JobTech + ${rawLinkedInAds.length} LinkedIn). ${totalMatched} matched criteria (${newAdded} new added, ${expiredCount} expired after 14-day limit).`,
+        message: `V2 Multi-Profile Scanned ${totalFound} jobs against ${activeSearchProfiles.length} Search Profiles. ${totalMatched} matched (${newAdded} new added).`,
       },
     });
 
@@ -140,10 +274,11 @@ async function handleScrape() {
       totalMatched,
       newAdded,
       expiredCount,
+      activeProfilesCount: activeSearchProfiles.length,
       scanLog,
     });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Failed to execute scan";
+    const message = error instanceof Error ? error.message : "Failed to execute V2 scan";
     console.error("Scrape error:", error);
     await db.scanLog.create({
       data: {

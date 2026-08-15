@@ -1,9 +1,18 @@
 import { decisionSupportEngine, DecisionSupportContext } from "../../intelligence";
+import { classifyOccupation, OccupationCandidate } from "./pipeline/classifier";
+import { evaluateEligibility, EligibilityResult, PreferencesConfig, TerritoryConfig } from "./pipeline/eligibility";
+import { evaluateCapabilityAndIntent, DualScoreResult } from "./pipeline/scoring";
 
 export interface MatchResult {
   matchScore: number;
+  capabilityScore: number;
+  intentScore: number;
+  feedType: "PRIMARY" | "DISCOVERY";
+  eligibilityStatus: "ELIGIBLE" | "INELIGIBLE" | "DISCARDED";
+  probableOccupations: OccupationCandidate[];
   matchedSkills: string[];
   missingSkills: string[];
+  matchedNiceToHave: string[];
   domainScores: {
     software: number;
     systems: number;
@@ -21,6 +30,7 @@ export interface MatchResult {
     };
   };
   decisionSupport?: DecisionSupportContext;
+  eligibilityDetails: EligibilityResult;
 }
 
 const TAXONOMY = {
@@ -49,26 +59,59 @@ const TAXONOMY = {
   ]
 };
 
-// Common tech keywords to detect missing skills
-const EXTERNAL_TECH = [
-  "docker", "kubernetes", "k8s", "aws", "azure", "gcp", "cloud", "python", "c++", "c#", 
-  "java", "go", "rust", "graphql", "kafka", "redis", "mongodb", "jira", "confluence", 
-  "scrum", "agile", "devops", "ci/cd", "microservices", "cybersecurity", "iso 13485", 
-  "sap", "embedded", "linux", "autosar", "plc", "scada", "robotics"
-];
-
 export function evaluateJobMatch(
   title: string, 
   description: string, 
   customProfileSkills: string[] = [],
   userName: string = "JobseekeR Candidate",
-  userHeadline: string = "Software & Systems Engineer"
+  userHeadline: string = "Software & Systems Engineer",
+  companyName: string = "Employer Posting",
+  jobLocation: string = "Sweden",
+  searchProfilePreferences?: PreferencesConfig,
+  searchTerritoryConfig?: TerritoryConfig
 ): MatchResult {
   const text = `${title} ${description}`.toLowerCase();
-  
-  const matchedSet = new Set<string>();
-  const missingSet = new Set<string>();
-  
+
+  // 1. Probabilistic Occupation Classification (SSYK/ISCO metadata)
+  const probableOccupations = classifyOccupation(title, description);
+
+  // Default Preferences & Territory if omitted
+  const prefs: PreferencesConfig = searchProfilePreferences || {
+    mustHave: [],
+    prefer: ["React", "TypeScript", "Systems Engineering", "Automation"],
+    niceToHave: ["Docker", "AWS"],
+    exclude: [],
+    explore: ["Cleantech", "Sustainability"],
+    targetOccupations: [title],
+  };
+
+  const territory: TerritoryConfig = searchTerritoryConfig || {
+    countries: ["SE"],
+    regions: ["Östergötland", "Stockholm", "Västra Götaland"],
+    municipalities: ["Linköping", "Norrköping", "Stockholm", "Göteborg", "Skellefteå"],
+    cities: ["Linköping", "Norrköping", "Stockholm", "Göteborg"],
+    remotePolicy: "ALLOWED",
+    discoveryPolicy: "SHOW_SEPARATELY",
+  };
+
+  // 2. Evaluate Eligibility & Feed Routing (Must Have, Exclude, Territory, Primary vs Discovery)
+  const eligibility = evaluateEligibility(title, jobLocation, description, companyName, prefs, territory);
+
+  // 3. Separate Capability Fit Score from Intent Fit Score
+  const dualScores = evaluateCapabilityAndIntent(
+    title,
+    description,
+    customProfileSkills,
+    userHeadline,
+    prefs.prefer,
+    prefs.niceToHave,
+    prefs.targetOccupations
+  );
+
+  // 4. Calculate legacy domain scores for backwards compatibility
+  const matchedSet = new Set<string>(dualScores.matchedSkills);
+  const missingSet = new Set<string>(dualScores.missingSkills);
+
   const domainScores = {
     software: calculateDomainScore(text, TAXONOMY.software, matchedSet, missingSet),
     systems: calculateDomainScore(text, TAXONOMY.systems, matchedSet, missingSet),
@@ -76,37 +119,12 @@ export function evaluateJobMatch(
     industrial: calculateDomainScore(text, TAXONOMY.industrial, matchedSet, missingSet),
   };
 
-  // Evaluate any custom skills uploaded via CV or user profile
-  let customSkillsMatchedCount = 0;
-  if (customProfileSkills && customProfileSkills.length > 0) {
-    for (const skill of customProfileSkills) {
-      const sLower = skill.toLowerCase().trim();
-      if (sLower && text.includes(sLower)) {
-        customSkillsMatchedCount++;
-        matchedSet.add(capitalize(skill));
-      }
-    }
-  }
-
-  // Detect external missing skills mentioned in description
-  for (const tech of EXTERNAL_TECH) {
-    if (text.includes(tech)) {
-      const isMatched = Array.from(matchedSet).some(m => m.toLowerCase() === tech);
-      if (!isMatched) {
-        missingSet.add(capitalize(tech));
-      }
-    }
-  }
-
-  const matchedSkills = Array.from(matchedSet).slice(0, 10);
-  const missingSkills = Array.from(missingSet).slice(0, 6);
-
-  // Synthesize 5-Stage Decision Support Engine
+  // 5. Synthesize 5-Stage Decision Support Engine
   const oppEntity = {
     id: "opp-live",
     title,
-    company: "Employer Posting",
-    location: "Sweden",
+    company: companyName,
+    location: jobLocation,
     description,
     workingModel: (text.includes("remote") ? "REMOTE" : text.includes("hybrid") ? "HYBRID" : "ON_SITE") as "REMOTE" | "HYBRID" | "ON_SITE",
   };
@@ -114,49 +132,56 @@ export function evaluateJobMatch(
   const candidateProfile = {
     name: userName || "Anna",
     targetRoleTitle: userHeadline || "Engineer",
-    superpowers: Array.from(matchedSet).slice(0, 3),
-    verifiedEvidence: matchedSkills.map((s, idx) => ({
+    superpowers: dualScores.transferableStrengths.slice(0, 3),
+    verifiedEvidence: dualScores.matchedSkills.map((s, idx) => ({
       id: `ev-${idx}`,
       achievementText: `Demonstrated capability in ${s}`,
       associatedCompetency: s,
     })),
   };
 
-  const preferences = {
+  const decisionPreferences = {
     targetRoles: [title],
-    preferredLocations: ["Sweden"],
-    skills: matchedSkills,
+    preferredLocations: [jobLocation],
+    skills: dualScores.matchedSkills,
     workingModelPreference: oppEntity.workingModel,
   };
 
-  const decisionSupport = decisionSupportEngine.evaluateDecisionSupport(oppEntity, candidateProfile, preferences);
+  const decisionSupport = decisionSupportEngine.evaluateDecisionSupport(oppEntity, candidateProfile, decisionPreferences);
 
-  // Generate Narrative Analysis for Cover Letter & Pitch Strategy
-  const whyMatched: string[] = [decisionSupport.stage1Opportunity.pursuitRecommendation];
+  // 6. Generate Narrative Analysis for Cover Letter & Pitch Strategy
+  const whyMatched: string[] = [
+    `[${eligibility.feedType} FEED] ${decisionSupport.stage1Opportunity.pursuitRecommendation}`,
+    ...eligibility.reasons,
+  ];
+
   const whatLacking: string[] = decisionSupport.stage3Positioning.missingEvidenceWarnings.length > 0
     ? decisionSupport.stage3Positioning.missingEvidenceWarnings
-    : ["No critical skill gaps identified. Your profile covers the core requirements for this position."];
-
-  const openingHook = decisionSupport.stage4Coaching.coverLetterHook;
-  const gapMitigationStrategy = decisionSupport.stage3Positioning.transferableHighlight || "Highlight your rapid technical adaptability and transferable engineering foundations.";
-  const suggestedBulletPoints = decisionSupport.stage4Coaching.keyInterviewTalkingPoints.slice(0, 3);
+    : ["No critical skill gaps identified. Profile covers the core requirements."];
 
   return {
-    matchScore: decisionSupport.stage1Opportunity.score,
-    matchedSkills,
-    missingSkills,
+    matchScore: dualScores.totalMatchScore,
+    capabilityScore: dualScores.capabilityScore,
+    intentScore: dualScores.intentScore,
+    feedType: eligibility.feedType,
+    eligibilityStatus: eligibility.status,
+    probableOccupations,
+    matchedSkills: dualScores.matchedSkills,
+    missingSkills: dualScores.missingSkills,
+    matchedNiceToHave: dualScores.matchedNiceToHave,
     domainScores,
     analysis: {
       whyMatched,
       whatLacking,
       coverLetterPitch: {
-        openingHook,
+        openingHook: decisionSupport.stage4Coaching.coverLetterHook,
         keyStrengthsToLeadWith: decisionSupport.stage3Positioning.strongestCompetencies.slice(0, 3),
-        gapMitigationStrategy,
-        suggestedBulletPoints,
+        gapMitigationStrategy: decisionSupport.stage3Positioning.transferableHighlight || "Highlight your technical adaptability and transferable engineering foundations.",
+        suggestedBulletPoints: decisionSupport.stage4Coaching.keyInterviewTalkingPoints.slice(0, 3),
       },
     },
     decisionSupport,
+    eligibilityDetails: eligibility,
   };
 }
 
