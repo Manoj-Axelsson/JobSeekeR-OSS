@@ -8,26 +8,82 @@ generator client {
 }
 
 model UserAccount {
-  id           String   @id @default(uuid())
-  email        String   @unique
-  name         String
-  passwordHash String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id            String          @id @default(uuid())
+  email         String          @unique
+  name          String
+  passwordHash  String
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  careerProfile CareerProfile?
+  searchProfiles SearchProfile[]
 }
 
 model UserProfile {
-  id              String   @id @default("user_main")
-  name            String   @default("Manoj John Axelsson")
-  headline        String   @default("Software & Systems Engineer")
-  location        String   @default("Sweden")
-  languages       String   @default("English, Swedish")
-  targetRoles     String   // JSON string array of target roles
-  skills          String   // JSON string object of skill taxonomy
-  minMatchScore   Int      @default(50)
-  excludedCompanies String @default("[]") // JSON string array of blocked company names
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id                String   @id @default("user_main")
+  name              String   @default("Manoj John Axelsson")
+  headline          String   @default("Software & Systems Engineer")
+  location          String   @default("Sweden")
+  languages         String   @default("English, Swedish")
+  targetRoles       String   // JSON string array of target roles
+  skills            String   // JSON string object of skill taxonomy
+  minMatchScore     Int      @default(50)
+  excludedCompanies String   @default("[]") // JSON string array of blocked company names
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model CareerProfile {
+  id             String       @id @default(uuid())
+  userAccountId  String?      @unique
+  userAccount    UserAccount? @relation(fields: [userAccountId], references: [id], onDelete: Cascade)
+  headline       String       @default("Software & Systems Engineer")
+  summary        String?
+  skills         String       @default("[]") // JSON string array of verified skills
+  experience     String       @default("[]") // JSON string array of experience items
+  qualifications String       @default("[]") // JSON string array of qualifications
+  currentRoles   String       @default("[]") // JSON string array of current/past roles
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}
+
+model SearchProfile {
+  id                    String               @id @default(uuid())
+  userAccountId         String?
+  userAccount           UserAccount?         @relation(fields: [userAccountId], references: [id], onDelete: Cascade)
+  name                  String               @default("Primary Track")
+  isPrimary             Boolean              @default(true)
+  targetOccupations     String               @default("[]") // JSON string array
+  targetIndustries      String               @default("[]") // JSON string array
+  workModes             String               @default("[\"HYBRID\", \"REMOTE\", \"ON_SITE\"]")
+  employmentPreferences String               @default("[\"FULL_TIME\", \"CONTRACT\"]")
+  minMatchScore         Int                  @default(45)
+  mustHave              String               @default("[]") // JSON string array of hard requirements
+  prefer                String               @default("[]") // JSON string array of major ranking preferences
+  niceToHave            String               @default("[]") // JSON string array of non-punitive boosts
+  exclude               String               @default("[]") // JSON string array of elimination rules
+  explore               String               @default("[]") // JSON string array of discovery interests
+  territoryId           String?
+  territory             SearchTerritory?     @relation(fields: [territoryId], references: [id], onDelete: SetNull)
+  profileEvaluations    JobAdSearchProfile[]
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+}
+
+model SearchTerritory {
+  id                String          @id @default(uuid())
+  name              String          @default("Sweden Primary Territory")
+  countries         String          @default("[\"SE\"]") // JSON string array
+  regions           String          @default("[]") // JSON string array e.g. ["Östergötland"]
+  municipalities    String          @default("[]") // JSON string array e.g. ["Linköping", "Norrköping"]
+  cities            String          @default("[]") // JSON string array
+  maxCommuteMinutes Int             @default(60)
+  commuteMode       String          @default("PUBLIC_TRANSIT")
+  remotePolicy      String          @default("ALLOWED") // REQUIRED, ALLOWED, NO_REMOTE
+  discoveryPolicy   String          @default("SHOW_SEPARATELY") // SHOW_SEPARATELY, STRICT_LOCAL_ONLY
+  searchProfiles    SearchProfile[]
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
 }
 
 model UserDocument {
@@ -57,32 +113,62 @@ model Recruiter {
 }
 
 model JobAd {
-  id              String   @id @default(uuid())
-  externalId      String   @unique // JobTech/Platsbanken job ID
-  title           String
-  company         String
-  location        String
-  description     String
-  webpageUrl      String?
-  source          String   @default("JobTech Platsbanken")
-  publishedAt     DateTime
-  deadline        DateTime?
-  matchScore      Int      // 0 to 100
-  matchedSkills   String   // JSON string array
-  missingSkills   String   // JSON string array
-  domainScores    String   // JSON string object (software, systems, quality, manufacturing)
-  status          String   @default("NEW") // NEW, SAVED, APPLIED, DISCARDED
+  id                  String               @id @default(uuid())
+  externalId          String               @unique // JobTech/Platsbanken job ID
+  title               String
+  company             String
+  location            String
+  description         String
+  webpageUrl          String?
+  source              String               @default("JobTech Platsbanken")
+  publishedAt         DateTime
+  deadline            DateTime?
+  matchScore          Int                  // 0 to 100
+  matchedSkills       String               // JSON string array
+  missingSkills       String               // JSON string array
+  domainScores        String               // JSON string object (software, systems, quality, manufacturing)
+  status              String               @default("NEW") // NEW, SAVED, APPLIED, DISCARDED
+
+  // V2 Pipeline Classification & Scoring Fields
+  feedType            String               @default("PRIMARY") // PRIMARY, DISCOVERY
+  eligibilityStatus   String               @default("ELIGIBLE") // ELIGIBLE, INELIGIBLE, DISCARDED
+  capabilityScore     Int                  @default(0)
+  intentScore         Int                  @default(0)
+  probableOccupations String               @default("[]") // JSON string array of { title, confidence }
 
   // Salary Intelligence Fields
-  salaryMin       Int?
-  salaryMax       Int?
-  salaryCurrency  String?  @default("SEK")
-  salaryRawText   String?
+  salaryMin           Int?
+  salaryMax           Int?
+  salaryCurrency      String?              @default("SEK")
+  salaryRawText       String?
 
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
 
-  applications    Application[]
+  applications        Application[]
+  profileEvaluations  JobAdSearchProfile[]
+}
+
+model JobAdSearchProfile {
+  id                  String        @id @default(uuid())
+  jobId               String
+  job                 JobAd         @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  searchProfileId     String
+  searchProfile       SearchProfile @relation(fields: [searchProfileId], references: [id], onDelete: Cascade)
+
+  feedType            String        @default("PRIMARY") // PRIMARY, DISCOVERY
+  eligibilityStatus   String        @default("ELIGIBLE") // ELIGIBLE, INELIGIBLE, DISCARDED
+  capabilityScore     Int           @default(0)
+  intentScore         Int           @default(0)
+  totalMatchScore     Int           @default(0)
+  matchedSkills       String        @default("[]")
+  missingSkills       String        @default("[]")
+  probableOccupations String        @default("[]")
+
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  @@unique([jobId, searchProfileId])
 }
 
 model Application {
