@@ -5,6 +5,9 @@ export const metadata: Metadata = {
   title: "JobseekeR™ — Open Source Job Market Scanner",
   description: "JobseekeR™ is an intelligence platform built to automate job searching.",
   manifest: "/manifest.json",
+  icons: {
+    apple: "/icons/apple-touch-icon.png",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
