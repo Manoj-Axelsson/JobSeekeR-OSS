@@ -8,11 +8,22 @@ import { db } from "@/lib/db";
 export async function ensureV2ProfilesExist(userAccountId?: string) {
   try {
     // 1. Check if a CareerProfile already exists for this user account (or main fallback)
-    const existingCareer = await db.careerProfile.findFirst({
+    let careerProfile = await db.careerProfile.findFirst({
       where: userAccountId ? { userAccountId } : { id: "career_main" },
     });
 
-    let careerProfile = existingCareer;
+    if (!careerProfile && userAccountId) {
+      // Controlled one-time adoption of unassigned legacy career_main record
+      const legacyCareer = await db.careerProfile.findFirst({
+        where: { id: "career_main", userAccountId: null },
+      });
+      if (legacyCareer) {
+        careerProfile = await db.careerProfile.update({
+          where: { id: "career_main" },
+          data: { userAccountId },
+        });
+      }
+    }
 
     if (!careerProfile) {
       // Fetch existing UserProfile data to preserve history
@@ -81,49 +92,69 @@ export async function ensureV2ProfilesExist(userAccountId?: string) {
 
     // 3. Check if SearchProfiles exist
     const existingSearchProfiles = await db.searchProfile.findMany({
-      where: userAccountId ? { userAccountId } : {},
+      where: userAccountId ? { userAccountId } : { userAccountId: null },
     });
 
     if (existingSearchProfiles.length === 0) {
-      // Create Default Primary Track (Software & Systems)
-      await db.searchProfile.create({
-        data: {
-          userAccountId: userAccountId || null,
-          name: "Software & Systems Track",
-          isPrimary: true,
-          targetOccupations: JSON.stringify(["Fullstack Developer", "Software Engineer", "Systems Engineer"]),
-          targetIndustries: JSON.stringify(["Technology", "Cleantech", "Software"]),
-          workModes: JSON.stringify(["HYBRID", "REMOTE", "ON_SITE"]),
-          employmentPreferences: JSON.stringify(["FULL_TIME", "CONTRACT"]),
-          minMatchScore: 45,
-          mustHave: JSON.stringify([]),
-          prefer: JSON.stringify(["React", "TypeScript", "Next.js", "Node.js", "SQL"]),
-          niceToHave: JSON.stringify(["Docker", "AWS", "TailwindCSS"]),
-          exclude: JSON.stringify([]),
-          explore: JSON.stringify(["Sustainability", "Cleantech", "AI Infrastructure"]),
-          territoryId: territory.id,
-        },
-      });
+      let adoptedCount = 0;
+      if (userAccountId) {
+        // Controlled adoption of known unassigned legacy tracks only
+        const legacyTracks = await db.searchProfile.findMany({
+          where: {
+            userAccountId: null,
+            name: { in: ["Software & Systems Track", "Industrial & Automation Track"] },
+          },
+        });
+        if (legacyTracks.length > 0) {
+          await db.searchProfile.updateMany({
+            where: { id: { in: legacyTracks.map((t) => t.id) } },
+            data: { userAccountId },
+          });
+          adoptedCount = legacyTracks.length;
+        }
+      }
 
-      // Create Secondary Industrial Engineering Track
-      await db.searchProfile.create({
-        data: {
-          userAccountId: userAccountId || null,
-          name: "Industrial & Automation Track",
-          isPrimary: false,
-          targetOccupations: JSON.stringify(["Automation Engineer", "Production Developer", "Process Engineer"]),
-          targetIndustries: JSON.stringify(["Manufacturing", "Automotive", "Industrial Automation"]),
-          workModes: JSON.stringify(["ON_SITE", "HYBRID"]),
-          employmentPreferences: JSON.stringify(["FULL_TIME"]),
-          minMatchScore: 40,
-          mustHave: JSON.stringify([]),
-          prefer: JSON.stringify(["Automation", "CAD/CAM", "Lean", "PLC", "Manufacturing"]),
-          niceToHave: JSON.stringify(["Six Sigma", "Robot Programming"]),
-          exclude: JSON.stringify([]),
-          explore: JSON.stringify(["Smart Factory", "Industry 4.0"]),
-          territoryId: territory.id,
-        },
-      });
+      if (adoptedCount === 0) {
+        // Create Default Primary Track (Software & Systems)
+        await db.searchProfile.create({
+          data: {
+            userAccountId: userAccountId || null,
+            name: "Software & Systems Track",
+            isPrimary: true,
+            targetOccupations: JSON.stringify(["Fullstack Developer", "Software Engineer", "Systems Engineer"]),
+            targetIndustries: JSON.stringify(["Technology", "Cleantech", "Software"]),
+            workModes: JSON.stringify(["HYBRID", "REMOTE", "ON_SITE"]),
+            employmentPreferences: JSON.stringify(["FULL_TIME", "CONTRACT"]),
+            minMatchScore: 45,
+            mustHave: JSON.stringify([]),
+            prefer: JSON.stringify(["React", "TypeScript", "Next.js", "Node.js", "SQL"]),
+            niceToHave: JSON.stringify(["Docker", "AWS", "TailwindCSS"]),
+            exclude: JSON.stringify([]),
+            explore: JSON.stringify(["Sustainability", "Cleantech", "AI Infrastructure"]),
+            territoryId: territory.id,
+          },
+        });
+
+        // Create Secondary Industrial Engineering Track
+        await db.searchProfile.create({
+          data: {
+            userAccountId: userAccountId || null,
+            name: "Industrial & Automation Track",
+            isPrimary: false,
+            targetOccupations: JSON.stringify(["Automation Engineer", "Production Developer", "Process Engineer"]),
+            targetIndustries: JSON.stringify(["Manufacturing", "Automotive", "Industrial Automation"]),
+            workModes: JSON.stringify(["ON_SITE", "HYBRID"]),
+            employmentPreferences: JSON.stringify(["FULL_TIME"]),
+            minMatchScore: 40,
+            mustHave: JSON.stringify([]),
+            prefer: JSON.stringify(["Automation", "CAD/CAM", "Lean", "PLC", "Manufacturing"]),
+            niceToHave: JSON.stringify(["Six Sigma", "Robot Programming"]),
+            exclude: JSON.stringify([]),
+            explore: JSON.stringify(["Smart Factory", "Industry 4.0"]),
+            territoryId: territory.id,
+          },
+        });
+      }
     }
 
     return { careerProfile, territory };

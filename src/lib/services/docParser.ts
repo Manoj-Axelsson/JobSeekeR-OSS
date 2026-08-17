@@ -24,7 +24,8 @@ const KNOWN_COMPETENCIES = [
 export async function parseAndSaveDocument(
   filename: string,
   buffer: Buffer,
-  fileType: "CV" | "CERTIFICATE" | "COVER_LETTER" = "CV"
+  fileType: "CV" | "CERTIFICATE" | "COVER_LETTER" = "CV",
+  userAccountId?: string | null
 ): Promise<ParsedDocumentResult> {
   let extractedText = "";
 
@@ -54,9 +55,10 @@ export async function parseAndSaveDocument(
 
   const extractedSkills = Array.from(extractedSkillsSet);
 
-  // Save to SQLite database
+  // Save to SQLite/PostgreSQL database
   const docRecord = await db.userDocument.create({
     data: {
+      userAccountId: userAccountId || null,
       filename,
       fileType,
       extractedText,

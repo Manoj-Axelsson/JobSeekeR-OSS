@@ -1,14 +1,23 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { ensureV2ProfilesExist } from "@/lib/services/pipeline/seedV2";
+import { getAuthenticatedUser } from "@/lib/authHelper";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    await ensureV2ProfilesExist();
+    const user = await getAuthenticatedUser(req);
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    await ensureV2ProfilesExist(user.id);
 
     let profile = await db.userProfile.findFirst();
-    const careerProfile = await db.careerProfile.findFirst();
+    const careerProfile = await db.careerProfile.findFirst({
+      where: { userAccountId: user.id },
+    });
     const searchProfiles = await db.searchProfile.findMany({
+      where: { userAccountId: user.id },
       include: { territory: true },
     });
 
@@ -16,7 +25,7 @@ export async function GET() {
       profile = await db.userProfile.create({
         data: {
           id: "user_main",
-          name: "Candidate",
+          name: user.name || "Candidate",
           headline: "Software & Systems Engineer",
           location: "Sweden",
           languages: "English, Swedish",
@@ -41,6 +50,7 @@ export async function GET() {
 
     return NextResponse.json({
       ...profile,
+      name: user.name || profile.name,
       targetRoles: JSON.parse(profile.targetRoles || "[]"),
       skills: JSON.parse(profile.skills || "{}"),
       excludedCompanies: JSON.parse(profile.excludedCompanies || "[]"),
@@ -71,15 +81,20 @@ export async function GET() {
   }
 }
 
-export async function PUT(req: Request) {
+export async function PUT(req: NextRequest) {
   try {
+    const user = await getAuthenticatedUser(req);
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = await req.json();
     const { name, headline, location, languages, targetRoles, skills, minMatchScore, excludedCompanies } = body;
 
     let profile = await db.userProfile.findFirst();
 
     const dataToSave = {
-      name: name || profile?.name || "JobseekeR User",
+      name: name || user.name || profile?.name || "JobseekeR User",
       headline: headline || profile?.headline || "Software & Systems Engineer",
       location: location || profile?.location || "Sweden",
       languages: languages || profile?.languages || "English, Swedish",
@@ -103,8 +118,10 @@ export async function PUT(req: Request) {
       });
     }
 
-    // Keep CareerProfile headline synchronized
-    const career = await db.careerProfile.findFirst();
+    // Keep CareerProfile headline synchronized for authenticated user
+    const career = await db.careerProfile.findFirst({
+      where: { userAccountId: user.id },
+    });
     if (career) {
       await db.careerProfile.update({
         where: { id: career.id },
