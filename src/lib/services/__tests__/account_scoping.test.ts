@@ -163,14 +163,33 @@ describe("CONTROLLED V2 ACCOUNT-OWNERSHIP EDGE-CASE TEST MATRIX", () => {
   function createSessionReq(url: string, email: string, options: RequestInit = {}) {
     const headers = new Headers(options.headers || {});
     headers.set("cookie", `jobseeker_session=${encodeURIComponent(JSON.stringify({ email }))}`);
-    return new NextRequest(url, { ...options, headers });
+    const { signal, ...restOptions } = options;
+    return new NextRequest(url, {
+      ...restOptions,
+      signal: signal ?? undefined,
+      headers,
+    });
+  }
+
+  // Typed test helper for creating UserAccount with required fields
+  async function createUserAccount(data: {
+    id: string;
+    email: string;
+    name: string;
+  }) {
+    return db.userAccount.create({
+      data: {
+        ...data,
+        passwordHash: "test-password",
+      },
+    });
   }
 
   // 🔴 P0 SECURITY & OWNERSHIP TESTS
   describe("🔴 P0 Security & Ownership Boundaries", () => {
     it("P0.1: User A cannot see User B's candidate data (Strict Isolation)", async () => {
       // User A (Software Engineer)
-      await db.userAccount.create({ data: { id: "user-a", email: "usera@example.com", name: "User A" } });
+      await createUserAccount({ id: "user-a", email: "usera@example.com", name: "User A" });
       await db.careerProfile.create({
         data: {
           id: "cp-user-a",
@@ -181,7 +200,7 @@ describe("CONTROLLED V2 ACCOUNT-OWNERSHIP EDGE-CASE TEST MATRIX", () => {
       });
 
       // User B (Industrial Engineer)
-      await db.userAccount.create({ data: { id: "user-b", email: "userb@example.com", name: "User B" } });
+      await createUserAccount({ id: "user-b", email: "userb@example.com", name: "User B" });
       await db.careerProfile.create({
         data: {
           id: "cp-user-b",
@@ -213,10 +232,10 @@ describe("CONTROLLED V2 ACCOUNT-OWNERSHIP EDGE-CASE TEST MATRIX", () => {
     });
 
     it("P0.2: User A cannot modify User B's candidate data", async () => {
-      await db.userAccount.create({ data: { id: "user-a", email: "usera@example.com", name: "User A" } });
+      await createUserAccount({ id: "user-a", email: "usera@example.com", name: "User A" });
       await db.careerProfile.create({ data: { id: "cp-user-a", userAccountId: "user-a", headline: "User A Headline" } });
 
-      await db.userAccount.create({ data: { id: "user-b", email: "userb@example.com", name: "User B" } });
+      await createUserAccount({ id: "user-b", email: "userb@example.com", name: "User B" });
       await db.careerProfile.create({ data: { id: "cp-user-b", userAccountId: "user-b", headline: "User B Headline Original" } });
 
       // User A attempts PUT request
@@ -236,10 +255,10 @@ describe("CONTROLLED V2 ACCOUNT-OWNERSHIP EDGE-CASE TEST MATRIX", () => {
     });
 
     it("P0.3: Client cannot supply another userAccountId (Prevents Ownership Spoofing)", async () => {
-      await db.userAccount.create({ data: { id: "user-a", email: "usera@example.com", name: "User A" } });
+      await createUserAccount({ id: "user-a", email: "usera@example.com", name: "User A" });
       await db.careerProfile.create({ data: { id: "cp-user-a", userAccountId: "user-a", headline: "User A Original" } });
 
-      await db.userAccount.create({ data: { id: "user-b", email: "userb@example.com", name: "User B" } });
+      await createUserAccount({ id: "user-b", email: "userb@example.com", name: "User B" });
       await db.careerProfile.create({ data: { id: "cp-user-b", userAccountId: "user-b", headline: "User B Original" } });
 
       // Malicious request claiming userAccountId = user-b
@@ -309,10 +328,10 @@ describe("CONTROLLED V2 ACCOUNT-OWNERSHIP EDGE-CASE TEST MATRIX", () => {
   // 🟠 P1 CORE FLOW & DOCUMENT SCOPING TESTS
   describe("🟠 P1 Core Flow & Document Scoping", () => {
     it("P1.1: CV skill extraction updates only the authenticated user's profile", async () => {
-      await db.userAccount.create({ data: { id: "user-a", email: "usera@example.com", name: "User A" } });
+      await createUserAccount({ id: "user-a", email: "usera@example.com", name: "User A" });
       await db.careerProfile.create({ data: { id: "cp-a", userAccountId: "user-a", skills: JSON.stringify(["React"]) } });
 
-      await db.userAccount.create({ data: { id: "user-b", email: "userb@example.com", name: "User B" } });
+      await createUserAccount({ id: "user-b", email: "userb@example.com", name: "User B" });
       await db.careerProfile.create({ data: { id: "cp-b", userAccountId: "user-b", skills: JSON.stringify(["PLC"]) } });
 
       // User A uploads CV containing "TypeScript"
@@ -340,12 +359,12 @@ describe("CONTROLLED V2 ACCOUNT-OWNERSHIP EDGE-CASE TEST MATRIX", () => {
     });
 
     it("P1.2: Documents are strictly account-scoped on GET /api/documents/upload", async () => {
-      await db.userAccount.create({ data: { id: "user-a", email: "usera@example.com", name: "User A" } });
+      await createUserAccount({ id: "user-a", email: "usera@example.com", name: "User A" });
       await db.userDocument.create({
         data: { id: "doc-a", userAccountId: "user-a", filename: "usera_cv.pdf", fileType: "CV", extractedText: "", extractedSkills: "[]" },
       });
 
-      await db.userAccount.create({ data: { id: "user-b", email: "userb@example.com", name: "User B" } });
+      await createUserAccount({ id: "user-b", email: "userb@example.com", name: "User B" });
       await db.userDocument.create({
         data: { id: "doc-b", userAccountId: "user-b", filename: "userb_cv.pdf", fileType: "CV", extractedText: "", extractedSkills: "[]" },
       });
@@ -386,7 +405,7 @@ describe("CONTROLLED V2 ACCOUNT-OWNERSHIP EDGE-CASE TEST MATRIX", () => {
     });
 
     it("P2.2: Maintain complete API contract shape expected by frontend UI", async () => {
-      await db.userAccount.create({ data: { id: "user-contract", email: "contract@example.com", name: "Contract Candidate" } });
+      await createUserAccount({ id: "user-contract", email: "contract@example.com", name: "Contract Candidate" });
 
       const req = createSessionReq("http://localhost:3000/api/profile", "contract@example.com");
       const res = await getProfile(req);
@@ -407,7 +426,7 @@ describe("CONTROLLED V2 ACCOUNT-OWNERSHIP EDGE-CASE TEST MATRIX", () => {
     });
 
     it("P2.3: Logout action clears session and blocks protected endpoints", async () => {
-      await db.userAccount.create({ data: { id: "user-logout", email: "logout@example.com", name: "Logout Test" } });
+      await createUserAccount({ id: "user-logout", email: "logout@example.com", name: "Logout Test" });
 
       // Perform logout action
       const logoutReq = new NextRequest("http://localhost:3000/api/auth", {
