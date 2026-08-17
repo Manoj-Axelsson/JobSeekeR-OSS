@@ -17,6 +17,7 @@ model UserAccount {
 
   careerProfile CareerProfile?
   searchProfiles SearchProfile[]
+  userDocuments UserDocument[]
 }
 
 model UserProfile {
@@ -87,12 +88,14 @@ model SearchTerritory {
 }
 
 model UserDocument {
-  id              String   @id @default(uuid())
+  id              String       @id @default(uuid())
+  userAccountId   String?
+  userAccount     UserAccount? @relation(fields: [userAccountId], references: [id], onDelete: Cascade)
   filename        String
-  fileType        String   // CV, CERTIFICATE, COVER_LETTER
+  fileType        String       // CV, CERTIFICATE, COVER_LETTER
   extractedText   String
-  extractedSkills String   // JSON string array of extracted skill keywords
-  uploadedAt      DateTime @default(now())
+  extractedSkills String       // JSON string array of extracted skill keywords
+  uploadedAt      DateTime     @default(now())
 }
 
 model Recruiter {

@@ -1,9 +1,15 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { parseAndSaveDocument } from "@/lib/services/docParser";
 import { db } from "@/lib/db";
+import { getAuthenticatedUser } from "@/lib/authHelper";
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
+    const user = await getAuthenticatedUser(req);
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
     const fileType = (formData.get("fileType") as string) || "CV";
@@ -13,14 +19,33 @@ export async function POST(req: Request) {
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
-    const parsedDoc = await parseAndSaveDocument(file.name, buffer, fileType as "CV" | "CERTIFICATE" | "COVER_LETTER");
+    const parsedDoc = await parseAndSaveDocument(
+      file.name,
+      buffer,
+      fileType as "CV" | "CERTIFICATE" | "COVER_LETTER",
+      user.id
+    );
 
-    // Merge newly extracted skills into the user profile skill taxonomy
+    // 1. Merge newly extracted skills into the authenticated user's V2 CareerProfile
+    const careerProfile = await db.careerProfile.findFirst({
+      where: { userAccountId: user.id },
+    });
+
+    if (careerProfile) {
+      const existingSkills: string[] = JSON.parse(careerProfile.skills || "[]");
+      const updatedSkills = Array.from(new Set([...existingSkills, ...parsedDoc.extractedSkills]));
+      await db.careerProfile.update({
+        where: { id: careerProfile.id },
+        data: { skills: JSON.stringify(updatedSkills) },
+      });
+    }
+
+    // 2. Also merge into the legacy userProfile for fallback UI compatibility
     const existingProfile = await db.userProfile.findFirst();
     if (existingProfile) {
       const currentSkillsObj = JSON.parse(existingProfile.skills || "{}");
       const currentCustomList: string[] = currentSkillsObj.custom || [];
-      
+
       const newCustomList = Array.from(new Set([...currentCustomList, ...parsedDoc.extractedSkills]));
       currentSkillsObj.custom = newCustomList;
 
@@ -39,9 +64,15 @@ export async function POST(req: Request) {
   }
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
+    const user = await getAuthenticatedUser(req);
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const docs = await db.userDocument.findMany({
+      where: { userAccountId: user.id },
       orderBy: { uploadedAt: "desc" },
     });
 
