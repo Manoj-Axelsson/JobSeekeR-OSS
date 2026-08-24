@@ -30,7 +30,13 @@ export async function getAuthenticatedUser(req: NextRequest | Request): Promise<
       } catch {}
     }
 
-    const sessionData = JSON.parse(sessionCookie);
+    let sessionData = JSON.parse(sessionCookie);
+    if (typeof sessionData === "string") {
+      try {
+        sessionData = JSON.parse(sessionData);
+      } catch {}
+    }
+
     const rawEmail = sessionData?.email;
     if (!rawEmail || typeof rawEmail !== "string") {
       return null;
