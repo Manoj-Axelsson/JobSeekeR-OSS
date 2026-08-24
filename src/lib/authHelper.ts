@@ -10,16 +10,16 @@ export async function getAuthenticatedUser(req: NextRequest | Request): Promise<
   try {
     let sessionCookie: string | undefined;
 
-    if ("cookies" in req && typeof (req as NextRequest).cookies?.get === "function") {
-      sessionCookie = (req as NextRequest).cookies.get("jobseeker_session")?.value;
-    }
-    
-    if (!sessionCookie && req.headers && typeof req.headers.get === "function") {
+    if (req.headers && typeof req.headers.get === "function") {
       const cookieHeader = req.headers.get("cookie") || "";
       const match = cookieHeader.match(/jobseeker_session=([^;]+)/);
       if (match) {
         sessionCookie = match[1];
       }
+    }
+
+    if (!sessionCookie && "cookies" in req && typeof (req as NextRequest).cookies?.get === "function") {
+      sessionCookie = (req as NextRequest).cookies.get("jobseeker_session")?.value;
     }
 
     if (!sessionCookie) {
