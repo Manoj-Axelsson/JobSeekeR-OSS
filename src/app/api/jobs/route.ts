@@ -3,6 +3,8 @@ import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { getAuthenticatedUser } from "@/lib/authHelper";
 
+export const dynamic = "force-dynamic";
+
 /**
  * GET /api/jobs
  * Returns list of jobs for the authenticated user sorted by matchScore (desc) and publishedAt (desc).
