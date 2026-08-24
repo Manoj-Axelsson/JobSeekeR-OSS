@@ -26,33 +26,25 @@ export async function getAuthenticatedUser(req: NextRequest | Request): Promise<
       return null;
     }
 
-    if (sessionCookie.includes("%")) {
+    let sessionData: any;
+    try {
+      sessionData = JSON.parse(sessionCookie);
+    } catch {
       try {
-        sessionCookie = decodeURIComponent(sessionCookie);
-      } catch {}
+        sessionData = JSON.parse(decodeURIComponent(sessionCookie));
+      } catch {
+        return null;
+      }
     }
 
-    let sessionData = JSON.parse(sessionCookie);
-    if (typeof sessionData === "string") {
-      try {
-        sessionData = JSON.parse(sessionData);
-      } catch {}
-    }
-
-    const rawEmail = sessionData?.email;
-    if (!rawEmail || typeof rawEmail !== "string") {
+    const email = (sessionData?.email || "").trim().toLowerCase();
+    if (!email) {
       return null;
     }
 
-    const normalizedEmail = rawEmail.trim().toLowerCase();
-    const user = await db.userAccount.findUnique({ where: { email: normalizedEmail } });
-    if (!user) {
-      return null;
-    }
-
+    const user = await db.userAccount.findUnique({ where: { email } });
     return user;
-  } catch (err: any) {
-    console.error("authHelper error:", err);
+  } catch {
     return null;
   }
 }
