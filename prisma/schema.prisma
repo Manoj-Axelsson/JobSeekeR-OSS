@@ -1,5 +1,5 @@
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -18,6 +18,8 @@ model UserAccount {
   careerProfile CareerProfile?
   searchProfiles SearchProfile[]
   userDocuments UserDocument[]
+  jobAds        JobAd[]
+  applications  Application[]
 }
 
 model UserProfile {
@@ -117,7 +119,9 @@ model Recruiter {
 
 model JobAd {
   id                  String               @id @default(uuid())
-  externalId          String               @unique // JobTech/Platsbanken job ID
+  userAccountId       String?
+  userAccount         UserAccount?         @relation(fields: [userAccountId], references: [id], onDelete: Cascade)
+  externalId          String               // JobTech/Platsbanken job ID
   title               String
   company             String
   location            String
@@ -150,6 +154,8 @@ model JobAd {
 
   applications        Application[]
   profileEvaluations  JobAdSearchProfile[]
+
+  @@unique([userAccountId, externalId])
 }
 
 model JobAdSearchProfile {
@@ -175,20 +181,22 @@ model JobAdSearchProfile {
 }
 
 model Application {
-  id              String     @id @default(uuid())
+  id              String       @id @default(uuid())
+  userAccountId   String?
+  userAccount     UserAccount? @relation(fields: [userAccountId], references: [id], onDelete: Cascade)
   jobId           String
-  job             JobAd      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  job             JobAd        @relation(fields: [jobId], references: [id], onDelete: Cascade)
   recruiterId     String?
-  recruiter       Recruiter? @relation(fields: [recruiterId], references: [id], onDelete: SetNull)
-  status          String     @default("APPLIED") // APPLIED, INTERVIEWING, OFFER, REJECTED
-  responseOutcome String?    // PENDING, INTERVIEW_INVITE, GHOSTED, REJECTED, OFFER
+  recruiter       Recruiter?   @relation(fields: [recruiterId], references: [id], onDelete: SetNull)
+  status          String       @default("APPLIED") // APPLIED, INTERVIEWING, OFFER, REJECTED
+  responseOutcome String?      // PENDING, INTERVIEW_INVITE, GHOSTED, REJECTED, OFFER
   responseTimeDays Int?
-  appliedAt       DateTime   @default(now())
-  resumeVersion   String     @default("Manoj Axelsson - Fullstack Architecture CV")
+  appliedAt       DateTime     @default(now())
+  resumeVersion   String       @default("Manoj Axelsson - Fullstack Architecture CV")
   notes           String?
-  monthlyTag      String     // e.g. "2026-07"
-  createdAt       DateTime   @default(now())
-  updatedAt       DateTime   @updatedAt
+  monthlyTag      String       // e.g. "2026-07"
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
 }
 
 model ScanLog {

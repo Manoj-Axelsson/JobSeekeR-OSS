@@ -90,7 +90,7 @@ async function handleScrape() {
       deadline: Date | null
     ) {
       // Create or update canonical JobAd opportunity record
-      const existingJob = await db.jobAd.findUnique({
+      const existingJob = await db.jobAd.findFirst({
         where: { externalId },
       });
 

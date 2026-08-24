@@ -1,8 +1,83 @@
-import { describe, test, expect } from "vitest";
+import { describe, test, expect, vi } from "vitest";
 import { evaluateEligibility, PreferencesConfig, TerritoryConfig } from "./eligibility";
 import { evaluateCapabilityAndIntent } from "./scoring";
 import { classifyOccupation } from "./classifier";
 import { evaluateJobMatch } from "../matcher";
+
+vi.mock("../../db", () => {
+  const store = {
+    jobAdSearchProfile: new Map<string, any>(),
+    jobAd: new Map<string, any>(),
+    searchProfile: new Map<string, any>(),
+  };
+
+  return {
+    db: {
+      jobAdSearchProfile: {
+        deleteMany: vi.fn(async ({ where }: { where?: any } = {}) => {
+          store.jobAdSearchProfile.clear();
+          return { count: 0 };
+        }),
+        create: vi.fn(async ({ data }: { data: any }) => {
+          const id = data.id || `eval-${Math.random()}`;
+          const item = { ...data, id };
+          store.jobAdSearchProfile.set(id, item);
+          return item;
+        }),
+      },
+      jobAd: {
+        deleteMany: vi.fn(async ({ where }: { where?: any } = {}) => {
+          if (where?.externalId) {
+            for (const [id, job] of store.jobAd.entries()) {
+              if (job.externalId === where.externalId) store.jobAd.delete(id);
+            }
+          } else {
+            store.jobAd.clear();
+          }
+          return { count: 0 };
+        }),
+        create: vi.fn(async ({ data }: { data: any }) => {
+          const id = data.id || `job-${Math.random()}`;
+          const item = { ...data, id };
+          store.jobAd.set(id, item);
+          return item;
+        }),
+        delete: vi.fn(async ({ where }: { where: { id: string } }) => {
+          const item = store.jobAd.get(where.id);
+          store.jobAd.delete(where.id);
+          return item;
+        }),
+        findUnique: vi.fn(async ({ where }: { where: { id: string } }) => {
+          const job = store.jobAd.get(where.id);
+          if (!job) return null;
+          const evals = Array.from(store.jobAdSearchProfile.values()).filter(e => e.jobId === job.id);
+          return {
+            ...job,
+            profileEvaluations: evals,
+          };
+        }),
+      },
+      searchProfile: {
+        deleteMany: vi.fn(async ({ where }: { where?: any } = {}) => {
+          if (where?.name?.in) {
+            for (const [id, prof] of store.searchProfile.entries()) {
+              if (where.name.in.includes(prof.name)) store.searchProfile.delete(id);
+            }
+          } else {
+            store.searchProfile.clear();
+          }
+          return { count: 0 };
+        }),
+        create: vi.fn(async ({ data }: { data: any }) => {
+          const id = data.id || `prof-${Math.random()}`;
+          const item = { ...data, id };
+          store.searchProfile.set(id, item);
+          return item;
+        }),
+      },
+    },
+  };
+});
 
 describe("JobSeekeR V2 Constitutional Architecture Pipeline Tests", () => {
 

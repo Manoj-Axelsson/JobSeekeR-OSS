@@ -1,6 +1,4 @@
 import { PrismaClient } from "@prisma/client";
-import path from "path";
-import fs from "fs";
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
@@ -11,33 +9,19 @@ function getDatabaseUrl(): string {
     return process.env.DATABASE_URL;
   }
 
-  const sourceDbPath = path.join(process.cwd(), "prisma", "dev.db");
-  const isVercel = process.env.VERCEL === "1" || process.env.NODE_ENV === "production";
-
-  if (isVercel) {
-    const tmpDbPath = path.join("/tmp", "dev.db");
-    try {
-      if (!fs.existsSync(tmpDbPath) && fs.existsSync(sourceDbPath)) {
-        fs.copyFileSync(sourceDbPath, tmpDbPath);
-      }
-      return `file:${tmpDbPath}`;
-    } catch (error) {
-      console.error("Failed to copy database to /tmp:", error);
-    }
+  const isProduction = process.env.VERCEL === "1" || process.env.NODE_ENV === "production";
+  if (isProduction) {
+    throw new Error("FATAL: DATABASE_URL environment variable is required in production mode.");
   }
 
-  return `file:${sourceDbPath}`;
+  // Fallback for local development if DATABASE_URL not set
+  return process.env.LOCAL_DATABASE_URL || "file:./prisma/dev.db";
 }
 
 export const db =
   globalForPrisma.prisma ??
   new PrismaClient({
-    datasources: {
-      db: {
-        url: getDatabaseUrl(),
-      },
-    },
-    log: ["error"],
+    log: process.env.NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"],
   });
 
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = db;

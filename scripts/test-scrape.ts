@@ -16,15 +16,20 @@ async function run() {
       matched++;
       const city = ad.workplace_address?.city || ad.workplace_address?.municipality || "Sweden";
 
-      await db.jobAd.upsert({
-        where: { externalId: ad.id },
-        update: {
-          matchScore: match.matchScore,
-          matchedSkills: JSON.stringify(match.matchedSkills),
-          domainScores: JSON.stringify(match.domainScores),
-        },
-        create: {
-          externalId: ad.id,
+      const existing = await db.jobAd.findFirst({ where: { externalId: ad.id } });
+      if (existing) {
+        await db.jobAd.update({
+          where: { id: existing.id },
+          data: {
+            matchScore: match.matchScore,
+            matchedSkills: JSON.stringify(match.matchedSkills),
+            domainScores: JSON.stringify(match.domainScores),
+          },
+        });
+      } else {
+        await db.jobAd.create({
+          data: {
+            externalId: ad.id,
           title: ad.headline,
           company: ad.employer?.name || "Swedish Employer",
           location: city,
@@ -42,6 +47,7 @@ async function run() {
       });
     }
   }
+}
 
   await db.scanLog.create({
     data: {

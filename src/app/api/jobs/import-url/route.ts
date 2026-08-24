@@ -1,9 +1,15 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { evaluateJobMatch } from "@/lib/services/matcher";
+import { getAuthenticatedUser } from "@/lib/authHelper";
 
 export async function POST(req: Request) {
   try {
+    const user = await getAuthenticatedUser(req);
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { url, status: requestedStatus, notes } = await req.json();
     if (!url || typeof url !== "string") {
       return NextResponse.json({ success: false, error: "Please provide a valid Job URL" }, { status: 400 });
@@ -13,27 +19,33 @@ export async function POST(req: Request) {
       ? requestedStatus
       : "NEW";
 
-    // Check if job already exists in database
+    // Check if job already exists in database for this authenticated user
     const existing = await db.jobAd.findFirst({
-      where: { webpageUrl: url },
+      where: {
+        webpageUrl: url,
+        OR: [{ userAccountId: user.id }, { userAccountId: null }],
+      },
     });
 
     if (existing) {
       let updated = existing;
-      if (jobStatus !== existing.status) {
+      if (jobStatus !== existing.status || existing.userAccountId !== user.id) {
         updated = await db.jobAd.update({
           where: { id: existing.id },
-          data: { status: jobStatus },
+          data: { status: jobStatus, userAccountId: user.id },
         });
       }
 
       if (jobStatus === "APPLIED") {
         const now = new Date();
         const monthlyTag = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-        const existingApp = await db.application.findFirst({ where: { jobId: existing.id } });
+        const existingApp = await db.application.findFirst({
+          where: { jobId: existing.id, OR: [{ userAccountId: user.id }, { userAccountId: null }] },
+        });
         if (!existingApp) {
           await db.application.create({
             data: {
+              userAccountId: user.id,
               jobId: existing.id,
               status: "APPLIED",
               appliedAt: now,
@@ -45,7 +57,7 @@ export async function POST(req: Request) {
         } else {
           await db.application.update({
             where: { id: existingApp.id },
-            data: { status: "APPLIED", appliedAt: now },
+            data: { userAccountId: user.id, status: "APPLIED", appliedAt: now },
           });
         }
       }
@@ -113,6 +125,7 @@ export async function POST(req: Request) {
     // Save to Database
     const saved = await db.jobAd.create({
       data: {
+        userAccountId: user.id,
         externalId: `imported_${Date.now()}_${Math.random().toString(36).substring(7)}`,
         title,
         company,
@@ -134,6 +147,7 @@ export async function POST(req: Request) {
       const monthlyTag = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
       await db.application.create({
         data: {
+          userAccountId: user.id,
           jobId: saved.id,
           status: "APPLIED",
           appliedAt: now,

@@ -14,15 +14,20 @@ async function run() {
     if (match.matchScore >= 40) {
       matched++;
 
-      await db.jobAd.upsert({
-        where: { externalId: ad.id },
-        update: {
-          matchScore: match.matchScore,
-          matchedSkills: JSON.stringify(match.matchedSkills),
-          domainScores: JSON.stringify(match.domainScores),
-        },
-        create: {
-          externalId: ad.id,
+      const existing = await db.jobAd.findFirst({ where: { externalId: ad.id } });
+      if (existing) {
+        await db.jobAd.update({
+          where: { id: existing.id },
+          data: {
+            matchScore: match.matchScore,
+            matchedSkills: JSON.stringify(match.matchedSkills),
+            domainScores: JSON.stringify(match.domainScores),
+          },
+        });
+      } else {
+        await db.jobAd.create({
+          data: {
+            externalId: ad.id,
           title: ad.headline,
           company: ad.company,
           location: ad.location,
@@ -40,6 +45,7 @@ async function run() {
       });
     }
   }
+}
 
   console.log(`LinkedIn scan complete! Saved ${matched} matching LinkedIn jobs to dev.db.`);
 }

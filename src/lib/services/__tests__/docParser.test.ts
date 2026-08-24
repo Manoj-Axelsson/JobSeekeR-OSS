@@ -1,5 +1,18 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { parseAndSaveDocument } from "../docParser";
+
+vi.mock("../../db", () => {
+  return {
+    db: {
+      userDocument: {
+        create: vi.fn(async ({ data }: { data: any }) => ({
+          id: "mock-doc-1",
+          ...data,
+        })),
+      },
+    },
+  };
+});
 
 describe("Document Parser Service", () => {
   it("should extract skills and text from raw document buffer", async () => {
