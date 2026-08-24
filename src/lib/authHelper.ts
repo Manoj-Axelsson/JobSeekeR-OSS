@@ -51,7 +51,8 @@ export async function getAuthenticatedUser(req: NextRequest | Request): Promise<
     }
 
     return user;
-  } catch {
+  } catch (err: any) {
+    console.error("authHelper error:", err);
     return null;
   }
 }
