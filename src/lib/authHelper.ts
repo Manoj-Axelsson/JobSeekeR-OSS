@@ -26,16 +26,13 @@ export async function getAuthenticatedUser(req: NextRequest | Request): Promise<
       return null;
     }
 
-    let sessionData: any;
-    try {
-      sessionData = JSON.parse(sessionCookie);
-    } catch {
+    if (sessionCookie.includes("%")) {
       try {
-        sessionData = JSON.parse(decodeURIComponent(sessionCookie));
-      } catch {
-        return null;
-      }
+        sessionCookie = decodeURIComponent(sessionCookie);
+      } catch {}
     }
+
+    const sessionData = JSON.parse(sessionCookie);
 
     const email = (sessionData?.email || "").trim().toLowerCase();
     if (!email) {

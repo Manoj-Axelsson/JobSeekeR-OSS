@@ -3,9 +3,15 @@ import { db } from "@/lib/db";
 
 export async function GET(req: NextRequest) {
   try {
-    const sessionCookie = req.cookies.get("jobseeker_session")?.value;
+    let sessionCookie = req.cookies.get("jobseeker_session")?.value;
     if (!sessionCookie) {
       return NextResponse.json({ authenticated: false, user: null });
+    }
+
+    if (sessionCookie.includes("%")) {
+      try {
+        sessionCookie = decodeURIComponent(sessionCookie);
+      } catch {}
     }
 
     const sessionData = JSON.parse(sessionCookie);
