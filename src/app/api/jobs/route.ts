@@ -95,6 +95,15 @@ export async function PATCH(request: Request) {
             monthlyTag,
           },
         });
+      } else {
+        await db.application.update({
+          where: { id: existingApp.id },
+          data: {
+            status: "APPLIED",
+            appliedAt: now,
+            notes: notes || existingApp.notes || "Applied via job portal",
+          },
+        });
       }
     } else if (status === "NEW" || status === "SAVED") {
       // Accidental Application Reversal: Purge associated application record if un-marked

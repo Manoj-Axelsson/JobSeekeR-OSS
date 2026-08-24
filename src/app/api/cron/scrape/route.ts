@@ -58,7 +58,7 @@ async function handleScrape() {
 
     const expireResult = await db.jobAd.updateMany({
       where: {
-        status: { in: ["NEW", "SAVED"] },
+        status: "NEW",
         OR: [
           { publishedAt: { lt: fourteenDaysAgo } },
           { deadline: { lt: startTime } },

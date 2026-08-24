@@ -121,8 +121,12 @@ export default function Dashboard() {
 
   // Import Job URL state
   const [importUrlInput, setImportUrlInput] = useState("");
+  const [importStatus, setImportStatus] = useState<"APPLIED" | "SAVED" | "NEW">("APPLIED");
   const [importingUrl, setImportingUrl] = useState(false);
   const [importMessage, setImportMessage] = useState<string | null>(null);
+
+  // Track jobs opened in external tabs awaiting confirmation
+  const [appliedConfirmJobIds, setAppliedConfirmJobIds] = useState<Set<string>>(new Set());
 
   const handleImportJobUrl = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -133,7 +137,7 @@ export default function Dashboard() {
       const res = await fetch("/api/jobs/import-url", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: importUrlInput.trim() }),
+        body: JSON.stringify({ url: importUrlInput.trim(), status: importStatus }),
       });
       const data = await res.json();
       if (data.success) {
@@ -587,12 +591,21 @@ export default function Dashboard() {
                           onChange={(e) => setImportUrlInput(e.target.value)}
                           className="flex-1 bg-[#241203] border border-amber-500/40 rounded-xl px-4 py-2 text-xs sm:text-sm font-semibold text-amber-100 placeholder:opacity-50 focus:outline-none focus:ring-1 focus:ring-amber-400 transition"
                         />
+                        <select
+                          value={importStatus}
+                          onChange={(e) => setImportStatus(e.target.value as any)}
+                          className="bg-[#241203] border border-amber-500/40 rounded-xl px-3 py-2 text-xs sm:text-sm font-bold text-amber-200 focus:outline-none focus:ring-1 focus:ring-amber-400 transition cursor-pointer"
+                        >
+                          <option value="APPLIED">✉️ Save as Applied</option>
+                          <option value="SAVED">🔖 Save for Later</option>
+                          <option value="NEW">🆕 Save as New</option>
+                        </select>
                         <button
                           type="submit"
                           disabled={importingUrl || !importUrlInput.trim()}
                           className="px-5 py-2 bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-300 hover:to-orange-300 text-amber-950 font-black text-xs sm:text-sm rounded-xl transition cursor-pointer shadow-md disabled:opacity-50 flex items-center justify-center space-x-2 shrink-0"
                         >
-                          <span>{importingUrl ? "⏳ Importerar..." : "🚀 Importera & Matcha"}</span>
+                          <span>{importingUrl ? "⏳ Importerar..." : "🚀 Importera & Spara"}</span>
                         </button>
                       </form>
                       {importMessage && (
@@ -1006,6 +1019,7 @@ export default function Dashboard() {
                                           href={job.webpageUrl}
                                           target="_blank"
                                           rel="noreferrer"
+                                          onClick={() => setAppliedConfirmJobIds(prev => new Set(prev).add(job.id))}
                                           className={`px-4 py-2.5 text-[15px] font-bold rounded-xl transition cursor-pointer border flex items-center space-x-1.5 ${isDark
                                             ? "bg-slate-800 text-slate-200 border-slate-700 hover:bg-slate-700"
                                             : "bg-slate-100 text-slate-800 border-slate-300 hover:bg-slate-200"
@@ -1027,6 +1041,35 @@ export default function Dashboard() {
                                         <span>🗑️ Discard & Delete (Never Show Again)</span>
                                       </button>
                                     </div>
+
+                                    {/* Application Confirmation Banner upon opening external portal */}
+                                    {appliedConfirmJobIds.has(job.id) && job.status !== "APPLIED" && (
+                                      <div className="mt-3 p-3.5 bg-[#4a2408] border-2 border-amber-400 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-3 text-xs sm:text-sm shadow-xl">
+                                        <p className="font-black text-amber-200 flex items-center space-x-2">
+                                          <span>↗️ Opened external application portal. Did you finish submitting your application?</span>
+                                        </p>
+                                        <div className="flex items-center space-x-2 shrink-0">
+                                          <button
+                                            onClick={() => {
+                                              updateJobStatus(job.id, "APPLIED");
+                                              setAppliedConfirmJobIds(prev => { const n = new Set(prev); n.delete(job.id); return n; });
+                                            }}
+                                            className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs rounded-lg transition cursor-pointer shadow-md"
+                                          >
+                                            ✅ Yes, Mark as Applied
+                                          </button>
+                                          <button
+                                            onClick={() => {
+                                              updateJobStatus(job.id, "SAVED");
+                                              setAppliedConfirmJobIds(prev => { const n = new Set(prev); n.delete(job.id); return n; });
+                                            }}
+                                            className="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-amber-200 font-bold text-xs rounded-lg transition cursor-pointer border border-amber-500/40"
+                                          >
+                                            📌 Keep as Saved / Not Yet
+                                          </button>
+                                        </div>
+                                      </div>
+                                    )}
                                   </div>
 
                                   {/* 2. DOMAIN BREAKDOWN BADGES */}
@@ -1989,6 +2032,7 @@ export default function Dashboard() {
                   href={selectedJob.webpageUrl}
                   target="_blank"
                   rel="noreferrer"
+                  onClick={() => setAppliedConfirmJobIds(prev => new Set(prev).add(selectedJob.id))}
                   className="px-5 py-2.5 bg-emerald-600 text-white text-[17px] font-bold rounded-xl hover:bg-emerald-500 transition shadow-sm"
                 >
                   {selectedJob.id.startsWith("li_") || (selectedJob.webpageUrl && selectedJob.webpageUrl.includes("linkedin.com"))
@@ -1997,6 +2041,35 @@ export default function Dashboard() {
                 </a>
               )}
             </div>
+
+            {/* Application Confirmation Banner in Modal */}
+            {appliedConfirmJobIds.has(selectedJob.id) && selectedJob.status !== "APPLIED" && (
+              <div className="mt-3 p-3.5 bg-[#4a2408] border-2 border-amber-400 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-3 text-xs sm:text-sm shadow-xl">
+                <p className="font-black text-amber-200 flex items-center space-x-2">
+                  <span>↗️ Opened external application portal. Did you finish submitting your application?</span>
+                </p>
+                <div className="flex items-center space-x-2 shrink-0">
+                  <button
+                    onClick={() => {
+                      updateJobStatus(selectedJob.id, "APPLIED");
+                      setAppliedConfirmJobIds(prev => { const n = new Set(prev); n.delete(selectedJob.id); return n; });
+                    }}
+                    className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs rounded-lg transition cursor-pointer shadow-md"
+                  >
+                    ✅ Yes, Mark as Applied
+                  </button>
+                  <button
+                    onClick={() => {
+                      updateJobStatus(selectedJob.id, "SAVED");
+                      setAppliedConfirmJobIds(prev => { const n = new Set(prev); n.delete(selectedJob.id); return n; });
+                    }}
+                    className="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-amber-200 font-bold text-xs rounded-lg transition cursor-pointer border border-amber-500/40"
+                  >
+                    📌 Keep as Saved / Not Yet
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

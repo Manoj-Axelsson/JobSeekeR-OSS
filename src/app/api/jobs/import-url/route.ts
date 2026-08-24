@@ -4,10 +4,14 @@ import { evaluateJobMatch } from "@/lib/services/matcher";
 
 export async function POST(req: Request) {
   try {
-    const { url } = await req.json();
+    const { url, status: requestedStatus, notes } = await req.json();
     if (!url || typeof url !== "string") {
       return NextResponse.json({ success: false, error: "Please provide a valid Job URL" }, { status: 400 });
     }
+
+    const jobStatus = requestedStatus && ["NEW", "SAVED", "APPLIED", "DISCARDED"].includes(requestedStatus)
+      ? requestedStatus
+      : "NEW";
 
     // Check if job already exists in database
     const existing = await db.jobAd.findFirst({
@@ -15,15 +19,46 @@ export async function POST(req: Request) {
     });
 
     if (existing) {
+      let updated = existing;
+      if (jobStatus !== existing.status) {
+        updated = await db.jobAd.update({
+          where: { id: existing.id },
+          data: { status: jobStatus },
+        });
+      }
+
+      if (jobStatus === "APPLIED") {
+        const now = new Date();
+        const monthlyTag = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+        const existingApp = await db.application.findFirst({ where: { jobId: existing.id } });
+        if (!existingApp) {
+          await db.application.create({
+            data: {
+              jobId: existing.id,
+              status: "APPLIED",
+              appliedAt: now,
+              resumeVersion: "JobseekeR Candidate CV",
+              notes: notes || "Applied via direct URL import",
+              monthlyTag,
+            },
+          });
+        } else {
+          await db.application.update({
+            where: { id: existingApp.id },
+            data: { status: "APPLIED", appliedAt: now },
+          });
+        }
+      }
+
       return NextResponse.json({
         success: true,
         alreadyImported: true,
-        message: "Job already imported into feed!",
+        message: jobStatus === "APPLIED" ? "Job marked as APPLIED and saved to tracker!" : "Job already imported into feed!",
         job: {
-          ...existing,
-          matchedSkills: JSON.parse(existing.matchedSkills || "[]"),
-          missingSkills: JSON.parse(existing.missingSkills || "[]"),
-          domainScores: JSON.parse(existing.domainScores || "{}"),
+          ...updated,
+          matchedSkills: JSON.parse(updated.matchedSkills || "[]"),
+          missingSkills: JSON.parse(updated.missingSkills || "[]"),
+          domainScores: JSON.parse(updated.domainScores || "{}"),
         },
       });
     }
@@ -90,9 +125,24 @@ export async function POST(req: Request) {
         matchedSkills: JSON.stringify(match.matchedSkills),
         missingSkills: JSON.stringify(match.missingSkills || []),
         domainScores: JSON.stringify(match.domainScores),
-        status: "NEW",
+        status: jobStatus,
       },
     });
+
+    if (jobStatus === "APPLIED") {
+      const now = new Date();
+      const monthlyTag = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+      await db.application.create({
+        data: {
+          jobId: saved.id,
+          status: "APPLIED",
+          appliedAt: now,
+          resumeVersion: "JobseekeR Candidate CV",
+          notes: notes || "Applied via direct URL import",
+          monthlyTag,
+        },
+      });
+    }
 
     return NextResponse.json({
       success: true,
