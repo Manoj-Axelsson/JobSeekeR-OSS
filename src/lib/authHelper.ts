@@ -16,12 +16,18 @@ export async function getAuthenticatedUser(req: NextRequest | Request): Promise<
       const cookieHeader = req.headers.get("cookie") || "";
       const match = cookieHeader.match(/jobseeker_session=([^;]+)/);
       if (match) {
-        sessionCookie = decodeURIComponent(match[1]);
+        sessionCookie = match[1];
       }
     }
 
     if (!sessionCookie) {
       return null;
+    }
+
+    if (sessionCookie.includes("%")) {
+      try {
+        sessionCookie = decodeURIComponent(sessionCookie);
+      } catch {}
     }
 
     const sessionData = JSON.parse(sessionCookie);
