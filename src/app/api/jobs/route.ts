@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { getAuthenticatedUser } from "@/lib/authHelper";
@@ -7,7 +7,7 @@ import { getAuthenticatedUser } from "@/lib/authHelper";
  * GET /api/jobs
  * Returns list of jobs for the authenticated user sorted by matchScore (desc) and publishedAt (desc).
  */
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
     const user = await getAuthenticatedUser(request);
     if (!user) {
