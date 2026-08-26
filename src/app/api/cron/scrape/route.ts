@@ -5,6 +5,8 @@ import { fetchLinkedInSwedishJobs } from "@/lib/services/linkedin";
 import { evaluateJobMatch } from "@/lib/services/matcher";
 import { ensureV2ProfilesExist } from "@/lib/services/pipeline/seedV2";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   return handleScrape();
 }

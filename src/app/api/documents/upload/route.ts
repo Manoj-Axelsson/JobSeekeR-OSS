@@ -3,6 +3,8 @@ import { parseAndSaveDocument } from "@/lib/services/docParser";
 import { db } from "@/lib/db";
 import { getAuthenticatedUser } from "@/lib/authHelper";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(req: NextRequest) {
   try {
     const user = await getAuthenticatedUser(req);

@@ -3,6 +3,8 @@ import { db } from "@/lib/db";
 import { ensureV2ProfilesExist } from "@/lib/services/pipeline/seedV2";
 import { getAuthenticatedUser } from "@/lib/authHelper";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req: NextRequest) {
   try {
     const user = await getAuthenticatedUser(req);

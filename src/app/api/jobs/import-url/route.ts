@@ -3,6 +3,8 @@ import { db } from "@/lib/db";
 import { evaluateJobMatch } from "@/lib/services/matcher";
 import { getAuthenticatedUser } from "@/lib/authHelper";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(req: Request) {
   try {
     const user = await getAuthenticatedUser(req);
