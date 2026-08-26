@@ -167,7 +167,17 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ error: "Invalid action" }, { status: 400 });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message || "Authentication error" }, { status: 500 });
+    const rawError = error?.message || "";
+    const isDbConnectivityError =
+      rawError.includes("Can't reach database server") ||
+      rawError.includes("prisma.") ||
+      rawError.includes("P1001");
+
+    const userFacingError = isDbConnectivityError
+      ? "Database server is starting up or temporarily unreachable. Please wait 5 seconds and try again."
+      : rawError || "Authentication error";
+
+    return NextResponse.json({ error: userFacingError }, { status: 500 });
   }
 }
 
