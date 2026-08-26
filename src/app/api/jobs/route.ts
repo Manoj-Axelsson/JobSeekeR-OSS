@@ -23,6 +23,7 @@ export async function GET(request: NextRequest) {
     const where: Prisma.JobAdWhereInput = {
       OR: [
         { userAccountId: user.id },
+        { userAccount: { email: user.email } },
         { userAccountId: null }, // Support legacy unassigned jobs during migration phase
       ],
     };

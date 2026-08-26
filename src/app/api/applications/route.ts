@@ -18,6 +18,7 @@ export async function GET(request: NextRequest) {
     const where: Prisma.ApplicationWhereInput = {
       OR: [
         { userAccountId: user.id },
+        { userAccount: { email: user.email } },
         { userAccountId: null }, // Support legacy unassigned applications during migration phase
       ],
     };
@@ -38,6 +39,7 @@ export async function GET(request: NextRequest) {
       where: {
         OR: [
           { userAccountId: user.id },
+          { userAccount: { email: user.email } },
           { userAccountId: null },
         ],
       },
