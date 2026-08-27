@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { fetchSwedishJobs } from "@/lib/services/jobtech";
 import { fetchLinkedInSwedishJobs } from "@/lib/services/linkedin";
-import { evaluateJobMatch } from "@/lib/services/matcher";
+import { evaluateOpportunityAssessment } from "@/lib/services/matcher";
 import { ensureV2ProfilesExist } from "@/lib/services/pipeline/seedV2";
 
 export const dynamic = "force-dynamic";
@@ -79,7 +79,7 @@ async function handleScrape() {
 
     totalFound = rawJobTechAds.length + rawLinkedInAds.length;
 
-    // Helper to process and persist a raw job ad against ALL active Search Profiles
+    // Helper to process and persist a raw job ad against active Search Profiles
     async function processVacancy(
       externalId: string,
       title: string,
@@ -91,7 +91,6 @@ async function handleScrape() {
       publishedAt: Date,
       deadline: Date | null
     ) {
-      // Create or update canonical JobAd opportunity record
       const existingJob = await db.jobAd.findFirst({
         where: { externalId },
       });
@@ -99,9 +98,9 @@ async function handleScrape() {
       let jobRecord = existingJob;
       let isNewJob = false;
 
-      // Primary default match score (highest overall evaluation)
       let highestOverallMatchScore = 0;
       let primaryFeedType: "PRIMARY" | "DISCOVERY" = "DISCOVERY";
+      let latestMatchResult: any = null;
 
       if (!jobRecord) {
         isNewJob = true;
@@ -110,7 +109,7 @@ async function handleScrape() {
             externalId,
             title,
             company,
-            location,
+            location, // Preserves raw sourceLocation metadata
             description: description.slice(0, 3000),
             webpageUrl,
             source,
@@ -127,7 +126,6 @@ async function handleScrape() {
 
       let evaluatedProfileCount = 0;
 
-      // Multi-SearchProfile Evaluation: Evaluate against EVERY active candidate Search Profile independently
       for (const sp of activeSearchProfiles) {
         let prefs = undefined;
         try {
@@ -155,17 +153,25 @@ async function handleScrape() {
           } catch {}
         }
 
-        const match = evaluateJobMatch(
-          title,
-          description,
-          candidateSkills,
-          "JobseekeR Candidate",
-          activeCareerProfile?.headline || "Software & Systems Engineer",
-          company,
-          location,
-          prefs,
-          territory
+        const match = evaluateOpportunityAssessment(
+          {
+            id: jobRecord.id,
+            externalId,
+            title,
+            company,
+            location,
+            description,
+          },
+          {
+            name: activeCareerProfile?.headline || "Manoj Axelsson",
+            headline: activeCareerProfile?.headline || "Software & Systems Engineer",
+            skills: candidateSkills,
+            targetRoles: prefs?.targetOccupations || ["Software Engineer"],
+            preferredLocations: territory?.cities || ["Stockholm", "Linköping"],
+          }
         );
+
+        latestMatchResult = match;
 
         if (match.matchScore > highestOverallMatchScore) {
           highestOverallMatchScore = match.matchScore;
@@ -175,7 +181,6 @@ async function handleScrape() {
         if (match.matchScore >= (sp.minMatchScore ?? 40) && match.eligibilityStatus !== "DISCARDED") {
           evaluatedProfileCount++;
 
-          // Upsert JobAdSearchProfile evaluation join record
           await db.jobAdSearchProfile.upsert({
             where: {
               jobId_searchProfileId: {
@@ -213,12 +218,31 @@ async function handleScrape() {
         totalMatched++;
         if (isNewJob) newAdded++;
 
-        // Update JobAd overall score and feedType
+        // Persist Authoritative Score & Versioned Assessment Fields
         await db.jobAd.update({
           where: { id: jobRecord.id },
           data: {
             matchScore: highestOverallMatchScore,
             feedType: primaryFeedType,
+            eligibilityStatus: latestMatchResult?.eligibilityStatus || "ELIGIBLE",
+            capabilityScore: latestMatchResult?.capabilityScore || 0,
+            intentScore: latestMatchResult?.intentScore || 0,
+            matchedSkills: JSON.stringify(latestMatchResult?.matchedSkills || []),
+            missingSkills: JSON.stringify(latestMatchResult?.missingSkills || []),
+            
+            // Phase 12 Additive Structurally Versioned Fields
+            assessmentVersion: "3.0.0",
+            matchGrade: latestMatchResult?.newAssessment?.match.grade || null,
+            assessmentConfidence: latestMatchResult?.newAssessment?.confidence.assessmentConfidence || null,
+            canonicalLocation: location,
+            hardRequirements: latestMatchResult?.newAssessment?.eligibility.hardRequirements
+              ? JSON.stringify(latestMatchResult.newAssessment.eligibility.hardRequirements)
+              : null,
+            matchedRequirements: JSON.stringify(latestMatchResult?.matchedSkills || []),
+            missingRequirements: JSON.stringify(latestMatchResult?.missingSkills || []),
+            enrichmentData: latestMatchResult?.enrichment ? JSON.stringify(latestMatchResult.enrichment) : null,
+            positioningData: latestMatchResult?.positioning ? JSON.stringify(latestMatchResult.positioning) : null,
+            legacyMatchScore: latestMatchResult?.legacyMatchScore ?? null,
           },
         });
       }
@@ -258,6 +282,24 @@ async function handleScrape() {
       );
     }
 
+    // Enforce Constitutional Selection Caps (<=15 Primary, <=5 Discovery)
+    const allNewJobs = await db.jobAd.findMany({ where: { status: "NEW" } });
+    
+    const primaryJobs = allNewJobs
+      .filter(j => j.feedType === "PRIMARY" && j.eligibilityStatus === "ELIGIBLE")
+      .sort((a, b) => b.matchScore - a.matchScore);
+
+    // Keep top 15 Primary; demote surplus Primary candidates to DISCOVERY
+    if (primaryJobs.length > 15) {
+      const surplusPrimary = primaryJobs.slice(15);
+      for (const sj of surplusPrimary) {
+        await db.jobAd.update({
+          where: { id: sj.id },
+          data: { feedType: "DISCOVERY" },
+        });
+      }
+    }
+
     const scanLog = await db.scanLog.create({
       data: {
         scannedAt: startTime,
@@ -265,7 +307,7 @@ async function handleScrape() {
         totalMatched,
         newAdded,
         status: "SUCCESS",
-        message: `V2 Multi-Profile Scanned ${totalFound} jobs against ${activeSearchProfiles.length} Search Profiles. ${totalMatched} matched (${newAdded} new added).`,
+        message: `Phase 12 Scanned ${totalFound} jobs against ${activeSearchProfiles.length} Search Profiles. ${totalMatched} matched (${newAdded} new added).`,
       },
     });
 
@@ -280,7 +322,7 @@ async function handleScrape() {
       scanLog,
     });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Failed to execute V2 scan";
+    const message = error instanceof Error ? error.message : "Failed to execute Phase 12 scan";
     console.error("Scrape error:", error);
     await db.scanLog.create({
       data: {

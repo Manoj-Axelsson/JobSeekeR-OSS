@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { evaluateJobMatch } from "@/lib/services/matcher";
+import { evaluateOpportunityAssessment } from "@/lib/services/matcher";
 import { getAuthenticatedUser } from "@/lib/authHelper";
 
 export const dynamic = "force-dynamic";
@@ -95,7 +95,6 @@ export async function POST(req: Request) {
 
     const html = await res.text();
 
-    // Parse domain name generically
     let domain = "Career Portal";
     try {
       domain = new URL(url).hostname.replace(/^www\./, "");
@@ -103,13 +102,11 @@ export async function POST(req: Request) {
       // ignore
     }
 
-    // Extract OpenGraph / Meta tags
     let title = extractMeta(html, "og:title") || extractTitleTag(html) || "Imported Position";
     let company = extractMeta(html, "og:site_name") || extractMeta(html, "author") || extractCompanyFromTitle(title) || domain;
     let description = extractMeta(html, "og:description") || extractMeta(html, "description") || stripHtml(html).slice(0, 1500);
     let location = extractLocation(html) || "Sweden";
 
-    // Clean up title generically (e.g. "Fullstack Developer - Company AB" -> title="Fullstack Developer", company="Company AB")
     if (title.includes(" - ")) {
       const parts = title.split(" - ");
       title = parts[0].trim();
@@ -118,20 +115,32 @@ export async function POST(req: Request) {
       }
     }
 
-    // Get candidate profile from DB
     const profile = await db.userProfile.findFirst();
 
-    // Calculate Match Score using Matcher Engine
-    const match = evaluateJobMatch(title, description, [], profile?.name || "JobseekeR Candidate", profile?.headline || "Software Engineer");
+    // Calculate Match Score using Opportunity Assessment Framework
+    const match = evaluateOpportunityAssessment(
+      {
+        id: `import-${Date.now()}`,
+        title,
+        company,
+        location,
+        description,
+      },
+      {
+        name: profile?.name || "Manoj Axelsson",
+        headline: profile?.headline || "Software & Systems Engineer",
+        skills: ["React", "TypeScript", "Systems Engineering"],
+      }
+    );
 
-    // Save to Database
+    // Save to Database with Structurally Versioned Assessment persistence
     const saved = await db.jobAd.create({
       data: {
         userAccountId: user.id,
         externalId: `imported_${Date.now()}_${Math.random().toString(36).substring(7)}`,
         title,
         company,
-        location,
+        location, // Preserves raw sourceLocation
         description,
         source: `${domain} (Direct Import)`,
         webpageUrl: url,
@@ -140,7 +149,23 @@ export async function POST(req: Request) {
         matchedSkills: JSON.stringify(match.matchedSkills),
         missingSkills: JSON.stringify(match.missingSkills || []),
         domainScores: JSON.stringify(match.domainScores),
+        feedType: match.feedType,
+        eligibilityStatus: match.eligibilityStatus,
         status: jobStatus,
+
+        // Phase 12 Additive Structurally Versioned Fields
+        assessmentVersion: "3.0.0",
+        matchGrade: match.newAssessment?.match.grade || null,
+        assessmentConfidence: match.newAssessment?.confidence.assessmentConfidence || null,
+        canonicalLocation: location,
+        hardRequirements: match.newAssessment?.eligibility.hardRequirements
+          ? JSON.stringify(match.newAssessment.eligibility.hardRequirements)
+          : null,
+        matchedRequirements: JSON.stringify(match.matchedSkills),
+        missingRequirements: JSON.stringify(match.missingSkills || []),
+        enrichmentData: match.enrichment ? JSON.stringify(match.enrichment) : null,
+        positioningData: match.positioning ? JSON.stringify(match.positioning) : null,
+        legacyMatchScore: match.legacyMatchScore ?? null,
       },
     });
 

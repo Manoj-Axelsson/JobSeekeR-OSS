@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { evaluateJobMatch, MatchResult } from "@/lib/services/matcher";
+import { evaluateJobMatch, evaluateOpportunityAssessment, MatchResult } from "@/lib/services/matcher";
 import { OnboardingWizard } from "@/components/OnboardingWizard";
 import { AuthModal } from "@/components/AuthModal";
 import { DocumentUploader } from "@/components/DocumentUploader";
@@ -365,10 +365,18 @@ export default function Dashboard() {
   const appsList = Array.isArray(applications) ? applications : [];
   const logsList = Array.isArray(scanLogs) ? scanLogs : [];
 
-  const filteredJobs = jobsList.filter((job) => {
+  const eligibleJobs = jobsList.filter((job) => {
     // 0. Excluded Companies Blacklist Check
     const isExcluded = excludedCompanies.some((c) => c && job.company.toLowerCase().includes(c.toLowerCase()));
     if (isExcluded) return false;
+
+    // 1. Min Match Score Threshold Check
+    const profileEval = selectedProfileId !== "ALL" && job.profileEvaluations?.length
+      ? job.profileEvaluations.find((pe) => pe.searchProfileId === selectedProfileId)
+      : undefined;
+
+    const effectiveScore = profileEval ? profileEval.totalMatchScore : job.matchScore;
+    if (effectiveScore < minScore) return false;
 
     const matchesSearch =
       job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -382,6 +390,30 @@ export default function Dashboard() {
 
     return matchesSearch && matchesStatus;
   });
+
+  const primaryJobs = eligibleJobs
+    .filter((job) => {
+      const profileEval = selectedProfileId !== "ALL" && job.profileEvaluations?.length
+        ? job.profileEvaluations.find((pe) => pe.searchProfileId === selectedProfileId)
+        : undefined;
+      const effectiveFeedType = profileEval ? profileEval.feedType : (job.feedType || "PRIMARY");
+      return effectiveFeedType === "PRIMARY";
+    })
+    .sort((a, b) => b.matchScore - a.matchScore)
+    .slice(0, 15);
+
+  const discoveryJobs = eligibleJobs
+    .filter((job) => {
+      const profileEval = selectedProfileId !== "ALL" && job.profileEvaluations?.length
+        ? job.profileEvaluations.find((pe) => pe.searchProfileId === selectedProfileId)
+        : undefined;
+      const effectiveFeedType = profileEval ? profileEval.feedType : (job.feedType || "PRIMARY");
+      return effectiveFeedType === "DISCOVERY";
+    })
+    .sort((a, b) => b.matchScore - a.matchScore)
+    .slice(0, 5);
+
+  const filteredJobs = statusFilter === "ALL" ? [...primaryJobs, ...discoveryJobs] : eligibleJobs;
 
   const filteredApps = appsList.filter((app) => {
     if (!selectedMonth) return true;
@@ -404,7 +436,14 @@ export default function Dashboard() {
 
   // Calculate live dynamic analysis for the selected job modal
   const jobAnalysis: MatchResult | null = selectedJob
-    ? evaluateJobMatch(selectedJob.title, selectedJob.description)
+    ? evaluateOpportunityAssessment({
+        id: selectedJob.id,
+        externalId: selectedJob.externalId,
+        title: selectedJob.title,
+        company: selectedJob.company,
+        location: selectedJob.location,
+        description: selectedJob.description,
+      })
     : null;
 
   function copyTextReport() {
