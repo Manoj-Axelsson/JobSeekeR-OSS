@@ -124,13 +124,13 @@ model JobAd {
   externalId          String               // JobTech/Platsbanken job ID
   title               String
   company             String
-  location            String
+  location            String               // Preserves raw sourceLocation metadata from JobTech
   description         String
   webpageUrl          String?
   source              String               @default("JobTech Platsbanken")
   publishedAt         DateTime
   deadline            DateTime?
-  matchScore          Int                  // 0 to 100
+  matchScore          Int                  // Authoritative match score (0 to 100)
   matchedSkills       String               // JSON string array
   missingSkills       String               // JSON string array
   domainScores        String               // JSON string object (software, systems, quality, manufacturing)
@@ -148,6 +148,19 @@ model JobAd {
   salaryMax           Int?
   salaryCurrency      String?              @default("SEK")
   salaryRawText       String?
+
+  // Phase 12 Structurally Versioned Assessment Persistence Fields (Additive & Optional)
+  assessmentVersion     String?              @default("3.0.0")
+  matchGrade            String?              // "A" | "B" | "C" | "D" | "F"
+  assessmentConfidence  String?              // "HIGH" | "MEDIUM" | "LOW"
+  canonicalLocation     String?              // Resolved canonical role location (e.g. "Luleå")
+  locationConflict      Boolean?             @default(false)
+  hardRequirements      String?              // JSON string array of HardRequirementEvaluation
+  matchedRequirements   String?              // JSON string array of matched requirement strings
+  missingRequirements   String?              // JSON string array of missing requirement strings
+  enrichmentData        String?              // JSON string of JobEnrichment (Deterministic + Research)
+  positioningData       String?              // JSON string of CandidatePositioning (Why You Fit, Concerns, Cover Letter Hook Theme)
+  legacyMatchScore      Int?                 // Observational legacy score during Shadow Mode
 
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt

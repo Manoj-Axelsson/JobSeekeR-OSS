@@ -2,6 +2,13 @@ import { decisionSupportEngine, DecisionSupportContext } from "../../intelligenc
 import { classifyOccupation, OccupationCandidate } from "./pipeline/classifier";
 import { evaluateEligibility, EligibilityResult, PreferencesConfig, TerritoryConfig } from "./pipeline/eligibility";
 import { evaluateCapabilityAndIntent, DualScoreResult } from "./pipeline/scoring";
+import { assessOpportunity } from "../../intelligence/assessment/evaluator";
+import { evaluateHistoryIntelligence, ApplicationRecord } from "../../intelligence/assessment/historyIntelligence";
+import { enrichOpportunity, JobEnrichment } from "../../intelligence/assessment/enrichmentEngine";
+import { generateCandidatePositioning, CandidatePositioning } from "../../intelligence/assessment/candidatePositioning";
+import { resolveCanonicalLocation } from "../../intelligence/assessment/locationResolver";
+import { OpportunityAssessment } from "../../intelligence/assessment/contract";
+import { createCandidateEvidenceModel } from "../../intelligence/assessment/evidence";
 
 export interface MatchResult {
   matchScore: number;
@@ -31,6 +38,12 @@ export interface MatchResult {
   };
   decisionSupport?: DecisionSupportContext;
   eligibilityDetails: EligibilityResult;
+
+  // Phase 12 Additive Structurally Versioned Assessment Extensions
+  newAssessment?: OpportunityAssessment;
+  enrichment?: JobEnrichment | null;
+  positioning?: CandidatePositioning | null;
+  legacyMatchScore?: number;
 }
 
 const TAXONOMY = {
@@ -182,6 +195,143 @@ export function evaluateJobMatch(
     },
     decisionSupport,
     eligibilityDetails: eligibility,
+  };
+}
+
+/**
+ * Phase 12 Unified Assessment Entrypoint
+ * Checks USE_NEW_ASSESSMENT_ENGINE feature flag.
+ * If true: Opportunity Assessment Framework is authoritative. Legacy runs in strictly observational shadow mode.
+ * If false: Rapid rollback to legacy engine.
+ */
+export function evaluateOpportunityAssessment(
+  jobAd: {
+    id: string;
+    externalId?: string;
+    title: string;
+    company: string;
+    location: string;
+    description: string;
+  },
+  candidateProfile?: {
+    name?: string;
+    headline?: string;
+    citizenship?: string;
+    citizenships?: string[];
+    languages?: string[];
+    skills?: string[];
+    targetRoles?: string[];
+    preferredLocations?: string[];
+    workingModelPreference?: "REMOTE" | "HYBRID" | "ON_SITE";
+  },
+  history: ApplicationRecord[] = []
+): MatchResult {
+  const useNewEngine = process.env.USE_NEW_ASSESSMENT_ENGINE === "true";
+  const profileInput = candidateProfile || {};
+
+  // Observational Legacy Shadow Mode Execution
+  const legacyResult = evaluateJobMatch(
+    jobAd.title,
+    jobAd.description,
+    profileInput.skills || [],
+    profileInput.name || "JobseekeR Candidate",
+    profileInput.headline || "Software & Systems Engineer",
+    jobAd.company,
+    jobAd.location
+  );
+
+  if (!useNewEngine) {
+    // Kill Switch Active -> Fall back 100% to legacy result
+    return legacyResult;
+  }
+
+  // Feature Flag Active -> Opportunity Assessment Engine is Authoritative
+  const locationResolution = resolveCanonicalLocation(jobAd.title, jobAd.description, jobAd.location);
+
+  const assessment = assessOpportunity(
+    {
+      title: jobAd.title,
+      description: jobAd.description,
+      location: jobAd.location,
+      company: jobAd.company,
+    },
+    profileInput
+  );
+
+  const historyResult = evaluateHistoryIntelligence(jobAd, history);
+
+  let effectiveRecommendation = assessment.recommendation.type;
+  if (historyResult.hasHistoryConflict) {
+    effectiveRecommendation = "SUPPRESS";
+  }
+
+  const reqs = assessment.eligibility.hardRequirements;
+
+  const enrichment = enrichOpportunity(
+    jobAd,
+    {
+      title: jobAd.title,
+      company: jobAd.company,
+      location: locationResolution.canonicalLocation,
+      locationResolution,
+      seniority: "Mid",
+      coreWorkDescription: jobAd.title,
+      requirements: reqs,
+      technologies: { required: assessment.match.matchedRequirements, preferred: [], desired: [] },
+      languages: { required: [], preferred: [] },
+      citizenshipRequirements: { required: [], preferred: [] },
+      experience: { level: "Mid" },
+      education: { priority: "ACCEPTED" },
+      securityClearanceRequired: false,
+      workingModel: "HYBRID",
+    },
+    { ...assessment, recommendation: { ...assessment.recommendation, type: effectiveRecommendation } }
+  );
+
+  const positioning = effectiveRecommendation === "PRIMARY"
+    ? generateCandidatePositioning(
+        jobAd,
+        createCandidateEvidenceModel(profileInput),
+        assessment,
+        enrichment
+      )
+    : null;
+
+  const whyMatched: string[] = [
+    `[${effectiveRecommendation} FEED - Grade ${assessment.match.grade}] Match Score: ${assessment.match.score}%, Intent: ${assessment.intent.score}%`,
+    ...assessment.recommendation.reasons,
+  ];
+
+  return {
+    matchScore: assessment.match.score,
+    capabilityScore: assessment.match.score,
+    intentScore: assessment.intent.score,
+    feedType: effectiveRecommendation === "PRIMARY" ? "PRIMARY" : "DISCOVERY",
+    eligibilityStatus: assessment.eligibility.status === "ELIGIBLE" ? "ELIGIBLE" : "INELIGIBLE",
+    probableOccupations: legacyResult.probableOccupations,
+    matchedSkills: assessment.match.matchedRequirements,
+    missingSkills: assessment.match.missingRequirements,
+    matchedNiceToHave: [],
+    domainScores: legacyResult.domainScores,
+    analysis: {
+      whyMatched,
+      whatLacking: assessment.match.missingRequirements.length > 0
+        ? assessment.match.missingRequirements
+        : ["No critical technical gaps identified."],
+      coverLetterPitch: {
+        openingHook: positioning?.coverLetterHook.theme || "Software & Systems Engineering excellence.",
+        keyStrengthsToLeadWith: positioning?.strongestEvidence.map(e => e.competency) || [],
+        gapMitigationStrategy: positioning?.howToAddressConcern || "Highlight technical adaptability.",
+        suggestedBulletPoints: positioning?.cvPointsToEmphasize || [],
+      },
+    },
+    eligibilityDetails: legacyResult.eligibilityDetails,
+
+    // Additive Structurally Versioned Extensions
+    newAssessment: assessment,
+    enrichment,
+    positioning,
+    legacyMatchScore: legacyResult.matchScore,
   };
 }
 
