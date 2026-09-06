@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { evaluateOpportunityAssessment } from "@/lib/services/matcher";
 import { getAuthenticatedUser } from "@/lib/authHelper";
+import { resolveCanonicalJob } from "@/lib/services/identity";
 
 export const dynamic = "force-dynamic";
 
@@ -20,62 +21,6 @@ export async function POST(req: Request) {
     const jobStatus = requestedStatus && ["NEW", "SAVED", "APPLIED", "DISCARDED"].includes(requestedStatus)
       ? requestedStatus
       : "NEW";
-
-    // Check if job already exists in database for this authenticated user
-    const existing = await db.jobAd.findFirst({
-      where: {
-        webpageUrl: url,
-        OR: [{ userAccountId: user.id }, { userAccountId: null }],
-      },
-    });
-
-    if (existing) {
-      let updated = existing;
-      if (jobStatus !== existing.status || existing.userAccountId !== user.id) {
-        updated = await db.jobAd.update({
-          where: { id: existing.id },
-          data: { status: jobStatus, userAccountId: user.id },
-        });
-      }
-
-      if (jobStatus === "APPLIED") {
-        const now = new Date();
-        const monthlyTag = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-        const existingApp = await db.application.findFirst({
-          where: { jobId: existing.id, OR: [{ userAccountId: user.id }, { userAccountId: null }] },
-        });
-        if (!existingApp) {
-          await db.application.create({
-            data: {
-              userAccountId: user.id,
-              jobId: existing.id,
-              status: "APPLIED",
-              appliedAt: now,
-              resumeVersion: "JobseekeR Candidate CV",
-              notes: notes || "Applied via direct URL import",
-              monthlyTag,
-            },
-          });
-        } else {
-          await db.application.update({
-            where: { id: existingApp.id },
-            data: { userAccountId: user.id, status: "APPLIED", appliedAt: now },
-          });
-        }
-      }
-
-      return NextResponse.json({
-        success: true,
-        alreadyImported: true,
-        message: jobStatus === "APPLIED" ? "Job marked as APPLIED and saved to tracker!" : "Job already imported into feed!",
-        job: {
-          ...updated,
-          matchedSkills: JSON.parse(updated.matchedSkills || "[]"),
-          missingSkills: JSON.parse(updated.missingSkills || "[]"),
-          domainScores: JSON.parse(updated.domainScores || "{}"),
-        },
-      });
-    }
 
     // Fetch webpage HTML
     const res = await fetch(url, {
@@ -133,56 +78,48 @@ export async function POST(req: Request) {
       }
     );
 
-    // Save to Database with Structurally Versioned Assessment persistence
-    const saved = await db.jobAd.create({
-      data: {
-        userAccountId: user.id,
-        externalId: `imported_${Date.now()}_${Math.random().toString(36).substring(7)}`,
-        title,
-        company,
-        location, // Preserves raw sourceLocation
-        description,
-        source: `${domain} (Direct Import)`,
-        webpageUrl: url,
-        publishedAt: new Date(),
-        matchScore: match.matchScore,
-        matchedSkills: JSON.stringify(match.matchedSkills),
-        missingSkills: JSON.stringify(match.missingSkills || []),
-        domainScores: JSON.stringify(match.domainScores),
-        feedType: match.feedType,
-        eligibilityStatus: match.eligibilityStatus,
-        status: jobStatus,
-
-        // Phase 12 Additive Structurally Versioned Fields
-        assessmentVersion: "3.0.0",
-        matchGrade: match.newAssessment?.match.grade || null,
-        assessmentConfidence: match.newAssessment?.confidence.assessmentConfidence || null,
-        canonicalLocation: location,
-        hardRequirements: match.newAssessment?.eligibility.hardRequirements
-          ? JSON.stringify(match.newAssessment.eligibility.hardRequirements)
-          : null,
-        matchedRequirements: JSON.stringify(match.matchedSkills),
-        missingRequirements: JSON.stringify(match.missingSkills || []),
-        enrichmentData: match.enrichment ? JSON.stringify(match.enrichment) : null,
-        positioningData: match.positioning ? JSON.stringify(match.positioning) : null,
-        legacyMatchScore: match.legacyMatchScore ?? null,
-      },
+    // Save/Resolve Canonical Job using centralized identity service
+    const { job: saved, isNew } = await resolveCanonicalJob(db, {
+      externalId: `imported_${Date.now()}_${Math.random().toString(36).substring(7)}`,
+      title,
+      company,
+      location,
+      description,
+      webpageUrl: url,
+      source: `${domain} (Direct Import)`,
+      publishedAt: new Date(),
+      userAccountId: user.id,
+      status: jobStatus,
+      matchScore: match.matchScore,
+      matchedSkills: JSON.stringify(match.matchedSkills),
+      missingSkills: JSON.stringify(match.missingSkills || []),
+      domainScores: JSON.stringify(match.domainScores),
     });
 
     if (jobStatus === "APPLIED") {
       const now = new Date();
       const monthlyTag = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-      await db.application.create({
-        data: {
-          userAccountId: user.id,
-          jobId: saved.id,
-          status: "APPLIED",
-          appliedAt: now,
-          resumeVersion: "JobseekeR Candidate CV",
-          notes: notes || "Applied via direct URL import",
-          monthlyTag,
-        },
+      const existingApp = await db.application.findFirst({
+        where: { jobId: saved.id, OR: [{ userAccountId: user.id }, { userAccountId: null }] },
       });
+      if (!existingApp) {
+        await db.application.create({
+          data: {
+            userAccountId: user.id,
+            jobId: saved.id,
+            status: "APPLIED",
+            appliedAt: now,
+            resumeVersion: "JobseekeR Candidate CV",
+            notes: notes || "Applied via direct URL import",
+            monthlyTag,
+          },
+        });
+      } else {
+        await db.application.update({
+          where: { id: existingApp.id },
+          data: { userAccountId: user.id, status: "APPLIED", appliedAt: now },
+        });
+      }
     }
 
     return NextResponse.json({

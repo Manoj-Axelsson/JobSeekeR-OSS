@@ -162,6 +162,10 @@ model JobAd {
   positioningData       String?              // JSON string of CandidatePositioning (Why You Fit, Concerns, Cover Letter Hook Theme)
   legacyMatchScore      Int?                 // Observational legacy score during Shadow Mode
 
+  // Phase 5 Canonical Identity Fields (Additive & Optional)
+  canonicalHash         String?
+  canonicalUrl          String?
+
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
 
@@ -169,6 +173,8 @@ model JobAd {
   profileEvaluations  JobAdSearchProfile[]
 
   @@unique([userAccountId, externalId])
+  @@index([canonicalHash])
+  @@index([canonicalUrl])
 }
 
 model JobAdSearchProfile {
