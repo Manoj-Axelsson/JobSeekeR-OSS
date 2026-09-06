@@ -9,6 +9,10 @@ import { generateCandidatePositioning, CandidatePositioning } from "../../intell
 import { resolveCanonicalLocation } from "../../intelligence/assessment/locationResolver";
 import { OpportunityAssessment } from "../../intelligence/assessment/contract";
 import { createCandidateEvidenceModel } from "../../intelligence/assessment/evidence";
+import { NonNumericalOpportunityAssessment } from "../../intelligence/assessment/NonNumericalContract";
+import { evaluateMandatoryGates } from "../../intelligence/assessment/MandatoryGateEvaluator";
+import { computeMatchDiagnostics } from "../../intelligence/assessment/NonNumericalMatchEngine";
+import { evaluateNonNumericalAssessmentPayload } from "../../intelligence/assessment/QualitativeRecommendationEngine";
 
 export interface MatchResult {
   matchScore: number;
@@ -41,6 +45,7 @@ export interface MatchResult {
 
   // Phase 12 Additive Structurally Versioned Assessment Extensions
   newAssessment?: OpportunityAssessment;
+  nonNumericalAssessment?: NonNumericalOpportunityAssessment;
   enrichment?: JobEnrichment | null;
   positioning?: CandidatePositioning | null;
   legacyMatchScore?: number;
@@ -240,9 +245,34 @@ export function evaluateOpportunityAssessment(
     jobAd.location
   );
 
-  if (!useNewEngine) {
+  const useNonNumerical = process.env.USE_NON_NUMERICAL_ASSESSMENT_ENGINE === "true" || process.env.SHADOW_MODE_NON_NUMERICAL === "true";
+
+  if (!useNewEngine && !useNonNumerical) {
     // Kill Switch Active -> Fall back 100% to legacy result
     return legacyResult;
+  }
+
+  if (!useNewEngine && useNonNumerical) {
+    const locationResolution = resolveCanonicalLocation(jobAd.title, jobAd.description, jobAd.location);
+    const mandatoryGates = evaluateMandatoryGates(
+      { location: jobAd.location, targetCitizenship: "SE" },
+      { preferredLocations: profileInput.preferredLocations, workingModelPreference: profileInput.workingModelPreference, languages: profileInput.languages, citizenship: profileInput.citizenship, citizenships: profileInput.citizenships }
+    );
+    const matchDiagnostics = computeMatchDiagnostics(
+      { title: jobAd.title, company: jobAd.company, location: jobAd.location, description: jobAd.description, requirements: profileInput.skills || [] },
+      { skills: profileInput.skills }
+    );
+
+    return {
+      ...legacyResult,
+      nonNumericalAssessment: evaluateNonNumericalAssessmentPayload({
+        jobTitle: jobAd.title,
+        company: jobAd.company,
+        canonicalLocation: locationResolution.canonicalLocation,
+        mandatoryGates,
+        matchDiagnostics,
+      }),
+    };
   }
 
   // Feature Flag Active -> Opportunity Assessment Engine is Authoritative
@@ -302,6 +332,45 @@ export function evaluateOpportunityAssessment(
     ...assessment.recommendation.reasons,
   ];
 
+  // Check Non-Numerical Evidence Assessment Feature Flag (v3.1.1)
+  let nonNumericalAssessment: NonNumericalOpportunityAssessment | undefined;
+  if (process.env.USE_NON_NUMERICAL_ASSESSMENT_ENGINE === "true" || process.env.SHADOW_MODE_NON_NUMERICAL === "true") {
+    const mandatoryGates = evaluateMandatoryGates(
+      {
+        location: jobAd.location,
+        targetCitizenship: "SE",
+      },
+      {
+        preferredLocations: profileInput.preferredLocations,
+        workingModelPreference: profileInput.workingModelPreference,
+        languages: profileInput.languages,
+        citizenship: profileInput.citizenship,
+        citizenships: profileInput.citizenships,
+      }
+    );
+
+    const matchDiagnostics = computeMatchDiagnostics(
+      {
+        title: jobAd.title,
+        company: jobAd.company,
+        location: jobAd.location,
+        description: jobAd.description,
+        requirements: profileInput.skills || [],
+      },
+      {
+        skills: profileInput.skills,
+      }
+    );
+
+    nonNumericalAssessment = evaluateNonNumericalAssessmentPayload({
+      jobTitle: jobAd.title,
+      company: jobAd.company,
+      canonicalLocation: locationResolution.canonicalLocation,
+      mandatoryGates,
+      matchDiagnostics,
+    });
+  }
+
   return {
     matchScore: assessment.match.score,
     capabilityScore: assessment.match.score,
@@ -329,6 +398,7 @@ export function evaluateOpportunityAssessment(
 
     // Additive Structurally Versioned Extensions
     newAssessment: assessment,
+    nonNumericalAssessment,
     enrichment,
     positioning,
     legacyMatchScore: legacyResult.matchScore,

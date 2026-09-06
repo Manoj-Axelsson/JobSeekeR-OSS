@@ -9,6 +9,7 @@ import { UserGuideModal } from "@/components/UserGuideModal";
 import { SettingsPanel } from "@/components/SettingsPanel";
 import { Navbar } from "@/components/Navbar";
 import { SidebarNav } from "@/components/SidebarNav";
+import { EvidenceDiagnosticAccordion } from "@/components/EvidenceDiagnosticAccordion";
 import { speakText } from "@/lib/services/tts";
 import { translations, Language } from "@/lib/services/i18n";
 import {
@@ -1935,6 +1936,11 @@ export default function Dashboard() {
             {/* MODAL TAB 1: STRATEGIC MATCH ANALYSIS */}
             {modalTab === "analysis" && (
               <div className="space-y-6">
+                {/* NON-NUMERICAL EVIDENCE DIAGNOSTIC ACCORDION (v3.1.1) */}
+                {jobAnalysis.nonNumericalAssessment && (
+                  <EvidenceDiagnosticAccordion assessment={jobAnalysis.nonNumericalAssessment} />
+                )}
+
                 {/* 1. WHY THIS JOB MATCHED */}
                 <div className={`p-5 rounded-xl border ${isDark ? "bg-slate-950 border-slate-800" : "bg-emerald-50/60 border-emerald-200"}`}>
                   <h3 className="text-[20px] font-bold text-emerald-700 flex items-center space-x-2">
