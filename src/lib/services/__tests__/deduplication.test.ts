@@ -30,12 +30,20 @@ describe.runIf(isPostgresUrl)("Phase 5 Canonical Job Identity & Deduplication In
     await db.$connect();
     await db.application.deleteMany({ where: { notes: { contains: "Phase 5 Test" } } });
     await db.jobAd.deleteMany({ where: { company: { in: ["Phase5 TestCorp", "Scania AB Test", "Volvo Cars Test"] } } });
+    await db.userAccount.deleteMany({ where: { id: { in: ["p5_user_alpha", "user_beta_999"] } } });
+    await db.userAccount.createMany({
+      data: [
+        { id: "p5_user_alpha", email: "p5_alpha@test.com", name: "User Alpha", passwordHash: "dummy_hash" },
+        { id: "user_beta_999", email: "user_beta@test.com", name: "User Beta", passwordHash: "dummy_hash" },
+      ],
+    });
   });
 
   afterAll(async () => {
     if (db) {
       await db.application.deleteMany({ where: { notes: { contains: "Phase 5 Test" } } });
       await db.jobAd.deleteMany({ where: { company: { in: ["Phase5 TestCorp", "Scania AB Test", "Volvo Cars Test"] } } });
+      await db.userAccount.deleteMany({ where: { id: { in: ["p5_user_alpha", "user_beta_999"] } } });
       await db.$disconnect();
     }
   });
