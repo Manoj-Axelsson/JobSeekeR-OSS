@@ -4,14 +4,13 @@
 
 Helping jobseekers make evidence-based career decisions through intelligent software—not guesswork.
 
-🌐 **Live Demo:** https://jobseeker.website
+🌐 **Live Application:** https://jobseeker.website
 
 ---
 
 [![Release](https://img.shields.io/badge/release-v1.0.1-blue.svg)](package.json)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![PWA Ready](https://img.shields.io/badge/PWA-Ready-success.svg)](public/manifest.json)
-[![Accessibility](https://img.shields.io/badge/WCAG-2.1%20AA-success.svg)]()
 
 ---
 
@@ -19,138 +18,159 @@ Helping jobseekers make evidence-based career decisions through intelligent soft
 
 JobSeekeR™ OSS is an open-source Career Intelligence Platform designed to help jobseekers automate job discovery, analyze opportunities, optimize application material and make evidence-based career decisions.
 
-Unlike traditional job boards, JobSeekeR™ combines recruiter analytics, company intelligence, document parsing, labor market insights and predictive recommendations into a single privacy-first application.
+The platform combines job ingestion, canonical vacancy identity and deduplication, candidate/account ownership, document parsing, competency and opportunity intelligence, application tracking, and explainable decision support.
 
-Built around Sweden's official **Arbetsförmedlingen JobTech API**, the platform has been architected for future expansion into the Nordic labor market.
+The project currently supports a **PostgreSQL-backed authenticated web deployment** and retains a **SQLite local-development/desktop path** as an architectural option. These deployment modes are intentionally distinguished rather than treated as the same persistence model.
+
+Sweden's official **Arbetsförmedlingen JobTech API** remains the primary job-data integration, with the architecture prepared for future Nordic expansion.
 
 ---
 
-# ✨ Key Features
+# ✨ Current Capabilities
 
-- 🤖 Automated job scanning
-- 🎯 Multi-domain job matching
-- 📄 Intelligent CV & certificate parsing
+- 🤖 Automated job ingestion and scanning
+- 🎯 Multi-domain competence and opportunity assessment
+- 🧭 Primary vs. Discovery search/feed separation
+- 📄 CV and certificate document parsing
+- 🧬 Canonical job identity and cross-source deduplication
+- 👤 Account-scoped job and application ownership
 - 📋 Application tracking
-- 📈 Labour market analytics
-- 💰 Salary intelligence
-- 🎓 Learning ROI recommendations
-- 🔮 Predictive career intelligence
-- 📱 Progressive Web App (PWA)
-- 🔒 Local-first privacy architecture
+- 📈 Labour-market and salary intelligence
+- 🧠 Evidence-first positioning, coaching and decision support
+- 📱 Progressive Web App support
+- 🔒 Explicit ownership and privacy boundaries
 
 ---
 
-# 🧠 Intelligence Platform
+# 🧠 Intelligence & Decision Support
 
-| Intelligence               | Purpose                                                      |
-|----------------------------|--------------------------------------------------------------|
-| 🧠 Recruiter Intelligence  | Analyse recruiter behaviour and response patterns            |
-| 🏢 Company Intelligence    | Track employer responsiveness and callback rates             |
-| 📄 Document Intelligence   | Parse CVs and certificates into structured competences       |
-| 📈 Market Intelligence     | Analyse Swedish labour market demand and technology trends   |
-| 🎓 Learning Intelligence   | Recommend the highest ROI upskilling opportunities           |
-| 💰 Salary Intelligence     | Parse and compare Swedish salary ranges                      |
-| 🎯 Match Intelligence      | Multi-domain competence and role fit analysis                |
-| 🔮 Predictive Intelligence | Evidence-based recommendations powered by real user activity |
+The current intelligence architecture is organized around domain-specific services:
 
----
+| Subsystem | Purpose |
+|---|---|
+| Opportunity | Determines whether an opportunity merits pursuit |
+| Competency | Evaluates candidate competencies, relationships and transferability |
+| Positioning | Determines how existing candidate evidence should be presented |
+| Coaching | Provides non-fabricating application and interview guidance |
+| Decision | Synthesizes intelligence into explainable decision support |
+| Pipeline | Classifies eligibility, capability and intent |
+| Canonical Identity | Resolves duplicate representations of the same vacancy |
 
-# 🔒 Privacy First
+The governing product principle is:
 
-JobSeekeR™ follows a strict **local-first architecture**.
+> **AI assists. Humans decide.**
 
-Candidate profiles, CVs, applications, match scores and personal career data remain under the user's control using an embedded SQLite database.
-
-No personal career information is shared with external data brokers or third-party analytics platforms.
+Recommendations are intended to be evidence-first and explainable; the system must not fabricate candidate experience, qualifications or achievements.
 
 ---
 
-# 📱 Progressive Web App
+# 🗄️ Persistence Architecture
 
-Install JobSeekeR™ directly from your browser.
+JobSeekeR uses deployment-specific persistence:
 
-Supported platforms:
+- **Cloud Web:** PostgreSQL, with authenticated `UserAccount` ownership boundaries.
+- **Local / Desktop Direction:** SQLite remains supported as a local-first deployment option.
+- **ORM:** Prisma.
 
-- 🍎 iPhone & iPad
-- 🤖 Android
-- 💻 macOS
-- 🪟 Windows
+The production web architecture does **not** fall back to an ephemeral local database when PostgreSQL is unavailable. Production database configuration is an explicit deployment contract.
 
-No installation package is required.
+See:
+- [ADR-001 — Local-First Architecture](docs/architecture/ADR-001-local-first-architecture.md)
+- [ADR-002 — Production Persistence & Account Ownership](docs/adr/ADR-002-production-persistence-and-account-ownership.md)
+- [ADR-004 — Career, Search & Territory Domain Model](docs/architecture/ADR-004-decoupled-career-search-and-territory-domain-model.md)
+
+---
+
+# 🧪 Verification Status
+
+The repository's latest recorded GitHub Actions run for commit `7afefa2` completed successfully on September 6, 2026.
+
+The corresponding local verification completed with:
+
+- **33 test files passed**
+- **118 tests passed**
+- **0 skipped**
+- **0 failed**
+
+The PostgreSQL-backed integration suite is included in that verification.
+
+CI success establishes that the committed repository passes its configured automated verification. **It does not, by itself, prove that the same commit is serving the live production application.** Live production verification remains a separate operational check.
+
+For milestone-specific evidence, see [Phase 5 Gate 3](docs/milestones/phase-5-gate-3-canonical-identity.md).
 
 ---
 
 # 🏗️ Technology Stack
 
-| Layer          | Technology                     |
-|----------------|--------------------------------|
-| Frontend       | Next.js + React                |
-| Language       | TypeScript                     |
-| Database       | Prisma ORM + SQLite            |
-| Styling        | Tailwind CSS                   |
-| Authentication | Local Authentication           |
-| Deployment     | Vercel                         |
-| Data Source    | Arbetsförmedlingen JobTech API |
+| Layer | Technology |
+|---|---|
+| Frontend | Next.js + React |
+| Language | TypeScript |
+| Database / ORM | PostgreSQL + Prisma |
+| Local database option | SQLite |
+| Styling | Tailwind CSS |
+| Authentication | Local/session-derived account authentication |
+| Deployment | Vercel |
+| Primary data source | Arbetsförmedlingen JobTech API |
 
 ---
 
 # 📁 Documentation
 
-- 📄 [Architecture Decision Records](docs/architecture/ADR-001-local-first-architecture.md)
+- 🏛️ [Architecture Decision Records](docs/architecture/README.md)
 - 🧠 [Intelligence Subsystems Guide](docs/INTELLIGENCE_SUBSYSTEMS.md)
+- 🧪 [Phase 5 Gate 3 — Canonical Identity](docs/milestones/phase-5-gate-3-canonical-identity.md)
+- 🔧 [Production Persistence Repair & Acceptance Record](docs/verification/PRODUCTION-PERSISTENCE-REPAIR-ACCEPTED.md)
 - 🛣️ [v2.0 Nordic & SaaS Roadmap](docs/roadmap/ROADMAP_v2.0_NORDIC_SAAS.md)
 - 🖥️ [Tauri Desktop Readiness](docs/TAURI_READINESS.md)
 - 📋 [Release Checklist](docs/RELEASE_CHECKLIST.md)
-- ⚖️ [MIT License](LICENSE)
 - 🤝 [Contribution Guidelines](CONTRIBUTING.md)
+- ⚖️ [MIT License](LICENSE)
 
 ---
 
 # 🚀 Quick Start
 
-Clone the repository
+Clone the repository:
 
 ```bash
 git clone https://github.com/Manoj-Axelsson/JobSeekeR-OSS.git
 cd JobSeekeR-OSS
 ```
 
-Install dependencies
+Install dependencies:
 
 ```bash
 npm install
 ```
 
-Prepare the database
+For local development, configure a PostgreSQL `DATABASE_URL` and then run:
 
 ```bash
+npx prisma generate
 npx prisma db push
-```
-
-Run the development server
-
-```bash
 npm run dev
 ```
 
-Open your browser
+Open:
 
 ```
 http://localhost:3000
 ```
 
+The repository's CI workflow provisions an isolated PostgreSQL service for automated verification.
+
 ---
 
 # 🛣️ Roadmap
 
-## Version 2.0 (Target: September / October 2026 ~ 6 Weeks)
-*Detailed Specification: [docs/roadmap/ROADMAP_v2.0_NORDIC_SAAS.md](docs/roadmap/ROADMAP_v2.0_NORDIC_SAAS.md)*
+## Version 2.0
 
-- 📬 **SaaS Jobs Digest Parser & LinkedIn Feed Scraper**
-- 🇸🇪 **Swedish & Remote (EMEA / Europe) Location Filtering**
-- 🌍 **Nordic Market Open APIs** (🇸🇪 Sweden, 🇳🇴 Norway, 🇩🇰 Denmark, 🇫🇮 Finland)
-- 🤝 **Rootr Ecosystem Local-First Integration Hooks** (`/api/rootr/export`)
-- 🌐 **Nordic Country & Region Filter Tabs UI**
+**Status:** Planned / queued.
+
+The v2.0 roadmap covers Nordic market expansion, additional job-digest ingestion, Swedish/remote filtering, and Rootr ecosystem integration.
+
+See [ROADMAP_v2.0_NORDIC_SAAS.md](docs/roadmap/ROADMAP_v2.0_NORDIC_SAAS.md).
 
 ---
 
@@ -158,7 +178,7 @@ http://localhost:3000
 
 Contributions are welcome.
 
-Please read the [Contribution Guidelines](CONTRIBUTING.md) before submitting pull requests.
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) before submitting changes.
 
 ---
 
@@ -166,7 +186,7 @@ Please read the [Contribution Guidelines](CONTRIBUTING.md) before submitting pul
 
 This project is released under the MIT License.
 
-See the [LICENSE](LICENSE) file for details.
+See [LICENSE](LICENSE) for details.
 
 ---
 
