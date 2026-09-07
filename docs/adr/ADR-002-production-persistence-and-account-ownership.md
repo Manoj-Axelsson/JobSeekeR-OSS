@@ -1,112 +1,96 @@
 # ADR-002: Production Persistence & Dual Account-Ownership Architecture
 
 ## Status
-**Accepted & Implemented in Production** (2026-08-24)
 
----
+**Implemented architectural decision. Historical production acceptance recorded; current live deployment requires independent verification.**
 
-## Context & Problem Statement
+**Decision date:** 2026-08-24
 
-When JobseekeR™ was initially deployed to Vercel Cloud infrastructure under ADR-001 (Local-First Desktop Architecture), the application used an embedded SQLite database (`prisma/dev.db`). In Vercel's serverless environment, runtime database writes were copied to `/tmp/dev.db`.
+## Context
 
-### Original Root Cause of Production Data Loss
-1. **Serverless Ephemeral Storage**: Vercel Serverless Lambda containers maintain isolated, temporary `/tmp` filesystems.
-2. **Container Reset**: Whenever serverless instances cold-started, scaled horizontally, or recycled, `/tmp/dev.db` was reset to the baseline image.
-3. **Data Loss Symptom**: Candidate job saves, application updates, and status changes created during active browser sessions were lost upon container recycling or browser reloads.
+The initial Vercel deployment used SQLite inside a serverless runtime. Because serverless local filesystems are ephemeral and instance-scoped, this was unsuitable for durable authenticated web persistence.
 
----
+The architecture therefore evolved from a single local-first model into explicit deployment modes:
 
-## Decision Drivers & Strategic Architectural Evolution
+- **Local / Desktop:** SQLite remains the local-first persistence option.
+- **Authenticated Cloud Web:** PostgreSQL provides durable persistence with UserAccount ownership boundaries.
 
-While local-first desktop deployments continue to benefit from embedded storage, cloud-deployed multi-tenant web instances require **durable, persistent cloud storage** anchored to explicit candidate ownership boundaries.
+## Decision
 
-Rather than treating local desktop and cloud deployments as identical, the architecture evolves into:
-- **Local-First Desktop**: Embedded SQLite.
-- **Authenticated Cloud Web Deployment**: Hosted **Neon PostgreSQL** backed by **Session-Derived `UserAccount` Ownership Scoping**.
+The authenticated cloud web deployment uses PostgreSQL.
 
----
+The production environment must provide DATABASE_URL. Production must fail safely rather than silently falling back to an ephemeral local database.
 
-## Architectural Changes & Database Schema Design
+JobAd and Application are related to UserAccount through foreign keys. Protected API routes derive ownership from authenticated session context.
 
-### 1. Mandatory PostgreSQL Production Datasource Contract
-- Updated `prisma/schema.prisma` datasource provider to `provider = "postgresql"`.
-- Modified `src/lib/db.ts` to enforce a **fail-fast production environment contract**:
-  - In production (`VERCEL === "1"` or `NODE_ENV === "production"`), `DATABASE_URL` is mandatory.
-  - If `DATABASE_URL` is missing, the application fails safely immediately rather than falling back to an ephemeral `/tmp/dev.db` filesystem.
+JobAd uses the composite uniqueness rule:
 
-### 2. Dual Account-Ownership Model (`UserAccount`)
-Both `JobAd` and `Application` models are account-scoped under `UserAccount`:
+    @@unique([userAccountId, externalId])
 
-```prisma
-model UserAccount {
-  id           String        @id @default(uuid())
-  email        String        @unique
-  name         String
-  jobAds       JobAd[]
-  applications Application[]
-}
+This allows independent candidate accounts to track the same external vacancy while retaining account-specific state.
 
-model JobAd {
-  id            String       @id @default(uuid())
-  userAccountId String?
-  userAccount   UserAccount? @relation(fields: [userAccountId], references: [id], onDelete: Cascade)
-  externalId    String
-  title         String
-  company       String
-  applications  Application[]
+## Security
 
-  @@unique([userAccountId, externalId])
-}
+The ownership model is enforced through:
 
-model Application {
-  id            String       @id @default(uuid())
-  userAccountId String?
-  userAccount   UserAccount? @relation(fields: [userAccountId], references: [id], onDelete: Cascade)
-  jobId         String
-  job           JobAd        @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  status        String
-}
-```
+- session-derived UserAccount identity;
+- database foreign keys;
+- account-scoped data access;
+- rejection of unauthenticated protected requests.
 
-### 3. Composite Uniqueness (`@@unique([userAccountId, externalId])`)
-- Replaced the legacy global `@unique` constraint on `JobAd.externalId` with a candidate composite constraint:
-  `@@unique([userAccountId, externalId])`
-- **Rationale**: Allows independent candidate accounts (User A and User B) to save or discover the same JobTech vacancy simultaneously while maintaining independent match scores, notes, and application statuses.
+Client-supplied ownership identifiers must not be treated as authoritative.
 
-### 4. Session-Derived Tenant Isolation
-- Protected API routes (`/api/jobs`, `/api/applications`, `/api/jobs/import-url`) derive `userAccountId` strictly from the authenticated session (`getAuthenticatedUser(request)`).
-- Client-supplied ownership inputs or URL parameters are explicitly ignored.
-- Unauthenticated requests return `401 Unauthorized`.
+## Historical Data Reconciliation
 
----
+The original production repair recorded successful migration of the recoverable baseline records from the former local database to Neon PostgreSQL:
 
-## Legacy Data Migration & Count Reconciliation Audit
+- 1 UserAccount
+- 21 JobAds
+- 5 Applications
+- 29 baseline UserDocuments, plus 1 pre-existing production document
+- 1 UserProfile
+- 1 CareerProfile
+- 2 SearchProfiles
 
-All baseline recoverable records from `prisma/dev.db` were backfilled with `userAccountId` and migrated 1-to-1 to production Neon PostgreSQL:
+Five historically unrecoverable pre-repair ephemeral application records were separately classified as data that had never reached durable storage.
 
-| Entity Model | SQLite Source (`prisma/dev.db`) | Production Neon Migrated Count | Status |
-| :--- | :--- | :--- | :--- |
-| **`UserAccount`** | **1** | **1** | Primary Candidate Assigned (`Manoj Axelsson`) |
-| **`JobAd`** | **21** | **21** | 100% Match |
-| **`Application`** | **5** | **5** | 100% Match |
-| **`UserDocument`** | **29** | **30** | 29 baseline documents + 1 pre-existing production document |
+## Historical Production Acceptance
 
-### 📌 Formal Ephemeral Record Documentation
-- **Pre-Repair Ephemeral Loss**: The 5 additional applications reflected on Arbetsförmedlingen were submitted on Vercel prior to this architectural repair while running on the ephemeral `/tmp/dev.db` container filesystem. Because `/tmp` storage resets on cold starts, those 5 temporary writes were never saved to disk and are formally documented as **pre-repair ephemeral records**, *not as migration failures*.
-- **Post-Migration Guarantee**: Following successful production rollout and verification, newly applied and imported jobs will persist in Neon PostgreSQL independently of Vercel serverless container lifecycle.
+The original repair acceptance record reported successful production deployment, Neon connectivity, schema migration, legacy data backfill, and browser persistence testing.
 
----
+Those are historical acceptance results. They should not be interpreted as a current guarantee that the live application is still serving the same repository commit after later deployments.
 
-## Verification & Deployment Audit
+## Current Verification Boundary
 
-1. **Unmocked PostgreSQL Integration Gate**: **4/4 Gates Passed** (Foreign key cascade, composite uniqueness, multi-tenant isolation, and migration rehearsal).
-2. **Production Deployment**: Merged to `main` and deployed to Vercel Production (`https://jobseeker.website`).
-3. **Authentication Compatibility Refinements**: Updated `authHelper.ts` and API handlers with `export const dynamic = "force-dynamic"` and robust URL-encoded cookie parsing (`decodeURIComponent`) to ensure seamless cookie evaluation on Vercel serverless functions.
-4. **Live Production Acceptance**: Candidate state updates, job saves, and status transitions survive browser hard refreshes (`Cmd + Shift + R`), cold starts, and container recycling cleanly.
+The current repository is independently CI-verified. The latest recorded workflow for commit 7afefa2 completed successfully, with the repository test suite at 118 passing tests.
 
----
+A green CI result verifies the repository in CI. **It does not establish the currently deployed production commit or runtime configuration.**
 
-## Remaining Acceptance Checks
+Current production acceptance therefore requires an explicit live check of:
 
-- Live multi-account cross-account isolation test (verifying User B cannot view User A data).
-- Automated regression monitoring for unauthenticated `401` enforcement across all new candidate routes.
+1. deployed commit/version;
+2. DATABASE_URL/runtime database connectivity;
+3. authenticated persistence across hard refresh;
+4. account isolation;
+5. relevant API authentication boundaries.
+
+## Consequences
+
+### Positive
+
+- Durable cloud persistence.
+- Explicit candidate ownership.
+- Clear multi-tenant boundaries.
+- SQLite remains available for local-first desktop architecture.
+
+### Negative
+
+- Cloud deployment requires PostgreSQL configuration.
+- Local development and cloud deployment have different persistence requirements.
+- Production acceptance requires both automated verification and live operational verification.
+
+## Related Records
+
+- [ADR-001 — Local-First Architecture](../architecture/ADR-001-local-first-architecture.md)
+- [ADR-004 — Decoupled Career, Search & Territory Domain Model](../architecture/ADR-004-decoupled-career-search-and-territory-domain-model.md)
+- [Production Persistence Repair — Historical Acceptance Record](../verification/PRODUCTION-PERSISTENCE-REPAIR-ACCEPTED.md)
