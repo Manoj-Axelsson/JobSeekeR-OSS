@@ -1,61 +1,47 @@
-# JobseekeR™ — Open Source Download & Setup Guide
+# JobSeekeR™ — Open Source Download & Setup Guide
 
-**JobseekeR™** is an open-source, automated job market scanner, CV competence matcher, and monthly application tracking platform for Sweden's job market (connected to Arbetsförmedlingen JobTech Open Data API).
+JobSeekeR™ is an open-source Career Intelligence Platform for job discovery, competence assessment, application tracking and evidence-based career recommendations.
 
----
+## Local Setup
 
-## 💻 Quick Start & Desktop Setup
+1. Clone the repository.
+2. Install dependencies with `npm install`.
+3. Configure an isolated PostgreSQL `DATABASE_URL`.
+4. Run `npx prisma generate`.
+5. Run `npx prisma db push`.
+6. Start with `npm run dev`.
 
-### Option 1: Run Locally (Web & Desktop View)
+The current Prisma schema is PostgreSQL-backed. Older documentation describing `prisma/dev.db` as the universal application database is historical and should not be followed for the current web schema.
 
-1. **Clone the Repository**:
-   ```bash
-   git clone https://github.com/Manoj-Axelsson/JobSeekeR-OSS.git
-   cd JobSeekeR-OSS
-   ```
+## Current Platform Capabilities
 
-2. **Install Dependencies**:
-   ```bash
-   npm install
-   ```
+- Candidate and search-profile configuration
+- Job ingestion from Arbetsförmedlingen JobTech
+- Primary and Discovery opportunity routing
+- Competency and opportunity assessment
+- Canonical vacancy identity and deduplication
+- Account-scoped job and application ownership
+- CV/document parsing
+- Application tracking
+- Evidence-first positioning and coaching
+- Progressive Web App support
 
-3. **Initialize Database**:
-   ```bash
-   npx prisma db push
-   ```
+## Desktop Direction
 
-4. **Launch Application**:
-   ```bash
-   npm run dev
-   ```
-   Open **http://localhost:3000** in your browser or mobile viewport to launch **JobseekeR™**!
+SQLite remains a local-first desktop option, subject to the desktop packaging architecture. Tauri readiness is documented separately; this guide does not imply that a native desktop package is currently released.
 
----
+## Verification
 
-## 🚀 Key Features in JobseekeR™
-
-- ⚙️ **First-Run Onboarding Setup Wizard**: Visually configure your name, target roles, preferred location, and minimum match score threshold.
-- 📄 **CV & Certificate Upload**: Upload your CV (PDF, DOCX, TXT) and educational certificates to automatically extract technical competences for hyper-accurate matching.
-- ⏱️ **12-Month Automated Data Retention**: Automatic database pruning service purges non-saved listings older than 365 days, keeping the SQLite database fast and lightweight.
-- ⚡ **On-Demand & 12:00 PM Daily Scans**: Trigger immediate job scans or rely on automated daily scans at 12:00 PM noon.
-- 📋 **Aktivitetsrapport Export**: One-click copy for monthly reporting to Arbetsförmedlingen.
-
----
-
-## 🛠️ Building Standalone Desktop Packages (macOS, Windows, Linux)
-
-To package **JobseekeR™** as a native desktop application:
+Before sharing or releasing a change:
 
 ```bash
-# Production Build
+npx tsc --noEmit
+npm test -- --run
 npm run build
-
-# Start Production Mode
-npm run start
 ```
 
----
+See the repository README and release checklist for the current verification status and the distinction between CI verification and live-production verification.
 
-## ⚖️ Open Source License
+## License
 
-Distributed under the **MIT License**. Free for job seekers, developers, and organizations worldwide.
+Distributed under the MIT License.
