@@ -20,7 +20,7 @@ JobSeekeR™ OSS is an open-source Career Intelligence Platform designed to help
 
 The platform combines job ingestion, canonical vacancy identity and deduplication, candidate/account ownership, document parsing, competency and opportunity intelligence, application tracking, and explainable decision support.
 
-The project currently supports a **PostgreSQL-backed authenticated web deployment** and retains a **SQLite local-development/desktop path** as an architectural option. These deployment modes are intentionally distinguished rather than treated as the same persistence model.
+The project currently supports a **PostgreSQL-backed authenticated web deployment** and retains a **SQLite local-development/desktop path as an architectural option**. These deployment modes are intentionally distinguished rather than treated as the same persistence model.
 
 Sweden's official **Arbetsförmedlingen JobTech API** remains the primary job-data integration, with the architecture prepared for future Nordic expansion.
 
@@ -69,7 +69,7 @@ Recommendations are intended to be evidence-first and explainable; the system mu
 JobSeekeR uses deployment-specific persistence:
 
 - **Cloud Web:** PostgreSQL, with authenticated `UserAccount` ownership boundaries.
-- **Local / Desktop Direction:** SQLite remains supported as a local-first deployment option.
+- **Local / Desktop Direction:** SQLite remains a local-first architectural option; the current checked-in Prisma schema is PostgreSQL and is not itself a SQLite desktop schema.
 - **ORM:** Prisma.
 
 The production web architecture does **not** fall back to an ephemeral local database when PostgreSQL is unavailable. Production database configuration is an explicit deployment contract.
@@ -83,16 +83,14 @@ See:
 
 # 🧪 Verification Status
 
-The repository's latest recorded GitHub Actions run for commit `7afefa2` completed successfully on September 6, 2026.
-
-The corresponding local verification completed with:
+The repository has a verified implementation baseline at commit `7afefa2` from September 6, 2026:
 
 - **33 test files passed**
 - **118 tests passed**
 - **0 skipped**
 - **0 failed**
 
-The PostgreSQL-backed integration suite is included in that verification.
+The PostgreSQL-backed integration suite is included in that verification. The subsequent documentation-reconciliation commits on September 7 also passed GitHub Actions.
 
 CI success establishes that the committed repository passes its configured automated verification. **It does not, by itself, prove that the same commit is serving the live production application.** Live production verification remains a separate operational check.
 
@@ -107,7 +105,7 @@ For milestone-specific evidence, see [Phase 5 Gate 3](docs/milestones/phase-5-ga
 | Frontend | Next.js + React |
 | Language | TypeScript |
 | Database / ORM | PostgreSQL + Prisma |
-| Local database option | SQLite |
+| Local database option | SQLite architectural path for local/desktop deployment |
 | Styling | Tailwind CSS |
 | Authentication | Local/session-derived account authentication |
 | Deployment | Vercel |

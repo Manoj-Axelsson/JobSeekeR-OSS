@@ -11,7 +11,9 @@ JobSeekeR™ is an open-source Career Intelligence Platform for job discovery, c
 5. Run `npx prisma db push`.
 6. Start with `npm run dev`.
 
-The current Prisma schema is PostgreSQL-backed. Older documentation describing `prisma/dev.db` as the universal application database is historical and should not be followed for the current web schema.
+The current checked-in Prisma schema is PostgreSQL-backed. Older documentation describing `prisma/dev.db` as the universal application database is historical and should not be followed for the current web schema.
+
+The SQLite local-first path remains a future/explicit desktop architecture option; it is not the database provider of the current checked-in web schema.
 
 ## Current Platform Capabilities
 

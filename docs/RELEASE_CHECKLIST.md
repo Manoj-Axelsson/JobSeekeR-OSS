@@ -2,7 +2,9 @@
 
 This is the current release-verification record. Older v1.0 checklist claims are historical and are not current release status.
 
-## Current Repository Verification — September 6, 2026
+## Implementation Verification Baseline — September 6, 2026
+
+The Phase 5 implementation baseline at commit `7afefa2` was verified with:
 
 - TypeScript: `npx tsc --noEmit` — 0 errors.
 - Repository tests: **33 test files passed; 118 tests passed; 0 skipped; 0 failed.**
@@ -10,6 +12,8 @@ This is the current release-verification record. Older v1.0 checklist claims are
 - GitHub Actions: the workflow run for commit `7afefa2` completed successfully.
 - Local production build: `npm run build` completed successfully in the verified run.
 - The working tree was clean after the verified run and the PostgreSQL fixture repair was committed.
+
+Documentation-only reconciliation commits followed on September 7, 2026 and also passed CI. They did not change the implementation verification baseline above.
 
 ## Production Verification Boundary
 
