@@ -1,23 +1,30 @@
 # Tauri v2 Desktop Packaging Readiness Assessment
 
-- **Target**: Desktop Packaging via Tauri v2 (Rust-backed lightweight webview wrapper for macOS, Windows, and Linux).
-- **Assessment Date**: 2026-08-02
-- **Status**: **Assessment Only (No Implementation Required in Sprint 34)**
+- **Target:** Desktop packaging via Tauri v2 for macOS, Windows and Linux.
+- **Assessment Date:** 2026-08-02
+- **Status:** Assessment only; no native desktop implementation is claimed by this document.
 
----
+## Architectural Position
 
-## 1. Architectural Compatibility Matrix
+SQLite remains the intended local-first persistence option for a desktop deployment. The authenticated cloud web deployment uses PostgreSQL and is documented separately in ADR-002.
 
-| Area | Ready | Notes |
-|:---|:---:|:---|
-| **React Components** | ✅ | Fully compatible with client-side hydration |
-| **Prisma** | ✅ | SQLite embedded database (`file:./dev.db`) compatible |
-| **Routing** | ⚠ | Review deep linking & static export routing |
-| **File Upload** | ⚠ | Implement native OS dialog plugin (`tauri-plugin-dialog`) in future packaging sprint |
-| **Notifications** | ⚠ | Implement native OS notifications plugin (`tauri-plugin-notification`) in future packaging sprint |
+This distinction is important: Tauri readiness does not mean that the current web production deployment uses SQLite.
 
----
+## Compatibility Matrix
 
-## 2. Next Steps for Native Packaging Sprint
-1. Run `npx tauri init` to initialize the `src-tauri` Rust manifest.
-2. Add `@tauri-apps/api` for native file drag-and-drop support.
+| Area | Status | Notes |
+|---|---|---|
+| React Components | Ready | Compatible with client-side hydration |
+| Prisma | Conditional | SQLite is suitable for the local desktop architecture; cloud PostgreSQL is a separate deployment mode |
+| Routing | Review required | Deep linking and routing must be verified during packaging |
+| File Upload | Review required | Native OS dialog integration may be required |
+| Notifications | Review required | Native notification integration may be required |
+
+## Future Native Packaging Work
+
+1. Initialize the Tauri project when desktop packaging is explicitly authorized.
+2. Add and verify the required Tauri APIs/plugins.
+3. Define the desktop database lifecycle and backup/export behavior.
+4. Run platform-specific packaging and acceptance tests.
+
+No released native desktop package should be inferred from this readiness assessment.
