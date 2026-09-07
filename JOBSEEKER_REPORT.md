@@ -1,156 +1,124 @@
-# JobSeekeR: Comprehensive Technical Report & Customization Blueprint
+# JobSeekeR™ — Technical Report & Customization Blueprint
 
-**Author:** Manoj John Axelsson  
-**Project:** JobSeekeR  
-**Repository:** [github.com/Manoj-Axelsson/JobSeekeR-OSS](https://github.com/Manoj-Axelsson/JobSeekeR-OSS)  
-**Date:** July 28, 2026  
+**Project:** JobSeekeR™ OSS  
+**Repository:** Manoj-Axelsson/JobSeekeR-OSS  
+**Document status:** Maintained technical overview
 
----
+> This document supersedes older descriptions that treated SQLite as the universal application database. Historical implementation details are intentionally not presented as current architecture.
 
-## 1. Executive Summary & Purpose
+## 1. Purpose
 
-**JobSeekeR** is an automated daily job market scanner, multi-domain skill matching engine, and monthly application tracking dashboard designed for the Swedish job market. 
+JobSeekeR is an open-source Career Intelligence Platform for job discovery, competence assessment, application tracking and evidence-based career decision support.
 
-Every day at **12:00 PM (noon)**, the application automatically fetches newly published job advertisements from Sweden's official public job database (**Arbetsförmedlingen JobTech API**), evaluates each job posting against a candidate's specific competence profile, calculates a weighted **Match Score (0-100%)**, generates **Cover Letter Pitch Strategies**, and logs applications on a monthly basis.
+The platform combines external job ingestion, normalized opportunity data, candidate/search context, eligibility and scoring, canonical vacancy identity, account ownership, and explainable intelligence.
 
----
+## 2. Current Technology Stack
 
-## 2. Full Tech Stack & Dependencies
+| Layer | Current technology |
+|---|---|
+| Web framework | Next.js 16 App Router |
+| UI | React 19 |
+| Language | TypeScript |
+| ORM | Prisma 6 |
+| Cloud web database | PostgreSQL |
+| Local/desktop database option | SQLite |
+| Styling | Tailwind CSS |
+| Deployment | Vercel |
+| Primary job source | Arbetsförmedlingen JobTech |
 
-The application is built on a modern, high-performance, self-contained architecture requiring zero paid external database hosting or third-party server infrastructure.
+The current Prisma schema is PostgreSQL-backed. SQLite remains a deployment option for local-first desktop architecture rather than the production web database.
 
-### Core Architecture & Frameworks
-| Layer | Technology Used | Version / Details | Purpose |
-| :--- | :--- | :--- | :--- |
-| **Web Framework** | **Next.js** | `16.2.11` (App Router, Turbopack) | Server-side API routes, static site generation, fast client rendering |
-| **UI Library** | **React** | `19.2.4` | Component-based interactive dashboard UI |
-| **Language** | **TypeScript** | `^5.0.0` | Strict type safety across database models, API services, and UI components |
-| **Styling** | **Tailwind CSS** | `^4.0.0` | Utility-first styling, glassmorphism, responsive grid layouts |
-| **Typography** | **Cochin Serif** | `Cochin, Georgia, serif` | High-legibility serif typography (19px body text, 22-29px headers) |
-| **Theme Engine** | **CSS Variables + React State** | Custom Theme Engine | Supports **Light Mode**, **Dark Mode**, and **System OS Preference** |
+## 3. Current Domain Architecture
 
-### Database & Persistence
-| Component | Technology | Version | Purpose |
-| :--- | :--- | :--- | :--- |
-| **Database** | **SQLite** | `prisma/dev.db` | Local file-based relational database (zero-config, self-contained) |
-| **ORM** | **Prisma ORM** | `^6.19.3` (`@prisma/client`) | Type-safe database queries, schema migrations, and seeding |
+The platform separates:
 
-### Data Integrations & Services
-| Integration | Provider / Protocol | Endpoint | Function |
-| :--- | :--- | :--- | :--- |
-| **Swedish Job Stream API** | **Arbetsförmedlingen JobTech Open Data** | `https://jobsearch.api.jobtechdev.se/search` | Fetches real-time structured JSON job postings from Platsbanken |
-| **Matching Engine** | **Custom Multi-Domain Classifier** | `src/lib/services/matcher.ts` | Weighted skill keyword matching, domain scoring, and gap analysis |
-| **Cron Scanner** | **Next.js API Route** | `/api/cron/scrape` | Triggers daily scanning at 12:00 PM noon and logs scan results |
+1. **Candidate / Career Profile** — what the candidate brings.
+2. **Search Profile** — what the candidate wants.
+3. **Search Territory** — where the candidate is willing to work.
+4. **Opportunity / JobAd** — what is available.
 
----
+Search Profiles may represent different career tracks. Primary and Discovery feeds are intentionally separated.
 
-## 3. How to Use this Dashboard for Specific Job Searches
+See ADR-004 for the constitutional v2 domain model.
 
-The system can be configured to target any specialized job search criteria in Sweden or internationally.
+## 4. Production Persistence & Ownership
 
-### A. Configuring Target Job Keywords & Roles
-Search queries are managed in [`src/lib/services/jobtech.ts`](file:///Users/manoj-axelsson/Development/JobSeekeR-OSS/src/lib/services/jobtech.ts#L16). 
-You can customize the `keywords` array to search for specific roles:
+The authenticated cloud deployment uses PostgreSQL with explicit UserAccount ownership boundaries.
 
-```typescript
-// Example: Targeting Software, Systems, Manufacturing, and Quality Engineering
-const defaultKeywords = [
-  "fullstack", 
-  "react typescript", 
-  "systems engineer", 
-  "manufacturing engineer", 
-  "quality engineer", 
-  "automation engineer",
-  "requirement engineer"
-];
-```
+JobAd and Application records may be global or associated with a UserAccount according to the current domain rules. Protected API routes derive ownership from authenticated session context rather than trusting client-supplied ownership identifiers.
 
-### B. Adjusting Minimum Match Thresholds
-On the **Competence Profile & Skills** tab of the dashboard, you can adjust the **Minimum Match Threshold slider** (e.g. `45%`, `60%`, `75%`). 
-- Only job ads meeting or exceeding this match threshold will be saved to your **Daily Feed**.
+Production persistence architecture is documented in:
 
-### C. Using the Strategic Cover Letter & Pitch Insights
-When viewing any job card, clicking **"💡 Score Breakdown & Pitch Strategy"** opens a detailed breakdown containing:
-1. **Why This Job Matched You:** Specific competence domain alignment (e.g., Software, Systems, Quality, Industrial).
-2. **Potential Skill Gaps:** Specific technologies mentioned in the ad that you may be missing (e.g., *Docker, AWS, ISO 13485*).
-3. **Tailored Application Pitch Strategy:**
-   - *Recommended Cover Letter Opening Line*
-   - *How to Frame & Address Missing Qualifications*
-   - *Key Copyable Resume/Cover Letter Bullet Points*
+docs/adr/ADR-002-production-persistence-and-account-ownership.md
 
-### D. Monthly Application Log & Tracker
-Under the **Monthly Application Tracker** tab, all applied positions are organized by month (`2026-07`, `2026-08`, etc.). You can track application statuses (`Applied`, `Interviewing`, `Offer Received 🎉`, `Rejected`) and record notes per job application.
+## 5. Canonical Job Identity
 
----
+The platform uses multiple identity levels:
 
-## 4. How Others Can Download & "Train" This Model for Their Own Profile
+- source identity through externalId;
+- normalized web identity through canonicalUrl;
+- deterministic candidate identity/grouping through canonicalHash;
+- internal database identity through JobAd.id.
 
-**Yes! This system is 100% open-source, modular, and easy for any job seeker or organization to clone, configure, and "train" for their specific career profile.**
+Phase 5 Gate 3 added centralized resolution and two-layer concurrency protection, including PostgreSQL transaction advisory locks for PostgreSQL transactions.
 
-### Step 1: Clone the Repository
-```bash
-git clone https://github.com/Manoj-Axelsson/JobSeekeR-OSS.git
-cd JobSeekeR-OSS
-npm install
-```
+## 6. Intelligence Architecture
 
-### Step 2: "Train" (Configure) the Model to a New Candidate Profile
+Principal intelligence domains include:
 
-#### 1. Update the Candidate Profile Seed ([`prisma/seed.ts`](file:///Users/manoj-axelsson/Development/JobSeekeR-OSS/prisma/seed.ts))
-Replace Manoj's profile data with the new candidate's name, headline, target roles, and skill domains:
+- Opportunity
+- Competency
+- Positioning
+- Application Coaching
+- Decision Support
 
-```typescript
-// prisma/seed.ts
-const newCandidateProfile = {
-  id: "user_main",
-  name: "Jane Doe",
-  headline: "DevOps Engineer | Cloud Architect | Kubernetes Specialist",
-  location: "Stockholm, Sweden",
-  targetRoles: JSON.stringify(["DevOps Engineer", "Cloud Architect", "Site Reliability Engineer"]),
-  skills: JSON.stringify({
-    domain1: ["AWS", "Kubernetes", "Docker", "Terraform", "CI/CD"],
-    domain2: ["Linux", "Python", "Bash", "Prometheus", "Grafana"],
-  }),
-  minMatchScore: 50,
-};
-```
+Supporting modules cover market, salary, prediction, recommendations, matching and scoring.
 
-#### 3. Customize Skill Taxonomy & Keywords ([`src/lib/services/matcher.ts`](file:///Users/manoj-axelsson/Development/JobSeekeR-OSS/src/lib/services/matcher.ts#L22))
-Modify the `TAXONOMY` object in `matcher.ts` to reflect the candidate's core domain keywords:
+The governing product principle is:
 
-```typescript
-const TAXONOMY = {
-  cloud: ["aws", "azure", "gcp", "terraform", "cloudformation"],
-  devops: ["kubernetes", "docker", "ci/cd", "github actions", "helm"],
-  monitoring: ["prometheus", "grafana", "datadog", "elk", "opentelemetry"],
-};
-```
+> AI assists. Humans decide.
 
-### Step 3: Initialize Database & Run Seed
-```bash
-# Push Prisma schema to create local SQLite database (dev.db)
-npx prisma db push
+The evidence-first architecture must not fabricate candidate experience, education, achievements or certifications.
 
-# Seed candidate profile
-npx tsx prisma/seed.ts
-```
+## 7. Verification Baseline
 
-### Step 4: Run Initial Job Scan & Launch Dashboard
-```bash
-# Run initial scan from Arbetsförmedlingen JobTech API
-npx tsx scripts/test-scrape.ts
+The latest repository verification recorded on September 6, 2026:
 
-# Start development dashboard
-npm run dev
-```
+- **33 test files passed**
+- **118 tests passed**
+- **0 skipped**
+- **0 failed**
+- TypeScript check passed with 0 errors.
+- Production build completed successfully in the verified local run.
+- The GitHub Actions run for commit 7afefa2 completed successfully.
 
-Open [http://localhost:3000](http://localhost:3000) in your browser to view your personalized job market scanner!
+CI verification confirms the committed repository under the configured CI environment. It does not independently prove that the same commit is serving the live production application.
 
----
+## 8. Customization
 
-## 5. Summary & Key Advantages
+For contributors or derivative deployments, review:
 
-1. **Zero Hosting Cost:** Runs completely on your local machine with a zero-maintenance SQLite database (`prisma/dev.db`).
-2. **Official Data Integrity:** Directly connected to Sweden's public Arbetsförmedlingen JobTech API for accurate, real-time job listings.
-3. **Strategic Pitch Generator:** Automatically provides cover letter opening hooks and gap mitigation strategies for every job.
-4. **Accessible Design:** Features high-contrast Cochin serif typography, adjustable text sizing, Light/Dark/System themes, and monthly tracking logs.
+- prisma/schema.prisma for the current data model;
+- src/lib/services/matcher.ts for matching behavior;
+- src/lib/services/jobtech.ts for JobTech ingestion;
+- src/intelligence/ for intelligence domains;
+- docs/architecture/ and docs/adr/ for architectural decisions.
+
+Do not copy production credentials into source code or documentation.
+
+## 9. Documentation Authority
+
+For current architecture, use the latest accepted ADRs and the current Prisma schema together.
+
+Historical documents remain valuable evidence of how the platform evolved, but historical claims about storage, version numbers or test counts must not be interpreted as current state without checking the current repository.
+
+## 10. Related Documentation
+
+- README.md
+- docs/architecture/README.md
+- docs/architecture/ADR-001-local-first-architecture.md
+- docs/adr/ADR-002-production-persistence-and-account-ownership.md
+- docs/architecture/ADR-004-decoupled-career-search-and-territory-domain-model.md
+- docs/milestones/phase-5-gate-3-canonical-identity.md
+- docs/verification/PRODUCTION-PERSISTENCE-REPAIR-ACCEPTED.md
+- docs/RELEASE_CHECKLIST.md
