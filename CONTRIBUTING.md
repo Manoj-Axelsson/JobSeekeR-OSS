@@ -1,36 +1,45 @@
-# Contributing to JobseekeR™
+# Contributing to JobSeekeR™
 
-Thank you for your interest in contributing to **JobseekeR™ — An intelligence platform built to automate job searching**.
+Thank you for your interest in contributing to JobSeekeR™ — an evidence-based Career Intelligence Platform.
 
-## Code of Conduct & Principles
-- **Local-First & Privacy First**: All candidate data must remain embedded locally (SQLite) without third-party tracking.
-- **Evidence-Based Intelligence**: Recommendations and confidence scores must be statistically explainable.
-- **Accessibility (WCAG 2.1 AA)**: High contrast, screen reader compatibility, and touch targets are strictly required.
+## Engineering Principles
+
+- Explicit deployment architecture: local/desktop deployments may use SQLite; the authenticated cloud web deployment uses PostgreSQL.
+- Ownership boundaries: user-owned records must remain scoped to the authenticated UserAccount; do not trust client-supplied ownership identifiers.
+- Evidence-based intelligence: recommendations and scores must be explainable and must not fabricate candidate evidence.
+- Accessibility: maintain the project's accessibility requirements when changing user-facing interfaces.
+- Small, reviewable changes: preserve clear feature boundaries and conventional commit messages.
 
 ## Getting Started
-1. Fork the repository on GitHub.
-2. Clone your fork locally:
-  ```bash
-git clone https://github.com/Manoj-Axelsson/JobSeekeR-OSS.git
 
-cd JobSeekeR-OSS
-```
-3. Install dependencies:
-   ```bash
-   npm install
-   ```
-4. Run the local development server:
-   ```bash
-   npm run dev
-   ```
+1. Fork the repository.
+2. Clone your fork.
+3. Install dependencies with npm install.
+4. Configure a PostgreSQL DATABASE_URL for local development.
+5. Generate the Prisma client with npx prisma generate.
+6. Apply the current schema with npx prisma db push.
+7. Start the development server with npm run dev.
 
-## Development & Verification Guidelines
-Before submitting a Pull Request, verify that:
-1. `npx tsc --noEmit` passes with 0 errors.
-2. `npm run build` compiles cleanly.
-3. Code changes adhere to TypeScript strict mode.
+## Verification Before Pull Request
 
-## Submitting Pull Requests
-- Create a descriptive branch name (`feat/your-feature` or `fix/your-bugfix`).
-- Commit changes using conventional commit messages.
-- Open a Pull Request referencing the relevant issue.
+Run the core checks used by CI:
+
+    npx tsc --noEmit
+    npm test -- --run
+    npm run build
+
+For PostgreSQL integration tests, ensure TEST_DATABASE_URL points to an isolated test database.
+
+A successful local test run and a successful GitHub Actions run verify the committed code under those environments. They do not independently prove that a particular production deployment is serving that commit.
+
+## Pull Requests
+
+- Create a descriptive branch name such as feat/... or fix/....
+- Use conventional commit messages.
+- Explain architectural or schema changes explicitly.
+- Include relevant test evidence.
+- Do not commit secrets, local database files, or environment-specific credentials.
+
+## Architecture Documentation
+
+Significant architectural decisions belong in an ADR. When an existing decision changes, update the relevant ADR or add a new one rather than silently rewriting history.
