@@ -10,5 +10,5 @@ Summary of the changes introduced in this Pull Request.
 ## Verification Checklist
 - [ ] `npx tsc --noEmit` passes cleanly with 0 errors.
 - [ ] `npm run build` compiles successfully.
-- [ ] Local-first SQLite privacy is preserved.
-- [ ] Accessibility (WCAG 2.1 AA) compliance verified.
+- [ ] Persistence boundaries are preserved: PostgreSQL/account ownership for authenticated cloud deployment, with SQLite limited to explicitly supported local/desktop architecture.
+- [ ] Accessibility requirements remain satisfied for changed user-facing interfaces.

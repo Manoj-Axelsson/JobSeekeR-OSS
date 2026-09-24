@@ -1,5 +1,6 @@
 # 🛣️ JobSeekeR v2.0 Roadmap & Architectural Specification
 
+**Current package line:** 1.0.1  
 **Target Milestone:** Version 2.0 (v2.0.0) — September / October 2026 (~6 Weeks Window)  
 **Status:** Planned / Queued  
 **Focus:** SaaS Jobs Digest Parser, Swedish/Remote Filter Engine, Nordic Market Expansion, Rootr Ecosystem Integration
@@ -8,7 +9,9 @@
 
 ## 📅 Schedule & Strategy
 
-JobSeekeR v1.1.0 will run in production for 6 weeks to collect real-world user feedback and usage metrics. In **September / October 2026**, **Version 2.0** will be executed according to this specification as a major platform release.
+The current repository package line is **1.0.1**. The roadmap anticipates a future stabilization/feedback phase before the v2.0 execution window; v1.1.0 is therefore a planned milestone, not the current package version.
+
+In **September / October 2026**, Version 2.0 is planned to be executed according to this specification as a major platform release. The schedule is a planning target, not a statement that v2.0 functionality is already implemented or released.
 
 ---
 
@@ -34,5 +37,5 @@ JobSeekeR v1.1.0 will run in production for 6 weeks to collect real-world user f
 ---
 
 ## 📄 Related Documentation
-- 📄 [Architecture Decision Records](../architecture/ADR-001-local-first-architecture.md)
+- 📄 [Architecture Decision Records](../architecture/README.md)
 - 📊 [JobSeekeR Technical Report](../../JOBSEEKER_REPORT.md)
