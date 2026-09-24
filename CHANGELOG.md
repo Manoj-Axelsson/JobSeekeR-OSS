@@ -5,6 +5,27 @@ All notable changes to **JobSeekeR™** will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] — Dependency Maintenance Checkpoint
+
+### Changed
+- **Next.js**: Updated from `16.2.11` to `16.3.6`.
+- **eslint-config-next**: Updated from `16.2.11` to `16.3.6`.
+- **Vitest**: Updated from `3.2.7` to `4.1.11`.
+- **Vitest configuration**: Renamed `vitest.config.ts` to `vitest.config.mts` and replaced `__dirname` with `import.meta.dirname` for forward-compatible ESM configuration.
+- **Transitive dependencies**: Applied non-breaking fixes through `npm audit fix`.
+
+### Validation
+- **Production build**: Passed with Next.js `16.3.6`.
+- **TypeScript**: `npx tsc --noEmit` passed.
+- **Test suite**: 32 test files passed; 108 tests passed, 10 skipped.
+- **Dependency audit**: Reduced reported vulnerabilities from 11 to 3 high-severity findings.
+
+### Known Dependency Exception
+- **Prisma `6.19.3`** remains unchanged.
+- The remaining `deepmerge-ts` advisory is transitive through `@prisma/config@6.19.3`.
+- `npm audit fix --force` was deliberately not used because npm proposes a Prisma `6.12.0` change rather than a controlled security migration.
+- Prisma migration will be evaluated separately before the next major database/domain architecture change.
+
 ## [2.0.0] - 2026-08-04
 
 ### Added & Architecture Overhaul
