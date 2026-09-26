@@ -1,3 +1,5 @@
+import { SourceVacancy } from "@/lib/services/identity";
+
 export interface JobTechAd {
   id: string;
   headline: string;
@@ -11,7 +13,27 @@ export interface JobTechAd {
   nice_to_have?: { skills?: Array<{ label: string }> };
 }
 
+export function jobTechAdToSourceVacancy(ad: JobTechAd): SourceVacancy {
+  const city = ad.workplace_address?.city || ad.workplace_address?.municipality || "Sweden";
+  const descText = ad.description?.text || "";
+  const companyName = ad.employer?.name || "Unknown Company";
+  const webpageUrl = ad.webpage_url || `https://platsbanken.se/arbetsforetag/${ad.id}`;
+
+  return {
+    externalId: ad.id,
+    title: ad.headline,
+    company: companyName,
+    location: city,
+    description: descText,
+    webpageUrl,
+    source: "Arbetsförmedlingen JobTech",
+    publishedAt: new Date(ad.publication_date || Date.now()),
+    deadline: ad.application_deadline ? new Date(ad.application_deadline) : null,
+  };
+}
+
 export interface FetchJobsParams {
+
   keywords?: string[];
   limit?: number;
 }

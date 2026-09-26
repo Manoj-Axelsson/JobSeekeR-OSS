@@ -1,3 +1,5 @@
+import { SourceVacancy } from "@/lib/services/identity";
+
 export interface LinkedInJobAd {
   id: string;
   headline: string;
@@ -7,6 +9,21 @@ export interface LinkedInJobAd {
   webpageUrl: string;
   publicationDate: string;
 }
+
+export function linkedInAdToSourceVacancy(ad: LinkedInJobAd): SourceVacancy {
+  return {
+    externalId: ad.id,
+    title: ad.headline,
+    company: ad.company,
+    location: ad.location,
+    description: ad.description,
+    webpageUrl: ad.webpageUrl,
+    source: "LinkedIn Jobs",
+    publishedAt: new Date(ad.publicationDate || Date.now()),
+    deadline: null,
+  };
+}
+
 
 async function fetchLinkedInJobDetails(jobIdNumeric: string): Promise<string | null> {
   try {

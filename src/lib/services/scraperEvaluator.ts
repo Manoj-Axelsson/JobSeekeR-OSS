@@ -1,17 +1,18 @@
 import { evaluateOpportunityAssessment } from "@/lib/services/matcher";
-import { resolveCanonicalJob } from "@/lib/services/identity";
+import { resolveCanonicalJob, SourceVacancy, createIngestionInput } from "@/lib/services/identity";
 
 export interface ProcessVacancyParams {
   db: any;
-  externalId: string;
-  title: string;
-  company: string;
-  location: string;
-  description: string;
-  webpageUrl: string;
-  source: string;
-  publishedAt: Date;
-  deadline: Date | null;
+  sourceVacancy?: SourceVacancy;
+  externalId?: string;
+  title?: string;
+  company?: string;
+  location?: string;
+  description?: string;
+  webpageUrl?: string | null;
+  source?: string;
+  publishedAt?: Date;
+  deadline?: Date | null;
   activeSearchProfiles: any[];
   activeCareerProfile: any;
   candidateSkills: string[];
@@ -30,32 +31,36 @@ export async function processScrapedVacancy(
 ): Promise<ProcessVacancyResult> {
   const {
     db,
-    externalId,
-    title,
-    company,
-    location,
-    description,
-    webpageUrl,
-    source,
-    publishedAt,
-    deadline,
+    sourceVacancy,
     activeSearchProfiles,
     activeCareerProfile,
     candidateSkills,
   } = params;
 
-  const { job: jobRecord, isNew: isNewJob } = await resolveCanonicalJob(db, {
+  const vacancy: SourceVacancy = sourceVacancy || {
+    externalId: params.externalId!,
+    title: params.title!,
+    company: params.company!,
+    location: params.location!,
+    description: params.description!,
+    webpageUrl: params.webpageUrl || null,
+    source: params.source!,
+    publishedAt: params.publishedAt || new Date(),
+    deadline: params.deadline || null,
+  };
+
+  const ingestionInput = createIngestionInput(vacancy, { status: "NEW" });
+
+  const { job: jobRecord, isNew: isNewJob } = await resolveCanonicalJob(db, ingestionInput);
+
+  const {
     externalId,
     title,
     company,
     location,
     description,
-    webpageUrl,
-    source,
-    publishedAt,
-    deadline,
-    status: "NEW",
-  });
+  } = vacancy;
+
 
   let highestOverallMatchScore = 0;
   let primaryFeedType: "PRIMARY" | "DISCOVERY" = "DISCOVERY";

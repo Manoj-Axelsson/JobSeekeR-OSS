@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { fetchSwedishJobs } from "@/lib/services/jobtech";
-import { fetchLinkedInSwedishJobs } from "@/lib/services/linkedin";
+import { fetchSwedishJobs, jobTechAdToSourceVacancy } from "@/lib/services/jobtech";
+import { fetchLinkedInSwedishJobs, linkedInAdToSourceVacancy } from "@/lib/services/linkedin";
+import { fetchWebbjobbVacancies } from "@/lib/services/webbjobb";
 import { ensureV2ProfilesExist } from "@/lib/services/pipeline/seedV2";
 import { processScrapedVacancy } from "@/lib/services/scraperEvaluator";
+import { SourceVacancy } from "@/lib/services/identity";
 
 export const dynamic = "force-dynamic";
 
@@ -71,25 +73,23 @@ async function handleScrape() {
 
     const rawJobTechAds = await fetchSwedishJobs(searchTermsArray);
     const rawLinkedInAds = await fetchLinkedInSwedishJobs(searchTermsArray);
+    const webbjobbVacancies = await fetchWebbjobbVacancies();
 
-    totalFound = rawJobTechAds.length + rawLinkedInAds.length;
+    const jobTechVacancies = rawJobTechAds.map(jobTechAdToSourceVacancy);
+    const linkedInVacancies = rawLinkedInAds.map(linkedInAdToSourceVacancy);
 
-    for (const ad of rawJobTechAds) {
-      const city = ad.workplace_address?.city || ad.workplace_address?.municipality || "Sweden";
-      const descText = ad.description?.text || "";
-      const companyName = ad.employer?.name || "Unknown Company";
+    const allVacancies: SourceVacancy[] = [
+      ...jobTechVacancies,
+      ...linkedInVacancies,
+      ...webbjobbVacancies,
+    ];
 
+    totalFound = allVacancies.length;
+
+    for (const vacancy of allVacancies) {
       const res = await processScrapedVacancy({
         db,
-        externalId: ad.id,
-        title: ad.headline,
-        company: companyName,
-        location: city,
-        description: descText,
-        webpageUrl: ad.webpage_url || `https://platsbanken.se/arbetsforetag/${ad.id}`,
-        source: "Arbetsförmedlingen JobTech",
-        publishedAt: new Date(ad.publication_date || Date.now()),
-        deadline: ad.application_deadline ? new Date(ad.application_deadline) : null,
+        sourceVacancy: vacancy,
         activeSearchProfiles,
         activeCareerProfile,
         candidateSkills,
@@ -99,26 +99,6 @@ async function handleScrape() {
       if (res.isNew && res.isMatched) newAdded++;
     }
 
-    for (const ad of rawLinkedInAds) {
-      const res = await processScrapedVacancy({
-        db,
-        externalId: ad.id,
-        title: ad.headline,
-        company: ad.company,
-        location: ad.location,
-        description: ad.description,
-        webpageUrl: ad.webpageUrl,
-        source: "LinkedIn Jobs",
-        publishedAt: new Date(ad.publicationDate || Date.now()),
-        deadline: null,
-        activeSearchProfiles,
-        activeCareerProfile,
-        candidateSkills,
-      });
-
-      if (res.isMatched) totalMatched++;
-      if (res.isNew && res.isMatched) newAdded++;
-    }
 
     const allNewJobs = await db.jobAd.findMany({ where: { status: "NEW" } });
     

@@ -46,6 +46,48 @@ export function computeCanonicalHash(company: string, title: string, location: s
   return crypto.createHash("sha256").update(`${normCompany}::${normTitle}::${normLocation}`, "utf8").digest("hex");
 }
 
+export interface SourceVacancy {
+  externalId: string;
+  title: string;
+  company: string;
+  location: string;
+  description: string;
+  webpageUrl: string | null;
+  source: string;
+  publishedAt: Date;
+  deadline: Date | null;
+}
+
+export function createIngestionInput(
+  sourceVacancy: SourceVacancy,
+  meta?: {
+    userAccountId?: string | null;
+    status?: string;
+    matchScore?: number;
+    matchedSkills?: string;
+    missingSkills?: string;
+    domainScores?: string;
+  }
+): IngestionVacancyInput {
+  return {
+    externalId: sourceVacancy.externalId,
+    title: sourceVacancy.title,
+    company: sourceVacancy.company,
+    location: sourceVacancy.location,
+    description: sourceVacancy.description,
+    webpageUrl: sourceVacancy.webpageUrl,
+    source: sourceVacancy.source,
+    publishedAt: sourceVacancy.publishedAt,
+    deadline: sourceVacancy.deadline,
+    userAccountId: meta?.userAccountId ?? null,
+    status: meta?.status ?? "NEW",
+    matchScore: meta?.matchScore ?? 0,
+    matchedSkills: meta?.matchedSkills ?? "[]",
+    missingSkills: meta?.missingSkills ?? "[]",
+    domainScores: meta?.domainScores ?? "{}",
+  };
+}
+
 export interface IngestionVacancyInput {
   externalId: string;
   title: string;
@@ -163,6 +205,32 @@ export async function resolveCanonicalJob(
             status: input.status && input.status !== "NEW" ? input.status : existingJob.status,
           },
         });
+
+        if (input.source && input.externalId && typeof client.jobAdSource?.upsert === "function") {
+          await client.jobAdSource.upsert({
+            where: {
+              source_externalId: {
+                source: input.source,
+                externalId: input.externalId,
+              },
+            },
+            create: {
+              jobId: updatedJob.id,
+              source: input.source,
+              externalId: input.externalId,
+              webpageUrl: input.webpageUrl || null,
+              publishedAt: input.publishedAt,
+              deadline: input.deadline || null,
+            },
+            update: {
+              jobId: updatedJob.id,
+              webpageUrl: input.webpageUrl || null,
+              publishedAt: input.publishedAt,
+              deadline: input.deadline || null,
+            },
+          });
+        }
+
         return { job: updatedJob, isNew: false, canonicalUrl: updatedJob.canonicalUrl, canonicalHash: updatedJob.canonicalHash };
       }
 
@@ -177,6 +245,32 @@ export async function resolveCanonicalJob(
           status: input.status ?? "NEW",
         },
       });
+
+      if (input.source && input.externalId && typeof client.jobAdSource?.upsert === "function") {
+        await client.jobAdSource.upsert({
+          where: {
+            source_externalId: {
+              source: input.source,
+              externalId: input.externalId,
+            },
+          },
+          create: {
+            jobId: newJob.id,
+            source: input.source,
+            externalId: input.externalId,
+            webpageUrl: input.webpageUrl || null,
+            publishedAt: input.publishedAt,
+            deadline: input.deadline || null,
+          },
+          update: {
+            jobId: newJob.id,
+            webpageUrl: input.webpageUrl || null,
+            publishedAt: input.publishedAt,
+            deadline: input.deadline || null,
+          },
+        });
+      }
+
       return { job: newJob, isNew: true, canonicalUrl, canonicalHash };
     };
 

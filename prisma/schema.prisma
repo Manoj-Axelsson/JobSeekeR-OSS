@@ -171,11 +171,29 @@ model JobAd {
 
   applications        Application[]
   profileEvaluations  JobAdSearchProfile[]
+  sources             JobAdSource[]
 
   @@unique([userAccountId, externalId])
   @@index([canonicalHash])
   @@index([canonicalUrl])
 }
+
+model JobAdSource {
+  id          String    @id @default(uuid())
+  jobId       String
+  job         JobAd     @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  source      String
+  externalId  String
+  webpageUrl  String?
+  publishedAt DateTime
+  deadline    DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([source, externalId])
+  @@index([jobId])
+}
+
 
 model JobAdSearchProfile {
   id                  String        @id @default(uuid())
