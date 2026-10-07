@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { evaluateOpportunityAssessment } from "@/lib/services/matcher";
 import { getAuthenticatedUser } from "@/lib/authHelper";
 import { resolveCanonicalJob } from "@/lib/services/identity";
+import { fetchJobPageHtml, SsrfSecurityError } from "@/lib/services/urlImporterSecurity";
 
 export const dynamic = "force-dynamic";
 
@@ -15,42 +16,64 @@ export async function POST(req: Request) {
 
     const { url, status: requestedStatus, notes } = await req.json();
     if (!url || typeof url !== "string") {
-      return NextResponse.json({ success: false, error: "Please provide a valid Job URL" }, { status: 400 });
-    }
-
-    const jobStatus = requestedStatus && ["NEW", "SAVED", "APPLIED", "DISCARDED"].includes(requestedStatus)
-      ? requestedStatus
-      : "NEW";
-
-    // Fetch webpage HTML
-    const res = await fetch(url, {
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-      },
-    });
-
-    if (!res.ok) {
       return NextResponse.json(
-        { success: false, error: `Failed to fetch URL (HTTP ${res.status})` },
+        { success: false, error: "Please provide a valid Job URL" },
         { status: 400 }
       );
     }
 
-    const html = await res.text();
+    const jobStatus =
+      requestedStatus && ["NEW", "SAVED", "APPLIED", "DISCARDED"].includes(requestedStatus)
+        ? requestedStatus
+        : "NEW";
+
+    // Fetch webpage HTML with multi-layered SSRF protection
+    let html: string;
+    let finalUrl = url;
+    try {
+      const fetchResult = await fetchJobPageHtml(url);
+      html = fetchResult.html;
+      finalUrl = fetchResult.finalUrl;
+    } catch (err: unknown) {
+      const isSsrf =
+        err instanceof SsrfSecurityError ||
+        (err instanceof Error &&
+          (err.name === "SsrfSecurityError" ||
+            err.message.includes("SSRF") ||
+            err.message.includes("forbidden") ||
+            err.message.includes("private") ||
+            err.message.includes("reserved")));
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to fetch URL for job import";
+      return NextResponse.json(
+        {
+          success: false,
+          error: isSsrf
+            ? "Security Error: Access to private, local, or disallowed URL is forbidden."
+            : errorMessage,
+        },
+        { status: 400 }
+      );
+    }
 
     let domain = "Career Portal";
     try {
-      domain = new URL(url).hostname.replace(/^www\./, "");
-    } catch (e) {
+      domain = new URL(finalUrl).hostname.replace(/^www\./, "");
+    } catch {
       // ignore
     }
 
     let title = extractMeta(html, "og:title") || extractTitleTag(html) || "Imported Position";
-    let company = extractMeta(html, "og:site_name") || extractMeta(html, "author") || extractCompanyFromTitle(title) || domain;
-    let description = extractMeta(html, "og:description") || extractMeta(html, "description") || stripHtml(html).slice(0, 1500);
-    let location = extractLocation(html) || "Sweden";
+    let company =
+      extractMeta(html, "og:site_name") ||
+      extractMeta(html, "author") ||
+      extractCompanyFromTitle(title) ||
+      domain;
+    const description =
+      extractMeta(html, "og:description") ||
+      extractMeta(html, "description") ||
+      stripHtml(html).slice(0, 1500);
+    const location = extractLocation(html) || "Sweden";
 
     if (title.includes(" - ")) {
       const parts = title.split(" - ");
@@ -60,7 +83,9 @@ export async function POST(req: Request) {
       }
     }
 
-    const profile = await db.userProfile.findFirst();
+    const profile = await db.userProfile.findFirst({
+      where: { userAccountId: user.id },
+    });
 
     // Calculate Match Score using Opportunity Assessment Framework
     const match = evaluateOpportunityAssessment(
@@ -72,22 +97,22 @@ export async function POST(req: Request) {
         description,
       },
       {
-        name: profile?.name || "Manoj Axelsson",
-        headline: profile?.headline || "Software & Systems Engineer",
+        name: profile?.name || "Candidate",
+        headline: profile?.headline || "Professional",
         skills: ["React", "TypeScript", "Systems Engineering"],
       }
     );
 
     // Save/Resolve Canonical Job using centralized identity service
-    const { job: saved, isNew } = await resolveCanonicalJob(db, {
+    const { job: saved } = await resolveCanonicalJob(db, {
       externalId: `imported_${Date.now()}_${Math.random().toString(36).substring(7)}`,
       title,
       company,
       location,
       description,
-      webpageUrl: url,
+      webpageUrl: finalUrl,
       source: `${domain} (Direct Import)`,
-      publishedAt: new Date(),
+      publishedAt: extractJobPostedDate(html) || new Date(),
       userAccountId: user.id,
       status: jobStatus,
       matchScore: match.matchScore,
@@ -131,20 +156,68 @@ export async function POST(req: Request) {
         domainScores: match.domainScores,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error importing job URL:", error);
-    return NextResponse.json({ success: false, error: error.message || "Failed to import job" }, { status: 500 });
+    const message = error instanceof Error ? error.message : "";
+    return NextResponse.json(
+      { success: false, error: message || "Failed to import job" },
+      { status: 500 }
+    );
   }
 }
 
 function extractMeta(html: string, property: string): string | null {
-  const reg1 = new RegExp(`<meta[^>]*property=["']${property}["'][^>]*content=["']([^"']+)["']`, "i");
-  const reg2 = new RegExp(`<meta[^>]*content=["']([^"']+)["'][^>]*property=["']${property}["']`, "i");
+  const reg1 = new RegExp(
+    `<meta[^>]*property=["']${property}["'][^>]*content=["']([^"']+)["']`,
+    "i"
+  );
+  const reg2 = new RegExp(
+    `<meta[^>]*content=["']([^"']+)["'][^>]*property=["']${property}["']`,
+    "i"
+  );
   const reg3 = new RegExp(`<meta[^>]*name=["']${property}["'][^>]*content=["']([^"']+)["']`, "i");
   const reg4 = new RegExp(`<meta[^>]*content=["']([^"']+)["'][^>]*name=["']${property}["']`, "i");
 
   const m = html.match(reg1) || html.match(reg2) || html.match(reg3) || html.match(reg4);
   return m ? m[1].trim() : null;
+}
+
+function extractJobPostedDate(html: string): Date | null {
+  const scripts = html.match(
+    /<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi
+  );
+
+  if (!scripts) return null;
+
+  for (const script of scripts) {
+    const content = script
+      .replace(/^<script[^>]*>/i, "")
+      .replace(/<\/script>$/i, "")
+      .trim();
+
+    try {
+      const data = JSON.parse(content);
+      const items = Array.isArray(data) ? data : [data];
+
+      for (const item of items) {
+        const type = item?.["@type"];
+        const isJobPosting =
+          type === "JobPosting" || (Array.isArray(type) && type.includes("JobPosting"));
+
+        if (isJobPosting && item.datePosted) {
+          const date = new Date(item.datePosted);
+
+          if (!Number.isNaN(date.getTime())) {
+            return date;
+          }
+        }
+      }
+    } catch {
+      // Ignore invalid JSON-LD blocks and continue.
+    }
+  }
+
+  return null;
 }
 
 function extractTitleTag(html: string): string | null {
@@ -171,5 +244,8 @@ function extractLocation(html: string): string | null {
 }
 
 function stripHtml(html: string): string {
-  return html.replace(/<[^>]*>?/gm, " ").replace(/\s+/g, " ").trim();
+  return html
+    .replace(/<[^>]*>?/gm, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }

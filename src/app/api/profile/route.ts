@@ -14,7 +14,10 @@ export async function GET(req: NextRequest) {
 
     await ensureV2ProfilesExist(user.id);
 
-    let profile = await db.userProfile.findFirst();
+    let profile = await db.userProfile.findFirst({
+      where: { userAccountId: user.id },
+    });
+
     const careerProfile = await db.careerProfile.findFirst({
       where: { userAccountId: user.id },
     });
@@ -26,7 +29,7 @@ export async function GET(req: NextRequest) {
     if (!profile) {
       profile = await db.userProfile.create({
         data: {
-          id: "user_main",
+          userAccountId: user.id,
           name: user.name || "Candidate",
           headline: "Software & Systems Engineer",
           location: "Sweden",
@@ -36,14 +39,14 @@ export async function GET(req: NextRequest) {
             "Systems Engineer",
             "Software Architect",
             "Quality Assurance Engineer",
-            "Manufacturing Engineer"
+            "Manufacturing Engineer",
           ]),
           skills: JSON.stringify({
             software: ["React", "TypeScript", "Next.js", "Node.js", "PostgreSQL"],
             systems: ["Systems Engineering", "Requirements Management", "PLM"],
             quality: ["Six Sigma", "Lean", "FMEA"],
             industrial: ["Automation", "CAD/CAM"],
-            custom: []
+            custom: [],
           }),
           minMatchScore: 50,
         },
@@ -57,14 +60,16 @@ export async function GET(req: NextRequest) {
       skills: JSON.parse(profile.skills || "{}"),
       excludedCompanies: JSON.parse(profile.excludedCompanies || "[]"),
       v2: {
-        careerProfile: careerProfile ? {
-          ...careerProfile,
-          skills: JSON.parse(careerProfile.skills || "[]"),
-          experience: JSON.parse(careerProfile.experience || "[]"),
-          qualifications: JSON.parse(careerProfile.qualifications || "[]"),
-          currentRoles: JSON.parse(careerProfile.currentRoles || "[]"),
-        } : null,
-        searchProfiles: searchProfiles.map(sp => ({
+        careerProfile: careerProfile
+          ? {
+              ...careerProfile,
+              skills: JSON.parse(careerProfile.skills || "[]"),
+              experience: JSON.parse(careerProfile.experience || "[]"),
+              qualifications: JSON.parse(careerProfile.qualifications || "[]"),
+              currentRoles: JSON.parse(careerProfile.currentRoles || "[]"),
+            }
+          : null,
+        searchProfiles: searchProfiles.map((sp) => ({
           ...sp,
           targetOccupations: JSON.parse(sp.targetOccupations || "[]"),
           targetIndustries: JSON.parse(sp.targetIndustries || "[]"),
@@ -78,8 +83,9 @@ export async function GET(req: NextRequest) {
         })),
       },
     });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message || "Failed to fetch profile" }, { status: 500 });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "";
+    return NextResponse.json({ error: message || "Failed to fetch profile" }, { status: 500 });
   }
 }
 
@@ -91,11 +97,23 @@ export async function PUT(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { name, headline, location, languages, targetRoles, skills, minMatchScore, excludedCompanies } = body;
+    const {
+      name,
+      headline,
+      location,
+      languages,
+      targetRoles,
+      skills,
+      minMatchScore,
+      excludedCompanies,
+    } = body;
 
-    let profile = await db.userProfile.findFirst();
+    let profile = await db.userProfile.findFirst({
+      where: { userAccountId: user.id },
+    });
 
     const dataToSave = {
+      userAccountId: user.id,
       name: name || user.name || profile?.name || "JobseekeR User",
       headline: headline || profile?.headline || "Software & Systems Engineer",
       location: location || profile?.location || "Sweden",
@@ -103,7 +121,10 @@ export async function PUT(req: NextRequest) {
       targetRoles: JSON.stringify(targetRoles || []),
       skills: JSON.stringify(skills || {}),
       minMatchScore: minMatchScore ?? (profile?.minMatchScore || 50),
-      excludedCompanies: JSON.stringify(excludedCompanies ?? (profile?.excludedCompanies ? JSON.parse(profile.excludedCompanies) : [])),
+      excludedCompanies: JSON.stringify(
+        excludedCompanies ??
+          (profile?.excludedCompanies ? JSON.parse(profile.excludedCompanies) : [])
+      ),
     };
 
     if (profile) {
@@ -113,10 +134,7 @@ export async function PUT(req: NextRequest) {
       });
     } else {
       profile = await db.userProfile.create({
-        data: {
-          id: "user_main",
-          ...dataToSave,
-        },
+        data: dataToSave,
       });
     }
 
@@ -137,7 +155,8 @@ export async function PUT(req: NextRequest) {
       skills: JSON.parse(profile.skills || "{}"),
       excludedCompanies: JSON.parse(profile.excludedCompanies || "[]"),
     });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message || "Failed to update profile" }, { status: 500 });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "";
+    return NextResponse.json({ error: message || "Failed to update profile" }, { status: 500 });
   }
 }

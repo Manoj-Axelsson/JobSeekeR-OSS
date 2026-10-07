@@ -12,13 +12,13 @@ This distinction is important: Tauri readiness does not mean that the current we
 
 ## Compatibility Matrix
 
-| Area | Status | Notes |
-|---|---|---|
-| React Components | Ready | Compatible with client-side hydration |
-| Prisma | Conditional | SQLite is suitable for the local desktop architecture; cloud PostgreSQL is a separate deployment mode |
-| Routing | Review required | Deep linking and routing must be verified during packaging |
-| File Upload | Review required | Native OS dialog integration may be required |
-| Notifications | Review required | Native notification integration may be required |
+| Area             | Status          | Notes                                                                                                 |
+| ---------------- | --------------- | ----------------------------------------------------------------------------------------------------- |
+| React Components | Ready           | Compatible with client-side hydration                                                                 |
+| Prisma           | Conditional     | SQLite is suitable for the local desktop architecture; cloud PostgreSQL is a separate deployment mode |
+| Routing          | Review required | Deep linking and routing must be verified during packaging                                            |
+| File Upload      | Review required | Native OS dialog integration may be required                                                          |
+| Notifications    | Review required | Native notification integration may be required                                                       |
 
 ## Future Native Packaging Work
 

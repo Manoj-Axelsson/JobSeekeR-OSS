@@ -4,14 +4,21 @@ export interface DocumentIntelligenceMetric {
   lastUploadedCv: string;
 }
 
-export function getDocumentIntelligenceStats(userProfile?: any): DocumentIntelligenceMetric {
+export interface DocumentUserProfileInput {
+  skills?: string | Record<string, string[]> | null;
+  cvFile?: string | null;
+}
+
+export function getDocumentIntelligenceStats(
+  userProfile?: DocumentUserProfileInput | null
+): DocumentIntelligenceMetric {
   const skillsJson = userProfile?.skills;
   let count = 0;
   if (skillsJson) {
     try {
       const parsed = typeof skillsJson === "string" ? JSON.parse(skillsJson) : skillsJson;
       if (typeof parsed === "object" && parsed !== null) {
-        Object.values(parsed).forEach((arr: any) => {
+        Object.values(parsed).forEach((arr: unknown) => {
           if (Array.isArray(arr)) count += arr.length;
         });
       }
@@ -20,7 +27,8 @@ export function getDocumentIntelligenceStats(userProfile?: any): DocumentIntelli
     }
   }
 
-  const cvName = userProfile?.cvFile || (count > 0 ? "Parsed Candidate Competence Profile" : "No CV Uploaded");
+  const cvName =
+    userProfile?.cvFile || (count > 0 ? "Parsed Candidate Competence Profile" : "No CV Uploaded");
 
   return {
     totalDocuments: count > 0 ? 1 : 0,

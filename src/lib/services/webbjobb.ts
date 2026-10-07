@@ -1,4 +1,5 @@
 import { SourceVacancy } from "@/lib/services/identity";
+import { getPublicationCutoff, isFreshPublicationDate } from "@/lib/services/publicationFreshness";
 
 export interface WebbjobbRssItem {
   title: string;
@@ -6,17 +7,19 @@ export interface WebbjobbRssItem {
   description: string;
   pubDate: string;
 }
-
 /**
  * Deterministically parses a raw Webbjobb title line to extract title and location.
  * Examples:
- *   "Senior Requirements Analyst  Sundsvall" -> { title: "Senior Requirements Analyst", location: "Sundsvall" }
- *   "Java Developer  Luleå, Sweden" -> { title: "Java Developer", location: "Luleå, Sweden" }
+ *   "Senior Requirements Analyst Sundsvall" -> { title: "Senior Requirements Analyst", location: "Sundsvall" }
+ *   "Java Developer Luleå, Sweden" -> { title: "Java Developer", location: "Luleå, Sweden" }
  *   "Developer" -> { title: "Developer", location: "Sweden" }
  */
-export function parseWebbjobbTitleAndLocation(rawTitle: string): { title: string; location: string } {
+export function parseWebbjobbTitleAndLocation(rawTitle: string): {
+  title: string;
+  location: string;
+} {
   const trimmed = rawTitle.trim();
-  
+
   // Check for double space separator or trailing city name pattern
   if (trimmed.includes("  ")) {
     const parts = trimmed.split(/\s{2,}/);
@@ -29,7 +32,7 @@ export function parseWebbjobbTitleAndLocation(rawTitle: string): { title: string
     }
   }
 
-  // Check for trailing " - Location" pattern
+  // Check for trailing "- Location" pattern
   if (trimmed.includes(" - ")) {
     const parts = trimmed.split(" - ");
     const title = parts[0].trim();
@@ -43,8 +46,8 @@ export function parseWebbjobbTitleAndLocation(rawTitle: string): { title: string
 }
 
 /**
- * Deterministically extracts company name from Webbjobb RSS item description or title.
- * Returns empty string if company cannot be established without guessing.
+ * Deterministically extracts the company name from Webbjobb RSS item description or title.
+ * Returns empty string if a company cannot be established without guessing.
  * Examples:
  *   "Company description: Ericsson AB Job description: ..." -> "Ericsson AB"
  *   "Product Designer till PRIMUS-SILVA i Bromma" -> "PRIMUS-SILVA"
@@ -62,7 +65,6 @@ export function parseWebbjobbCompany(descriptionText: string, rawTitle?: string)
   }
   return "";
 }
-
 
 /**
  * Deterministically extracts externalId from Webbjobb job URL.
@@ -93,15 +95,24 @@ export function parseWebbjobbRssXml(xmlText: string): WebbjobbRssItem[] {
 
   while ((match = itemRegex.exec(xmlText)) !== null) {
     const itemContent = match[1];
-    
+
     const titleMatch = itemContent.match(/<title>([\s\S]*?)<\/title>/i);
     const linkMatch = itemContent.match(/<link>([\s\S]*?)<\/link>/i);
     const descMatch = itemContent.match(/<description>([\s\S]*?)<\/description>/i);
     const pubDateMatch = itemContent.match(/<pubDate>([\s\S]*?)<\/pubDate>/i);
 
-    const title = titleMatch ? titleMatch[1].replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").trim() : "";
+    const title = titleMatch
+      ? titleMatch[1].replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").trim()
+      : "";
     const link = linkMatch ? linkMatch[1].replace(/&amp;/g, "&").trim() : "";
-    const rawDesc = descMatch ? descMatch[1].replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&nbsp;/g, " ").trim() : "";
+    const rawDesc = descMatch
+      ? descMatch[1]
+          .replace(/&amp;/g, "&")
+          .replace(/&lt;/g, "<")
+          .replace(/&gt;/g, ">")
+          .replace(/&nbsp;/g, " ")
+          .trim()
+      : "";
     const pubDate = pubDateMatch ? pubDateMatch[1].trim() : "";
 
     if (title && link) {
@@ -120,14 +131,13 @@ export function webbjobbItemToSourceVacancy(item: WebbjobbRssItem): SourceVacanc
   const { title, location } = parseWebbjobbTitleAndLocation(item.title);
   const company = parseWebbjobbCompany(item.description, item.title);
 
-  
   const cleanDescription = item.description
     .replace(/<[^>]*>/g, " ")
     .replace(/\s+/g, " ")
     .trim();
 
   const webpageUrl = item.link.split("?")[0];
-  const publishedAt = item.pubDate ? new Date(item.pubDate) : new Date();
+  const publishedAt = new Date(item.pubDate);
 
   return {
     externalId,
@@ -137,20 +147,23 @@ export function webbjobbItemToSourceVacancy(item: WebbjobbRssItem): SourceVacanc
     description: cleanDescription,
     webpageUrl,
     source: "Webbjobb.io",
-    publishedAt: isNaN(publishedAt.getTime()) ? new Date() : publishedAt,
+    publishedAt,
     deadline: null,
   };
 }
 
 /**
  * Primary source adapter function for Webbjobb.io.
- * Fetches public RSS feed and returns normalized SourceVacancy array.
+ * Fetches public RSS feed and returns a normalized SourceVacancy array.
  */
-export async function fetchWebbjobbVacancies(feedUrl: string = "https://webbjobb.io/rss/jobb.xml"): Promise<SourceVacancy[]> {
+export async function fetchWebbjobbVacancies(
+  feedUrl: string = "https://webbjobb.io/rss/jobb.xml",
+  cutoff: Date = getPublicationCutoff()
+): Promise<SourceVacancy[]> {
   try {
     const res = await fetch(feedUrl, {
       headers: {
-        "Accept": "application/rss+xml, application/xml, text/xml",
+        Accept: "application/rss+xml, application/xml, text/xml",
         "User-Agent": "JobSeekeR/1.0",
       },
       next: { revalidate: 0 },
@@ -163,7 +176,9 @@ export async function fetchWebbjobbVacancies(feedUrl: string = "https://webbjobb
 
     const xmlText = await res.text();
     const items = parseWebbjobbRssXml(xmlText);
-    return items.map(webbjobbItemToSourceVacancy);
+    return items
+      .filter((item) => isFreshPublicationDate(item.pubDate, cutoff))
+      .map(webbjobbItemToSourceVacancy);
   } catch (error) {
     console.error("Error fetching Webbjobb RSS vacancies:", error);
     return [];

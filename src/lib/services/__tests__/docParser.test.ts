@@ -16,7 +16,8 @@ vi.mock("../../db", () => {
 
 describe("Document Parser Service", () => {
   it("should extract skills and text from raw document buffer", async () => {
-    const textSample = "Resume for Jane Doe. Experienced with React, TypeScript, Python, and Six Sigma.";
+    const textSample =
+      "Resume for Jane Doe. Experienced with React, TypeScript, Python, and Six Sigma.";
     const buffer = Buffer.from(textSample, "utf-8");
 
     const result = await parseAndSaveDocument("jane_doe_cv.txt", buffer, "CV");

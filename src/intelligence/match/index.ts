@@ -1,12 +1,15 @@
+import type { JobAd } from "@/types/domain";
+
 export interface MatchIntelligenceStats {
   averageFeedMatchScore: number;
   highMatchJobsCount: number;
   topMatchedDomain: string;
 }
 
-export function getMatchIntelligenceStats(jobs: any[] = []): MatchIntelligenceStats {
+export function getMatchIntelligenceStats(jobs: JobAd[] = []): MatchIntelligenceStats {
   const scores = jobs.map((j) => j.matchScore || 0);
-  const avg = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 74;
+  const avg =
+    scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 74;
   const highMatch = jobs.filter((j) => (j.matchScore || 0) >= 75).length;
 
   return {

@@ -45,7 +45,9 @@ export async function GET(request: NextRequest) {
       },
       select: { monthlyTag: true },
     });
-    const months = Array.from(new Set(allApps.map((a) => a.monthlyTag))).sort().reverse();
+    const months = Array.from(new Set(allApps.map((a) => a.monthlyTag)))
+      .sort()
+      .reverse();
 
     return NextResponse.json({ success: true, applications, months });
   } catch (error: unknown) {
@@ -67,15 +69,15 @@ export async function PATCH(request: Request) {
     const existingApp = await db.application.findFirst({
       where: {
         id,
-        OR: [
-          { userAccountId: user.id },
-          { userAccountId: null },
-        ],
+        OR: [{ userAccountId: user.id }, { userAccountId: null }],
       },
     });
 
     if (!existingApp) {
-      return NextResponse.json({ success: false, error: "Application not found or unauthorized" }, { status: 404 });
+      return NextResponse.json(
+        { success: false, error: "Application not found or unauthorized" },
+        { status: 404 }
+      );
     }
 
     const updatedApp = await db.application.update({

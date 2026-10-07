@@ -26,15 +26,15 @@ SQLite remains a valid local-first desktop/development architecture option.
 
 The original repair audit recorded the following baseline reconciliation:
 
-| Entity | Baseline recoverable | Production migrated | Record |
-|---|---:|---:|---|
-| UserAccount | 1 | 1 | Reconciled |
-| JobAd | 21 | 21 | Reconciled |
-| Application | 5 | 5 | Reconciled |
-| UserDocument | 29 | 30 | 29 baseline + 1 pre-existing production record |
-| UserProfile | 1 | 1 | Reconciled |
-| CareerProfile | 1 | 1 | Reconciled |
-| SearchProfile | 2 | 2 | Reconciled |
+| Entity        | Baseline recoverable | Production migrated | Record                                         |
+| ------------- | -------------------: | ------------------: | ---------------------------------------------- |
+| UserAccount   |                    1 |                   1 | Reconciled                                     |
+| JobAd         |                   21 |                  21 | Reconciled                                     |
+| Application   |                    5 |                   5 | Reconciled                                     |
+| UserDocument  |                   29 |                  30 | 29 baseline + 1 pre-existing production record |
+| UserProfile   |                    1 |                   1 | Reconciled                                     |
+| CareerProfile |                    1 |                   1 | Reconciled                                     |
+| SearchProfile |                    2 |                   2 | Reconciled                                     |
 
 Five additional applications previously visible on Arbetsförmedlingen were classified at the time as unrecoverable pre-repair ephemeral records.
 

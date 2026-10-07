@@ -5,7 +5,9 @@ import { translations, Language } from "@/lib/services/i18n";
 
 interface SidebarNavProps {
   activeTab: "feed" | "tracker" | "profile" | "logs" | "intelligence" | "settings";
-  setActiveTab: (tab: "feed" | "tracker" | "profile" | "logs" | "intelligence" | "settings") => void;
+  setActiveTab: (
+    tab: "feed" | "tracker" | "profile" | "logs" | "intelligence" | "settings"
+  ) => void;
   jobCount: number;
   appCount: number;
   currentLang?: Language;
@@ -155,7 +157,9 @@ export function SidebarNav({
                 <span className="text-lg group-hover:scale-110 transition-transform">📖</span>
                 <span className="font-extrabold text-amber-300">User Guide &amp; Docs</span>
               </div>
-              <span className="text-xs font-semibold text-amber-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform">↗</span>
+              <span className="text-xs font-semibold text-amber-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform">
+                ↗
+              </span>
             </button>
           )}
 
@@ -167,7 +171,9 @@ export function SidebarNav({
               <span className="text-lg group-hover:scale-110 transition-transform">🏠</span>
               <span>Landing Page</span>
             </div>
-            <span className="text-xs font-semibold text-amber-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform">↗</span>
+            <span className="text-xs font-semibold text-amber-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform">
+              ↗
+            </span>
           </Link>
         </div>
 

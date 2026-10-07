@@ -23,7 +23,9 @@ export function SettingsPanel({
   jobs,
   applications,
 }: SettingsPanelProps) {
-  const [settingsSection, setSettingsSection] = useState<"account" | "career" | "automation" | "accessibility" | "privacy" | "about">("account");
+  const [settingsSection, setSettingsSection] = useState<
+    "account" | "career" | "automation" | "accessibility" | "privacy" | "about"
+  >("account");
 
   return (
     <div className="space-y-6">
@@ -35,7 +37,8 @@ export function SettingsPanel({
             <span>Settings &amp; Preferences</span>
           </h2>
           <p className="text-xs sm:text-sm text-amber-200/90 mt-1">
-            Consolidated configuration for account, search criteria, automation, accessibility, privacy, and system diagnostics.
+            Consolidated configuration for account, search criteria, automation, accessibility,
+            privacy, and system diagnostics.
           </p>
         </div>
       </div>
@@ -131,9 +134,13 @@ export function SettingsPanel({
       {/* Section 2: Career & Roles */}
       {settingsSection === "career" && (
         <div className="p-5 rounded-2xl bg-slate-900/80 border border-amber-500/30 text-amber-100 space-y-4">
-          <h3 className="font-black text-amber-300 text-base">Target Roles &amp; Match Threshold</h3>
+          <h3 className="font-black text-amber-300 text-base">
+            Target Roles &amp; Match Threshold
+          </h3>
           <p className="text-xs text-amber-100/80 leading-relaxed">
-            Target job titles (e.g. <em>Fullstack Developer, Systems Engineer, Software Architect</em>) and preferred match threshold (default: 50%).
+            Target job titles (e.g.{" "}
+            <em>Fullstack Developer, Systems Engineer, Software Architect</em>) and preferred match
+            threshold (default: 50%).
           </p>
           <button
             onClick={onOpenOnboarding}
@@ -166,7 +173,9 @@ export function SettingsPanel({
         <div className="p-5 rounded-2xl bg-slate-900/80 border border-amber-500/30 text-amber-100 space-y-4">
           <h3 className="font-black text-amber-300 text-base">Accessibility &amp; High Contrast</h3>
           <p className="text-xs text-amber-100/80 leading-relaxed">
-            All text rendered on white/light backgrounds strictly uses high-contrast pitch black (`text-black font-extrabold`). Use the A+ button in the header for up to 200% font resizer scaling.
+            All text rendered on white/light backgrounds strictly uses high-contrast pitch black
+            (`text-black font-extrabold`). Use the A+ button in the header for up to 200% font
+            resizer scaling.
           </p>
         </div>
       )}
@@ -174,16 +183,25 @@ export function SettingsPanel({
       {/* Section 5: Privacy */}
       {settingsSection === "privacy" && (
         <div className="p-5 rounded-2xl bg-slate-900/80 border border-amber-500/30 text-amber-100 space-y-4">
-          <h3 className="font-black text-amber-300 text-base">Local-First SQLite Storage &amp; Data Backup</h3>
+          <h3 className="font-black text-amber-300 text-base">
+            Local-First SQLite Storage &amp; Data Backup
+          </h3>
           <p className="text-xs text-amber-100/80 leading-relaxed">
-            All career data is stored locally on your device in an embedded SQLite database (`prisma/dev.db`). No telemetry or personal information is transmitted to external tracking servers.
+            All career data is stored locally on your device in an embedded SQLite database
+            (`prisma/dev.db`). No telemetry or personal information is transmitted to external
+            tracking servers.
           </p>
           <button
             onClick={() => {
-              const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ jobs, applications, profileName }));
+              const dataStr =
+                "data:text/json;charset=utf-8," +
+                encodeURIComponent(JSON.stringify({ jobs, applications, profileName }));
               const downloadAnchor = document.createElement("a");
               downloadAnchor.setAttribute("href", dataStr);
-              downloadAnchor.setAttribute("download", `jobseeker-backup-${new Date().toISOString().slice(0, 10)}.json`);
+              downloadAnchor.setAttribute(
+                "download",
+                `jobseeker-backup-${new Date().toISOString().slice(0, 10)}.json`
+              );
               document.body.appendChild(downloadAnchor);
               downloadAnchor.click();
               downloadAnchor.remove();
@@ -198,7 +216,9 @@ export function SettingsPanel({
       {/* Section 6: About & Developer Diagnostics */}
       {settingsSection === "about" && (
         <div className="p-5 rounded-2xl bg-slate-900/80 border border-amber-500/30 text-amber-100 space-y-4">
-          <h3 className="font-black text-amber-300 text-base">About JobseekeR™ &amp; Developer Diagnostics</h3>
+          <h3 className="font-black text-amber-300 text-base">
+            About JobseekeR™ &amp; Developer Diagnostics
+          </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
             <div className="p-3 rounded-xl bg-amber-950/60 border border-amber-500/30">
               <p className="font-extrabold text-amber-300">Version</p>
@@ -210,7 +230,10 @@ export function SettingsPanel({
             </div>
             <div className="p-3 rounded-xl bg-amber-950/60 border border-amber-500/30 sm:col-span-2">
               <p className="font-extrabold text-amber-300">Developer Diagnostics</p>
-              <p className="text-amber-100/80 mt-0.5">Database: SQLite (`prisma/dev.db`) • API: Arbetsförmedlingen JobTech Open Source Scanner</p>
+              <p className="text-amber-100/80 mt-0.5">
+                Database: SQLite (`prisma/dev.db`) • API: Arbetsförmedlingen JobTech Open Source
+                Scanner
+              </p>
             </div>
           </div>
         </div>

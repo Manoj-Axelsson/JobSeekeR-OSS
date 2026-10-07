@@ -35,7 +35,9 @@ describe("JobSeekR Comprehensive 8-Dimension QA Audit Suite", () => {
       expect(result.matchScore).toBeGreaterThanOrEqual(50);
       expect(result.decisionSupport).toBeDefined();
       expect(result.decisionSupport?.stage1Opportunity.tier).toBeDefined();
-      expect(result.decisionSupport?.stage2Competencies.matchedTransferableSkills.length).toBeGreaterThan(0);
+      expect(
+        result.decisionSupport?.stage2Competencies.matchedTransferableSkills.length
+      ).toBeGreaterThan(0);
       expect(result.decisionSupport?.stage3Positioning.cvEmphasisOrder.length).toBeGreaterThan(0);
       expect(result.decisionSupport?.stage4Coaching.nonFabricationGuarantee).toBe(true);
       expect(result.decisionSupport?.stage5UserDecisionPrompt.decisionQuestion).toContain("Anna");
@@ -71,7 +73,7 @@ describe("JobSeekR Comprehensive 8-Dimension QA Audit Suite", () => {
   describe("3. Performance & Benchmark Testing", () => {
     it("executes full 5-stage decision support evaluation in under 15ms", () => {
       const startTime = performance.now();
-      
+
       for (let i = 0; i < 50; i++) {
         evaluateJobMatch(
           "Fullstack Systems Developer",
@@ -92,7 +94,7 @@ describe("JobSeekR Comprehensive 8-Dimension QA Audit Suite", () => {
     it("sanitizes potential XSS script tags in user inputs and job titles", () => {
       const maliciousTitle = "<script>alert('xss')</script> Quality Specialist";
       const maliciousDesc = "<img src=x onerror=alert(1)> DMAIC Six Sigma";
-      
+
       const result = evaluateJobMatch(maliciousTitle, maliciousDesc);
       expect(result.decisionSupport?.stage4Coaching.coverLetterHook).not.toContain("<script>");
       expect(result.decisionSupport?.stage4Coaching.nonFabricationGuarantee).toBe(true);
@@ -117,7 +119,9 @@ describe("JobSeekR Comprehensive 8-Dimension QA Audit Suite", () => {
 
       const coaching = applicationCoachingAdvisor.generateCoaching(opp, candidate);
       expect(coaching.nonFabricationGuarantee).toBe(true);
-      expect(coaching.coachingGuidance.some((g) => g.includes("Do not attempt to rewrite"))).toBe(true);
+      expect(coaching.coachingGuidance.some((g) => g.includes("Do not attempt to rewrite"))).toBe(
+        true
+      );
     });
   });
 
@@ -189,7 +193,11 @@ describe("JobSeekR Comprehensive 8-Dimension QA Audit Suite", () => {
         skills: ["Kaizen", "DMAIC"],
       };
 
-      const context = decisionSupportEngine.evaluateDecisionSupport(opp, candidateProfile, preferences);
+      const context = decisionSupportEngine.evaluateDecisionSupport(
+        opp,
+        candidateProfile,
+        preferences
+      );
 
       expect(context.stage1Opportunity.rationale).not.toBe("");
       expect(context.stage3Positioning.rationale).not.toBe("");

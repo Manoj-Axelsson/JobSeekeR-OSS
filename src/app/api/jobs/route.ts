@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 /**
  * GET /api/jobs
- * Returns list of jobs for the authenticated user sorted by matchScore (desc) and publishedAt (desc).
+ * Returns a list of jobs for the authenticated user sorted by matchScore (desc) and publishedAt (desc).
  * Enforces API Guarantee: One canonical job identity = one returned feed entity.
  */
 export async function GET(request: NextRequest) {
@@ -52,14 +52,20 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    const deduplicatedMap = new Map<string, typeof jobs[0]>();
+    const deduplicatedMap = new Map<string, (typeof jobs)[0]>();
     for (const j of jobs) {
-      const canonicalKey = j.canonicalHash || (j.canonicalUrl ? normalizeUrl(j.canonicalUrl) : null) || computeCanonicalHash(j.company, j.title, j.location);
+      const canonicalKey =
+        j.canonicalHash ||
+        (j.canonicalUrl ? normalizeUrl(j.canonicalUrl) : null) ||
+        computeCanonicalHash(j.company, j.title, j.location);
       const existing = deduplicatedMap.get(canonicalKey);
       if (!existing) {
         deduplicatedMap.set(canonicalKey, j);
       } else {
-        const isCurrentOwned = j.userAccountId === user.id || j.applications.length > 0 || (j.status !== "NEW" && existing.status === "NEW");
+        const isCurrentOwned =
+          j.userAccountId === user.id ||
+          j.applications.length > 0 ||
+          (j.status !== "NEW" && existing.status === "NEW");
         if (isCurrentOwned) deduplicatedMap.set(canonicalKey, j);
       }
     }
@@ -90,12 +96,19 @@ export async function PATCH(request: Request) {
     });
 
     if (!existingJob) {
-      return NextResponse.json({ success: false, error: "Job not found or unauthorized" }, { status: 404 });
+      return NextResponse.json(
+        { success: false, error: "Job not found or unauthorized" },
+        { status: 404 }
+      );
     }
 
     if (status === "DISCARDED") {
       await db.jobAd.delete({ where: { id: existingJob.id } });
-      return NextResponse.json({ success: true, deleted: true, message: "Job permanently deleted from database." });
+      return NextResponse.json({
+        success: true,
+        deleted: true,
+        message: "Job permanently deleted from database.",
+      });
     }
 
     const updatedJob = await db.jobAd.update({
@@ -125,7 +138,12 @@ export async function PATCH(request: Request) {
       } else {
         await db.application.update({
           where: { id: existingApp.id },
-          data: { userAccountId: user.id, status: "APPLIED", appliedAt: now, notes: notes || existingApp.notes || "Applied via job portal" },
+          data: {
+            userAccountId: user.id,
+            status: "APPLIED",
+            appliedAt: now,
+            notes: notes || existingApp.notes || "Applied via job portal",
+          },
         });
       }
     } else if (status === "NEW" || status === "SAVED") {
@@ -151,13 +169,18 @@ export async function DELETE(request: Request) {
 
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
-    if (!id) return NextResponse.json({ success: false, error: "Job ID required" }, { status: 400 });
+    if (!id)
+      return NextResponse.json({ success: false, error: "Job ID required" }, { status: 400 });
 
     const existingJob = await db.jobAd.findFirst({
       where: { id, OR: [{ userAccountId: user.id }, { userAccountId: null }] },
     });
 
-    if (!existingJob) return NextResponse.json({ success: false, error: "Job not found or unauthorized" }, { status: 404 });
+    if (!existingJob)
+      return NextResponse.json(
+        { success: false, error: "Job not found or unauthorized" },
+        { status: 404 }
+      );
 
     await db.jobAd.delete({ where: { id: existingJob.id } });
     return NextResponse.json({ success: true, message: "Job permanently deleted from database." });

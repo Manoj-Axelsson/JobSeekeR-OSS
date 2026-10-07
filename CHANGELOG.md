@@ -23,6 +23,7 @@ The 1.0.1 release line includes the post-1.0 platform architecture and engineeri
 ## [Unreleased] — Dependency Maintenance Checkpoint
 
 ### Changed
+
 - **Next.js**: Updated from `16.2.11` to `16.3.6`.
 - **eslint-config-next**: Updated from `16.2.11` to `16.3.6`.
 - **Vitest**: Updated from `3.2.7` to `4.1.11`.
@@ -30,12 +31,14 @@ The 1.0.1 release line includes the post-1.0 platform architecture and engineeri
 - **Transitive dependencies**: Applied non-breaking fixes through `npm audit fix`.
 
 ### Validation
+
 - **Production build**: Passed with Next.js `16.3.6`.
 - **TypeScript**: `npx tsc --noEmit` passed.
 - **Test suite**: 32 test files passed; 108 tests passed, 10 skipped.
 - **Dependency audit**: Reduced reported vulnerabilities from 11 to 3 high-severity findings.
 
 ### Known Dependency Exception
+
 - **Prisma `6.19.3`** remains unchanged.
 - The remaining `deepmerge-ts` advisory is transitive through `@prisma/config@6.19.3`.
 - `npm audit fix --force` was deliberately not used because npm proposes a Prisma `6.12.0` change rather than a controlled security migration.

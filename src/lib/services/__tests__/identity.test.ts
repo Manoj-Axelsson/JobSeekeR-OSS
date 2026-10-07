@@ -1,10 +1,18 @@
 import { describe, it, expect } from "vitest";
-import { normalizeUrl, normalizeText, computeCanonicalHash, resolveCanonicalJob, getActiveLockCount } from "../identity";
+import {
+  normalizeUrl,
+  normalizeText,
+  computeCanonicalHash,
+  resolveCanonicalJob,
+  getActiveLockCount,
+  IdentityResolutionDbClient,
+} from "../identity";
 
 describe("Pure Canonical Identity Primitives (Strategy 4)", () => {
   describe("normalizeUrl", () => {
     it("strips tracking parameters while preserving canonical path structure", () => {
-      const url1 = "https://www.platsbanken.se/arbetsforetag/2918293?utm_source=google&utm_medium=cpc&ref=123";
+      const url1 =
+        "https://www.platsbanken.se/arbetsforetag/2918293?utm_source=google&utm_medium=cpc&ref=123";
       const url2 = "https://platsbanken.se/arbetsforetag/2918293/";
       expect(normalizeUrl(url1)).toBe("https://platsbanken.se/arbetsforetag/2918293");
       expect(normalizeUrl(url2)).toBe("https://platsbanken.se/arbetsforetag/2918293");
@@ -43,8 +51,16 @@ describe("Pure Canonical Identity Primitives (Strategy 4)", () => {
     });
 
     it("allows cross-source vacancies (JobTech vs LinkedIn) to generate identical Stage 1 candidate hash", () => {
-      const jobTechHash = computeCanonicalHash("Volvo Cars AB", "Senior Systems Engineer", "Stockholm");
-      const linkedInHash = computeCanonicalHash("Volvo Cars AB", "Senior Systems Engineer", "Stockholm");
+      const jobTechHash = computeCanonicalHash(
+        "Volvo Cars AB",
+        "Senior Systems Engineer",
+        "Stockholm"
+      );
+      const linkedInHash = computeCanonicalHash(
+        "Volvo Cars AB",
+        "Senior Systems Engineer",
+        "Stockholm"
+      );
       expect(jobTechHash).toBe(linkedInHash);
     });
   });
@@ -58,7 +74,7 @@ describe("Pure Canonical Identity Primitives (Strategy 4)", () => {
         },
       };
 
-      const res = await resolveCanonicalJob(mockDb, {
+      const res = await resolveCanonicalJob(mockDb as unknown as IdentityResolutionDbClient, {
         externalId: "lock_test_1",
         title: "Test Engineer",
         company: "Lock Corp",
@@ -82,7 +98,7 @@ describe("Pure Canonical Identity Primitives (Strategy 4)", () => {
       };
 
       await expect(
-        resolveCanonicalJob(failingDb, {
+        resolveCanonicalJob(failingDb as unknown as IdentityResolutionDbClient, {
           externalId: "lock_fail_1",
           title: "Failing Engineer",
           company: "Fail Corp",
@@ -99,7 +115,9 @@ describe("Pure Canonical Identity Primitives (Strategy 4)", () => {
     it("enforces strict FIFO release ordering between first caller and queued second caller", async () => {
       const executionOrder: string[] = [];
       let resolveFirstJob: () => void;
-      const firstJobPromise = new Promise<void>((r) => { resolveFirstJob = r; });
+      const firstJobPromise = new Promise<void>((r) => {
+        resolveFirstJob = r;
+      });
 
       const mockDb = {
         jobAd: {
@@ -128,8 +146,8 @@ describe("Pure Canonical Identity Primitives (Strategy 4)", () => {
         publishedAt: new Date(),
       };
 
-      const p1 = resolveCanonicalJob(mockDb, { ...payload, externalId: "fifo_1" });
-      const p2 = resolveCanonicalJob(mockDb, { ...payload, externalId: "fifo_2" });
+      const p1 = resolveCanonicalJob(mockDb as unknown as IdentityResolutionDbClient, { ...payload, externalId: "fifo_1" });
+      const p2 = resolveCanonicalJob(mockDb as unknown as IdentityResolutionDbClient, { ...payload, externalId: "fifo_2" });
 
       await new Promise((r) => setTimeout(r, 10));
       expect(executionOrder).toEqual(["caller1_start"]);
@@ -137,7 +155,12 @@ describe("Pure Canonical Identity Primitives (Strategy 4)", () => {
       resolveFirstJob!();
       await Promise.all([p1, p2]);
 
-      expect(executionOrder).toEqual(["caller1_start", "caller1_finish", "caller2_start", "caller2_finish"]);
+      expect(executionOrder).toEqual([
+        "caller1_start",
+        "caller1_finish",
+        "caller2_start",
+        "caller2_finish",
+      ]);
       expect(getActiveLockCount()).toBe(0);
     });
 
@@ -150,7 +173,7 @@ describe("Pure Canonical Identity Primitives (Strategy 4)", () => {
       };
 
       const promises = Array.from({ length: 100 }, (_, i) =>
-        resolveCanonicalJob(mockDb, {
+        resolveCanonicalJob(mockDb as unknown as IdentityResolutionDbClient, {
           externalId: `stress_${i}`,
           title: `Engineer ${i}`,
           company: `Corp ${i}`,

@@ -1,5 +1,7 @@
 import { SourceVacancy } from "@/lib/services/identity";
 
+import { getPublicationCutoff, isFreshPublicationDate } from "@/lib/services/publicationFreshness";
+
 export interface JobTechAd {
   id: string;
   headline: string;
@@ -33,36 +35,52 @@ export function jobTechAdToSourceVacancy(ad: JobTechAd): SourceVacancy {
 }
 
 export interface FetchJobsParams {
-
   keywords?: string[];
   limit?: number;
 }
 
-export async function fetchSwedishJobs(keywords: string[] = [
-  "fullstack",
-  "developer",
-  "engineer",
-  "software",
-  "systems",
-  "frontend",
-  "backend",
-  "web",
-  "cloud",
-  "python",
-  "react",
-  "node",
-  "automation",
-  "quality"
-]): Promise<JobTechAd[]> {
+export async function fetchSwedishJobs(
+  keywords: string[] = [
+    "fullstack",
+    "developer",
+    "engineer",
+    "software",
+    "systems",
+    "frontend",
+    "backend",
+    "web",
+    "cloud",
+    "python",
+    "react",
+    "node",
+    "automation",
+    "quality",
+  ],
+  cutoff: Date = getPublicationCutoff()
+): Promise<JobTechAd[]> {
   const allAds: JobTechAd[] = [];
   const seenIds = new Set<string>();
+  const addFreshAds = (hits: JobTechAd[] = []) => {
+    for (const hit of hits) {
+      if (
+        !hit?.id ||
+        !isFreshPublicationDate(hit.publication_date, cutoff) ||
+        seenIds.has(hit.id)
+      ) {
+        continue;
+      }
+      seenIds.add(hit.id);
+      allAds.push(hit);
+    }
+  };
 
   for (const q of keywords) {
     try {
-      const url = `https://jobsearch.api.jobtechdev.se/search?q=${encodeURIComponent(q)}&limit=25&offset=0&published-after=${getTodayNoonIso()}`;
+      const publishedAfter = cutoff.toISOString().split(".")[0];
+      const url = `https://jobsearch.api.jobtechdev.se/search?q=${encodeURIComponent(q)}&limit=25&offset=0&published-after=${publishedAfter}`;
       const res = await fetch(url, {
         headers: {
-          "Accept": "application/json",
+          Accept: "application/json",
           "User-Agent": "JobSeekeR/1.0",
         },
         next: { revalidate: 0 },
@@ -72,45 +90,30 @@ export async function fetchSwedishJobs(keywords: string[] = [
         // Fallback without published-after filter if today's count is small
         const fallbackUrl = `https://jobsearch.api.jobtechdev.se/search?q=${encodeURIComponent(q)}&limit=25&offset=0`;
         const fbRes = await fetch(fallbackUrl, {
-          headers: { "Accept": "application/json" },
+          headers: { Accept: "application/json" },
         });
         if (fbRes.ok) {
           const fbData = await fbRes.json();
-          for (const hit of fbData.hits || []) {
-            if (!seenIds.has(hit.id)) {
-              seenIds.add(hit.id);
-              allAds.push(hit);
-            }
-          }
+          addFreshAds(fbData.hits || []);
         }
         continue;
       }
 
       const data = await res.json();
-      for (const hit of data.hits || []) {
-        if (!seenIds.has(hit.id)) {
-          seenIds.add(hit.id);
-          allAds.push(hit);
-        }
-      }
+      addFreshAds(data.hits || []);
     } catch (error) {
       console.error(`Error fetching jobs for query "${q}":`, error);
     }
   }
 
-  // If no ads found for today, do a general recent query
+  // If no fresh ads are found, perform a general fallback search
   if (allAds.length === 0) {
     try {
       const url = `https://jobsearch.api.jobtechdev.se/search?q=engineer%20developer&limit=50`;
-      const res = await fetch(url, { headers: { "Accept": "application/json" } });
+      const res = await fetch(url, { headers: { Accept: "application/json" } });
       if (res.ok) {
         const data = await res.json();
-        for (const hit of data.hits || []) {
-          if (!seenIds.has(hit.id)) {
-            seenIds.add(hit.id);
-            allAds.push(hit);
-          }
-        }
+        addFreshAds(data.hits || []);
       }
     } catch (e) {
       console.error("Fallback search error:", e);
@@ -118,10 +121,4 @@ export async function fetchSwedishJobs(keywords: string[] = [
   }
 
   return allAds;
-}
-
-function getTodayNoonIso(): string {
-  const d = new Date();
-  d.setHours(0, 0, 0, 0); // Start of today
-  return d.toISOString().split(".")[0];
 }

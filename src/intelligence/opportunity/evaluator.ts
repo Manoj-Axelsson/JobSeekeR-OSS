@@ -25,8 +25,10 @@ export class OpportunityEvaluator {
     const considerations: string[] = [];
 
     // 1. Role Title Alignment
-    const titleMatch = candidateProfile.targetRoles.some((role) =>
-      opp.title.toLowerCase().includes(role.toLowerCase()) || role.toLowerCase().includes(opp.title.toLowerCase())
+    const titleMatch = candidateProfile.targetRoles.some(
+      (role) =>
+        opp.title.toLowerCase().includes(role.toLowerCase()) ||
+        role.toLowerCase().includes(opp.title.toLowerCase())
     );
     if (titleMatch) {
       score += 20;
@@ -39,8 +41,10 @@ export class OpportunityEvaluator {
       advantages.push(`Matches your preferred ${opp.workingModel.toLowerCase()} working model.`);
     }
 
-    const locationMatch = candidateProfile.preferredLocations.some((loc) =>
-      opp.location.toLowerCase().includes(loc.toLowerCase()) || loc.toLowerCase().includes(opp.location.toLowerCase())
+    const locationMatch = candidateProfile.preferredLocations.some(
+      (loc) =>
+        opp.location.toLowerCase().includes(loc.toLowerCase()) ||
+        loc.toLowerCase().includes(opp.location.toLowerCase())
     );
     if (locationMatch) {
       score += 10;
@@ -63,7 +67,9 @@ export class OpportunityEvaluator {
 
     if (matchedSkillsCount >= 3) {
       score += 15;
-      advantages.push(`High transferable competency alignment across ${matchedSkillsCount}+ core areas.`);
+      advantages.push(
+        `High transferable competency alignment across ${matchedSkillsCount}+ core areas.`
+      );
     } else if (matchedSkillsCount >= 1) {
       score += 5;
     } else {
@@ -81,23 +87,28 @@ export class OpportunityEvaluator {
     if (score >= 88) {
       tier = "EXCELLENT_MATCH";
       tierLabel = "🌟 Excellent Match";
-      pursuitRecommendation = "Strongly Recommended: This opportunity closely aligns with your target role, working model, and core competencies.";
+      pursuitRecommendation =
+        "Strongly Recommended: This opportunity closely aligns with your target role, working model, and core competencies.";
     } else if (score >= 74) {
       tier = "STRONG_MATCH";
       tierLabel = "🟢 Strong Match";
-      pursuitRecommendation = "Recommended: High value opportunity matching your primary strengths and location preferences.";
+      pursuitRecommendation =
+        "Recommended: High value opportunity matching your primary strengths and location preferences.";
     } else if (score >= 60) {
       tier = "POTENTIAL_MATCH";
       tierLabel = "🟡 Potential Match";
-      pursuitRecommendation = "Worth Exploring: Solid role alignment with a few areas requiring positioning emphasis.";
+      pursuitRecommendation =
+        "Worth Exploring: Solid role alignment with a few areas requiring positioning emphasis.";
     } else if (score >= 45) {
       tier = "STRETCH_OPPORTUNITY";
       tierLabel = "🚀 Stretch Opportunity";
-      pursuitRecommendation = "Growth Step: Higher seniority or new domain opportunity that leverages your transferable competencies.";
+      pursuitRecommendation =
+        "Growth Step: Higher seniority or new domain opportunity that leverages your transferable competencies.";
     } else {
       tier = "LOW_PRIORITY";
       tierLabel = "⚪ Low Priority";
-      pursuitRecommendation = "Low Relevance: Limited alignment with your target preferences and verified competencies.";
+      pursuitRecommendation =
+        "Low Relevance: Limited alignment with your target preferences and verified competencies.";
     }
 
     const rationale = `Evaluated based on role alignment (${titleMatch ? "matched" : "partial"}), ${opp.workingModel} work model, and ${matchedSkillsCount} verified transferable competencies.`;

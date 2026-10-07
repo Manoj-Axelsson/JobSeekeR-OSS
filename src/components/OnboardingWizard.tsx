@@ -7,14 +7,24 @@ interface OnboardingWizardProps {
   isOpen: boolean;
   onClose: () => void;
   onComplete: () => void;
+  initialName?: string;
+  initialHeadline?: string;
 }
 
-export function OnboardingWizard({ isOpen, onClose, onComplete }: OnboardingWizardProps) {
+export function OnboardingWizard({
+  isOpen,
+  onClose,
+  onComplete,
+  initialName = "",
+  initialHeadline = "",
+}: OnboardingWizardProps) {
   const [step, setStep] = useState(1);
-  const [name, setName] = useState("Manoj John Axelsson");
-  const [headline, setHeadline] = useState("Software & Systems Engineer");
+  const [name, setName] = useState(initialName);
+  const [headline, setHeadline] = useState(initialHeadline);
   const [location, setLocation] = useState("Sweden");
-  const [targetRolesText, setTargetRolesText] = useState("Fullstack Developer, Systems Engineer, Software Architect, Quality Engineer");
+  const [targetRolesText, setTargetRolesText] = useState(
+    "Fullstack Developer, Systems Engineer, Software Architect, Quality Engineer"
+  );
   const [minMatchScore, setMinMatchScore] = useState(50);
   const [saving, setSaving] = useState(false);
 
@@ -32,8 +42,8 @@ export function OnboardingWizard({ isOpen, onClose, onComplete }: OnboardingWiza
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name,
-          headline,
+          name: name.trim() || "Candidate",
+          headline: headline.trim() || "Professional",
           location,
           targetRoles,
           minMatchScore,
@@ -89,10 +99,12 @@ export function OnboardingWizard({ isOpen, onClose, onComplete }: OnboardingWiza
           <div className="space-y-4">
             <div className="p-4 rounded-2xl bg-amber-950/40 border border-amber-400/40">
               <p className="text-xs sm:text-sm text-amber-200 font-extrabold italic">
-                &ldquo;JobseekeR™ is an intelligence platform built to automate job searching.&rdquo;
+                &ldquo;JobseekeR™ is an intelligence platform built to automate job
+                searching.&rdquo;
               </p>
               <p className="text-xs text-amber-100/80 mt-1">
-                Let&apos;s set up your profile to score real-time job postings from Sweden&apos;s Arbetsförmedlingen JobTech API!
+                Let&apos;s set up your profile to score real-time job postings from Sweden&apos;s
+                Arbetsförmedlingen JobTech API!
               </p>
             </div>
 
@@ -104,6 +116,7 @@ export function OnboardingWizard({ isOpen, onClose, onComplete }: OnboardingWiza
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
+                placeholder="e.g. Jane Doe"
                 className="w-full bg-slate-950 border border-amber-500/40 rounded-xl px-4 py-2.5 text-sm text-amber-100 focus:outline-none focus:border-amber-400"
               />
             </div>
@@ -116,6 +129,7 @@ export function OnboardingWizard({ isOpen, onClose, onComplete }: OnboardingWiza
                 type="text"
                 value={headline}
                 onChange={(e) => setHeadline(e.target.value)}
+                placeholder="e.g. Software & Systems Engineer"
                 className="w-full bg-slate-950 border border-amber-500/40 rounded-xl px-4 py-2.5 text-sm text-amber-100 focus:outline-none focus:border-amber-400"
               />
             </div>
@@ -146,9 +160,12 @@ export function OnboardingWizard({ isOpen, onClose, onComplete }: OnboardingWiza
         {/* Step 2: Document Intelligence */}
         {step === 2 && (
           <div className="space-y-4">
-            <h3 className="text-lg font-extrabold text-amber-300">📄 Document Intelligence &amp; Skill Extraction</h3>
+            <h3 className="text-lg font-extrabold text-amber-300">
+              📄 Document Intelligence &amp; Skill Extraction
+            </h3>
             <p className="text-xs text-amber-100/80">
-              Upload your PDF/Word CVs and competence certificates. JobseekeR™ will automatically extract your technical skills into your profile taxonomy.
+              Upload your PDF/Word CVs and competence certificates. JobseekeR™ will automatically
+              extract your technical skills into your profile taxonomy.
             </p>
 
             <DocumentUploader />
@@ -173,7 +190,9 @@ export function OnboardingWizard({ isOpen, onClose, onComplete }: OnboardingWiza
         {/* Step 3: Target Roles & Threshold */}
         {step === 3 && (
           <div className="space-y-4">
-            <h3 className="text-lg font-extrabold text-amber-300">🎯 Target Roles &amp; Minimum Match Threshold</h3>
+            <h3 className="text-lg font-extrabold text-amber-300">
+              🎯 Target Roles &amp; Minimum Match Threshold
+            </h3>
 
             <div>
               <label className="block text-xs font-bold text-amber-300 uppercase tracking-wider mb-1">
@@ -228,20 +247,29 @@ export function OnboardingWizard({ isOpen, onClose, onComplete }: OnboardingWiza
         {/* Step 4: Scanner & Direct URL Importer Guide */}
         {step === 4 && (
           <div className="space-y-4 text-xs sm:text-sm">
-            <h3 className="text-lg font-extrabold text-amber-300">⚡ Automated 12:00 PM Scanner &amp; URL Importer</h3>
+            <h3 className="text-lg font-extrabold text-amber-300">
+              ⚡ Automated 12:00 PM Scanner &amp; URL Importer
+            </h3>
 
             <div className="space-y-3">
               <div className="p-4 rounded-2xl bg-amber-950/40 border border-amber-400/40">
-                <h4 className="font-extrabold text-amber-300">🏛️ Daily 12:00 PM Swedish Job Scanner</h4>
+                <h4 className="font-extrabold text-amber-300">
+                  🏛️ Daily 12:00 PM Swedish Job Scanner
+                </h4>
                 <p className="text-amber-100/80 text-xs mt-1">
-                  Every day at 12:00 PM, JobseekeR™ scans Arbetsförmedlingen JobTech API, calculates match scores, and updates your feed automatically.
+                  Every day at 12:00 PM, JobseekeR™ scans Arbetsförmedlingen JobTech API, calculates
+                  match scores, and updates your feed automatically.
                 </p>
               </div>
 
               <div className="p-4 rounded-2xl bg-amber-950/40 border border-amber-400/40">
-                <h4 className="font-extrabold text-amber-300">🔗 1-Click Direct Job Link Importer</h4>
+                <h4 className="font-extrabold text-amber-300">
+                  🔗 1-Click Direct Job Link Importer
+                </h4>
                 <p className="text-amber-100/80 text-xs mt-1">
-                  Have a job link from LinkedIn, Platsbanken, or a company site? Paste it into <strong>&ldquo;🔗 Importera Direkt Jobblänk&rdquo;</strong> to extract text and score it instantly!
+                  Have a job link from LinkedIn, Platsbanken, or a company site? Paste it into{" "}
+                  <strong>&ldquo;🔗 Importera Direkt Jobblänk&rdquo;</strong> to extract text and
+                  score it instantly!
                 </p>
               </div>
             </div>
@@ -266,19 +294,26 @@ export function OnboardingWizard({ isOpen, onClose, onComplete }: OnboardingWiza
         {/* Step 5: Intelligence Suite & Mobile PWA Installation */}
         {step === 5 && (
           <div className="space-y-4 text-xs sm:text-sm">
-            <h3 className="text-lg font-extrabold text-amber-300">🤖 Intelligence Suite &amp; Mobile PWA Installation</h3>
+            <h3 className="text-lg font-extrabold text-amber-300">
+              🤖 Intelligence Suite &amp; Mobile PWA Installation
+            </h3>
 
             <div className="p-4 rounded-2xl bg-amber-950/40 border border-amber-400/40 space-y-2">
-              <h4 className="font-extrabold text-amber-300">📱 Mobile &amp; Laptop PWA Installation</h4>
+              <h4 className="font-extrabold text-amber-300">
+                📱 Mobile &amp; Laptop PWA Installation
+              </h4>
               <p className="text-amber-100/80 text-xs">
-                Tap <strong>Share → &ldquo;Add to Home Screen&rdquo;</strong> on iPhone, or click <strong>&ldquo;Install App&rdquo;</strong> in Chrome on Android/Mac/Windows to install JobseekeR™ with 1 click!
+                Tap <strong>Share → &ldquo;Add to Home Screen&rdquo;</strong> on iPhone, or click{" "}
+                <strong>&ldquo;Install App&rdquo;</strong> in Chrome on Android/Mac/Windows to
+                install JobseekeR™ with 1 click!
               </p>
             </div>
 
             <div className="p-4 rounded-2xl bg-amber-950/40 border border-amber-400/40 space-y-2">
               <h4 className="font-extrabold text-amber-300">🤖 8-Pillar Intelligence Suite</h4>
               <p className="text-amber-100/80 text-xs">
-                Unlock Recruiter Analytics, Company Callback Ratios, Swedish Salary Parsing, Upskilling ROIs, and Predictive Interview Probabilities!
+                Unlock Recruiter Analytics, Company Callback Ratios, Swedish Salary Parsing,
+                Upskilling ROIs, and Predictive Interview Probabilities!
               </p>
             </div>
 

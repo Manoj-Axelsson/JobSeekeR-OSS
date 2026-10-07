@@ -1,6 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { GET as getJobs, PATCH as patchJob, DELETE as deleteJob } from "../../../app/api/jobs/route";
-import { GET as getApplications, PATCH as patchApplication } from "../../../app/api/applications/route";
+import {
+  GET as getJobs,
+  PATCH as patchJob,
+  DELETE as deleteJob,
+} from "../../../app/api/jobs/route";
+import {
+  GET as getApplications,
+  PATCH as patchApplication,
+} from "../../../app/api/applications/route";
 import { POST as importUrl } from "../../../app/api/jobs/import-url/route";
 import { NextRequest } from "next/server";
 
@@ -19,13 +26,39 @@ interface StoreRecord {
 vi.mock("../../db", () => {
   const store = {
     userAccount: new Map<string, StoreRecord>(),
+    userSession: new Map<string, StoreRecord>(),
     jobAd: new Map<string, StoreRecord>(),
     application: new Map<string, StoreRecord>(),
     userProfile: new Map<string, StoreRecord>(),
+    careerProfile: new Map<string, StoreRecord>(),
+    searchProfile: new Map<string, StoreRecord>(),
   };
+
+  (globalThis as any).__mockDbStore = store;
 
   return {
     db: {
+      _store: store,
+      userSession: {
+        findUnique: vi.fn(async ({ where }: { where: { sessionTokenHash?: string } }) => {
+          if (where.sessionTokenHash) {
+            for (const sess of store.userSession.values()) {
+              if (sess.sessionTokenHash === where.sessionTokenHash) {
+                const userAccount = store.userAccount.get(sess.userAccountId as string);
+                return { ...sess, userAccount };
+              }
+            }
+          }
+          return null;
+        }),
+        create: vi.fn(async ({ data }: { data: StoreRecord }) => {
+          const id = data.id || `sess-${Math.random()}`;
+          const sess = { ...data, id };
+          store.userSession.set(id, sess);
+          return sess;
+        }),
+        deleteMany: vi.fn(async () => ({ count: 0 })),
+      },
       userAccount: {
         findUnique: vi.fn(async ({ where }: { where: { email?: string; id?: string } }) => {
           if (where.email) {
@@ -62,8 +95,13 @@ vi.mock("../../db", () => {
             if (where.webpageUrl && job.webpageUrl !== where.webpageUrl) continue;
             if (where.OR) {
               const match = where.OR.some((cond: any) => {
-                if (cond.userAccountId !== undefined && job.userAccountId === cond.userAccountId) return true;
-                if (cond.userAccountId === null && (job.userAccountId === null || job.userAccountId === undefined)) return true;
+                if (cond.userAccountId !== undefined && job.userAccountId === cond.userAccountId)
+                  return true;
+                if (
+                  cond.userAccountId === null &&
+                  (job.userAccountId === null || job.userAccountId === undefined)
+                )
+                  return true;
                 return false;
               });
               if (!match) continue;
@@ -77,8 +115,13 @@ vi.mock("../../db", () => {
           for (const job of store.jobAd.values()) {
             if (where?.OR) {
               const matchesOR = where.OR.some((cond: any) => {
-                if (cond.userAccountId !== undefined && job.userAccountId === cond.userAccountId) return true;
-                if (cond.userAccountId === null && (job.userAccountId === null || job.userAccountId === undefined)) return true;
+                if (cond.userAccountId !== undefined && job.userAccountId === cond.userAccountId)
+                  return true;
+                if (
+                  cond.userAccountId === null &&
+                  (job.userAccountId === null || job.userAccountId === undefined)
+                )
+                  return true;
                 return false;
               });
               if (!matchesOR) continue;
@@ -106,19 +149,21 @@ vi.mock("../../db", () => {
           store.jobAd.delete(where.id);
           return job;
         }),
-        deleteMany: vi.fn(async ({ where }: { where: { externalId?: { startsWith?: string } } }) => {
-          if (where?.externalId?.startsWith) {
-            const prefix = where.externalId.startsWith;
-            for (const [id, job] of store.jobAd.entries()) {
-              if (job.externalId && (job.externalId as string).startsWith(prefix)) {
-                store.jobAd.delete(id);
+        deleteMany: vi.fn(
+          async ({ where }: { where: { externalId?: { startsWith?: string } } }) => {
+            if (where?.externalId?.startsWith) {
+              const prefix = where.externalId.startsWith;
+              for (const [id, job] of store.jobAd.entries()) {
+                if (job.externalId && (job.externalId as string).startsWith(prefix)) {
+                  store.jobAd.delete(id);
+                }
               }
+            } else {
+              store.jobAd.clear();
             }
-          } else {
-            store.jobAd.clear();
+            return { count: 0 };
           }
-          return { count: 0 };
-        }),
+        ),
       },
       application: {
         findFirst: vi.fn(async ({ where }: { where: any }) => {
@@ -127,8 +172,13 @@ vi.mock("../../db", () => {
             if (where.jobId && app.jobId !== where.jobId) continue;
             if (where.OR) {
               const match = where.OR.some((cond: any) => {
-                if (cond.userAccountId !== undefined && app.userAccountId === cond.userAccountId) return true;
-                if (cond.userAccountId === null && (app.userAccountId === null || app.userAccountId === undefined)) return true;
+                if (cond.userAccountId !== undefined && app.userAccountId === cond.userAccountId)
+                  return true;
+                if (
+                  cond.userAccountId === null &&
+                  (app.userAccountId === null || app.userAccountId === undefined)
+                )
+                  return true;
                 return false;
               });
               if (!match) continue;
@@ -142,8 +192,13 @@ vi.mock("../../db", () => {
           for (const app of store.application.values()) {
             if (where?.OR) {
               const matchesOR = where.OR.some((cond: any) => {
-                if (cond.userAccountId !== undefined && app.userAccountId === cond.userAccountId) return true;
-                if (cond.userAccountId === null && (app.userAccountId === null || app.userAccountId === undefined)) return true;
+                if (cond.userAccountId !== undefined && app.userAccountId === cond.userAccountId)
+                  return true;
+                if (
+                  cond.userAccountId === null &&
+                  (app.userAccountId === null || app.userAccountId === undefined)
+                )
+                  return true;
                 return false;
               });
               if (!matchesOR) continue;
@@ -165,22 +220,102 @@ vi.mock("../../db", () => {
           store.application.set(where.id, updated);
           return updated;
         }),
-        deleteMany: vi.fn(async ({ where }: { where: { resumeVersion?: { contains?: string } } }) => {
-          if (where?.resumeVersion?.contains) {
-            const term = where.resumeVersion.contains;
-            for (const [id, app] of store.application.entries()) {
-              if (app.resumeVersion && (app.resumeVersion as string).includes(term)) {
-                store.application.delete(id);
+        deleteMany: vi.fn(
+          async ({ where }: { where: { resumeVersion?: { contains?: string } } }) => {
+            if (where?.resumeVersion?.contains) {
+              const term = where.resumeVersion.contains;
+              for (const [id, app] of store.application.entries()) {
+                if (app.resumeVersion && (app.resumeVersion as string).includes(term)) {
+                  store.application.delete(id);
+                }
               }
+            } else {
+              store.application.clear();
             }
-          } else {
-            store.application.clear();
+            return { count: 0 };
           }
+        ),
+      },
+      userProfile: {
+        findFirst: vi.fn(
+          async ({ where }: { where?: { userAccountId?: string | null } }) => {
+            const values = Array.from(store.userProfile.values());
+            if (!where) return values[0] || null;
+            if (where.userAccountId !== undefined) {
+              return values.find((p) => p.userAccountId === where.userAccountId) || null;
+            }
+            return null;
+          }
+        ),
+        create: vi.fn(async ({ data }: { data: StoreRecord }) => {
+          const id = data.id || `prof-${Math.random()}`;
+          const profile = { ...data, id };
+          store.userProfile.set(id, profile);
+          return profile;
+        }),
+        update: vi.fn(async ({ where, data }: { where: { id: string }; data: StoreRecord }) => {
+          const profile = store.userProfile.get(where.id) || {};
+          const updated = { ...profile, ...data };
+          store.userProfile.set(where.id, updated);
+          return updated;
+        }),
+        deleteMany: vi.fn(async () => {
+          store.userProfile.clear();
           return { count: 0 };
         }),
       },
-      userProfile: {
-        findFirst: vi.fn(async () => ({ id: "user_main", name: "Manoj John Axelsson", headline: "Software Engineer" })),
+      careerProfile: {
+        findFirst: vi.fn(
+          async ({ where }: { where: { id?: string; userAccountId?: string | null } }) => {
+            for (const cp of store.careerProfile.values()) {
+              if (where.id && cp.id === where.id) return cp;
+              if (where.userAccountId && cp.userAccountId === where.userAccountId) return cp;
+            }
+            return null;
+          }
+        ),
+        create: vi.fn(async ({ data }: { data: StoreRecord }) => {
+          const id = data.id || `cp-${Math.random()}`;
+          const cp = { ...data, id };
+          store.careerProfile.set(id, cp);
+          return cp;
+        }),
+        update: vi.fn(async ({ where, data }: { where: { id: string }; data: StoreRecord }) => {
+          const cp = store.careerProfile.get(where.id) || {};
+          const updated = { ...cp, ...data };
+          store.careerProfile.set(where.id, updated);
+          return updated;
+        }),
+      },
+      searchProfile: {
+        findFirst: vi.fn(async ({ where }: { where: { userAccountId?: string } }) => {
+          for (const sp of store.searchProfile.values()) {
+            if (where.userAccountId && sp.userAccountId === where.userAccountId) return sp;
+          }
+          return null;
+        }),
+        findMany: vi.fn(async ({ where }: { where: { userAccountId?: string } }) => {
+          const results: StoreRecord[] = [];
+          for (const sp of store.searchProfile.values()) {
+            if (!where?.userAccountId || sp.userAccountId === where.userAccountId) {
+              results.push(sp);
+            }
+          }
+          return results;
+        }),
+        create: vi.fn(async ({ data }: { data: StoreRecord }) => {
+          const id = data.id || `sp-${Math.random()}`;
+          const sp = { ...data, id };
+          store.searchProfile.set(id, sp);
+          return sp;
+        }),
+      },
+      searchTerritory: {
+        findFirst: vi.fn(async () => null),
+        create: vi.fn(async ({ data }: { data: StoreRecord }) => {
+          const id = (data.id as string) || `st-${Math.random()}`;
+          return { ...data, id };
+        }),
       },
     },
   };
@@ -192,9 +327,13 @@ describe("Multi-Tenant Account Ownership & Security Boundary Suite", () => {
 
   beforeEach(async () => {
     const { db } = await import("../../db");
-    await db.userAccount.deleteMany({ where: { email: { in: ["usera@test.com", "userb@test.com"] } } });
+    await db.userAccount.deleteMany({
+      where: { email: { in: ["usera@test.com", "userb@test.com"] } },
+    });
     await db.jobAd.deleteMany({ where: { externalId: { startsWith: "test_tenant_" } } });
-    await db.application.deleteMany({ where: { resumeVersion: { contains: "Test Ownership CV" } } });
+    await db.application.deleteMany({
+      where: { resumeVersion: { contains: "Test Ownership CV" } },
+    });
 
     userA = await db.userAccount.create({
       data: {
@@ -216,7 +355,23 @@ describe("Multi-Tenant Account Ownership & Security Boundary Suite", () => {
   });
 
   function createSessionCookie(email: string): string {
-    return `jobseeker_session=${encodeURIComponent(JSON.stringify({ email }))}`;
+    const crypto = require("crypto");
+    const store = (globalThis as any).__mockDbStore;
+    const user: any = Array.from(store?.userAccount?.values() || []).find((u: any) => u.email === email);
+    let rawToken = "a".repeat(64);
+    if (user) {
+      rawToken = crypto.createHash("sha256").update(user.id).digest("hex").slice(0, 64);
+      const sessionTokenHash = crypto.createHash("sha256").update(rawToken).digest("hex");
+      store?.userSession?.set(sessionTokenHash, {
+        id: `sess-${user.id}`,
+        sessionTokenHash,
+        userAccountId: user.id,
+        expiresAt: new Date(Date.now() + 86400000),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+    }
+    return `jobseeker_session=${rawToken}`;
   }
 
   it("Security Gate: Unauthenticated requests without session cookie return 401 Unauthorized", async () => {
@@ -335,5 +490,70 @@ describe("Multi-Tenant Account Ownership & Security Boundary Suite", () => {
     });
     const resDeleteUserBJob = await deleteJob(reqDeleteUserBJob);
     expect(resDeleteUserBJob.status).toBe(404);
+  });
+
+  it("enforces strict account-scoped isolation on GET and PUT /api/profile", async () => {
+    const { GET: getProfile, PUT: putProfile } = await import("../../../app/api/profile/route");
+
+    // Account A fetches profile
+    const reqGetA = new NextRequest("http://localhost:3000/api/profile", {
+      headers: { cookie: createSessionCookie(userA.email) },
+    });
+    const resGetA = await getProfile(reqGetA);
+    const dataGetA = await resGetA.json();
+    expect(resGetA.status).toBe(200);
+
+    // Account B updates profile
+    const reqPutB = new NextRequest("http://localhost:3000/api/profile", {
+      method: "PUT",
+      headers: { cookie: createSessionCookie(userB.email) },
+      body: JSON.stringify({
+        name: "User B Candidate",
+        headline: "Python Engineer",
+        excludedCompanies: ["CompanyBBlocked"],
+      }),
+    });
+    const resPutB = await putProfile(reqPutB);
+    const dataPutB = await resPutB.json();
+    expect(resPutB.status).toBe(200);
+    expect(dataPutB.userAccountId).toBe(userB.id);
+
+    // Account A fetches profile again -> MUST NOT contain Account B's updates
+    const reqGetA2 = new NextRequest("http://localhost:3000/api/profile", {
+      headers: { cookie: createSessionCookie(userA.email) },
+    });
+    const resGetA2 = await getProfile(reqGetA2);
+    const dataGetA2 = await resGetA2.json();
+    expect(resGetA2.status).toBe(200);
+    expect(dataGetA2.excludedCompanies).not.toContain("CompanyBBlocked");
+  });
+
+  it("prevents authenticated accounts from auto-claiming unassigned legacy profiles on GET", async () => {
+    const { db } = await import("../../db");
+    const { GET: getProfile } = await import("../../../app/api/profile/route");
+
+    // Create an unassigned legacy profile
+    const legacyProf = await db.userProfile.create({
+      data: {
+        id: "legacy-unassigned-prof",
+        userAccountId: null,
+        name: "Legacy Secret Candidate",
+        targetRoles: "[]",
+        skills: "{}",
+        excludedCompanies: JSON.stringify(["SecretCorp"]),
+      },
+    });
+
+    // Account A calls GET /api/profile
+    const reqGet = new NextRequest("http://localhost:3000/api/profile", {
+      headers: { cookie: createSessionCookie(userA.email) },
+    });
+    const resGet = await getProfile(reqGet);
+    const dataGet = await resGet.json();
+
+    expect(resGet.status).toBe(200);
+    // User A should get their own profile, NOT the legacy unassigned profile
+    expect(dataGet.userAccountId).toBe(userA.id);
+    expect(dataGet.excludedCompanies).not.toContain("SecretCorp");
   });
 });

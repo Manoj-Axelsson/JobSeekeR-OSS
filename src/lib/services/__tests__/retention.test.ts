@@ -95,7 +95,7 @@ describe("12-Month Retention Policy Service", () => {
   it("should calculate cutoff date correctly for 365 days", async () => {
     const result = await pruneExpiredData(365);
     const expectedCutoffApprox = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).getTime();
-    
+
     expect(result.cutoffDate.getTime()).toBeCloseTo(expectedCutoffApprox, -3);
     expect(typeof result.purgedAdsCount).toBe("number");
     expect(typeof result.purgedLogsCount).toBe("number");

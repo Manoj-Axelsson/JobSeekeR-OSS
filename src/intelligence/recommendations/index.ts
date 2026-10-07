@@ -1,3 +1,6 @@
+import type { JobAd, Application } from "@/types/domain";
+import { safeParseSkillArray } from "../utils";
+
 export interface RecommendationItem {
   id: string;
   type: "JOB_APPLICATION" | "CV_OPTIMIZATION" | "UPSKILLING" | "RECRUITER_OUTREACH";
@@ -7,10 +10,14 @@ export interface RecommendationItem {
   priorityBadge: string;
   targetJobId?: string;
   targetTab?: "feed" | "tracker" | "profile" | "logs" | "intelligence" | "settings";
-  actionType?: "OPEN_JOB_MODAL" | "OPEN_DOC_UPLOADER" | "OPEN_ONBOARDING" | "NAVIGATE_TAB" | "TRIGGER_SCAN";
+  actionType?:
+    "OPEN_JOB_MODAL" | "OPEN_DOC_UPLOADER" | "OPEN_ONBOARDING" | "NAVIGATE_TAB" | "TRIGGER_SCAN";
 }
 
-export function generateTodaysRecommendations(jobs: any[] = [], applications: any[] = []): RecommendationItem[] {
+export function generateTodaysRecommendations(
+  jobs: JobAd[] = [],
+  applications: Application[] = []
+): RecommendationItem[] {
   const recommendations: RecommendationItem[] = [];
 
   // 1. Top Matched Job Opportunity Recommendation
@@ -20,7 +27,7 @@ export function generateTodaysRecommendations(jobs: any[] = [], applications: an
 
   if (unapplied.length > 0) {
     const topMatched = unapplied[0];
-    const jobTitle = topMatched.headline || topMatched.title || "Top Position";
+    const jobTitle = topMatched.title || "Top Position";
     recommendations.push({
       id: "rec_job_top",
       type: "JOB_APPLICATION",
@@ -37,7 +44,8 @@ export function generateTodaysRecommendations(jobs: any[] = [], applications: an
       type: "JOB_APPLICATION",
       title: "Run Daily Swedish Job Market Scan",
       actionText: "Fetch Latest Listings ⚡",
-      rationale: "Scan Arbetsförmedlingen JobTech Open Data API for newly published postings today.",
+      rationale:
+        "Scan Arbetsförmedlingen JobTech Open Data API for newly published postings today.",
       priorityBadge: "🔥 Top Action Today",
       actionType: "TRIGGER_SCAN",
     });
@@ -64,7 +72,8 @@ export function generateTodaysRecommendations(jobs: any[] = [], applications: an
       type: "CV_OPTIMIZATION",
       title: `${savedCount} Saved Positions Ready to Apply`,
       actionText: "Review Saved Positions 📌",
-      rationale: "Open your saved target listings and generate tailored cover letter opening hooks.",
+      rationale:
+        "Open your saved target listings and generate tailored cover letter opening hooks.",
       priorityBadge: "📌 Saved Opportunities",
       targetTab: "feed",
       actionType: "NAVIGATE_TAB",
@@ -75,7 +84,8 @@ export function generateTodaysRecommendations(jobs: any[] = [], applications: an
       type: "CV_OPTIMIZATION",
       title: "Upload Your CV & Certificates",
       actionText: "Upload CV Document 📁",
-      rationale: "Upload PDF or DOCX to extract technical competences and boost position match accuracy.",
+      rationale:
+        "Upload PDF or DOCX to extract technical competences and boost position match accuracy.",
       priorityBadge: "📄 CV Intelligence",
       actionType: "OPEN_DOC_UPLOADER",
     });
@@ -84,15 +94,9 @@ export function generateTodaysRecommendations(jobs: any[] = [], applications: an
   // 3. Dynamic Skill & Market Insight Recommendation
   const skillCounts: Record<string, number> = {};
   for (const j of jobs) {
-    if (Array.isArray(j.missingKeywords)) {
-      for (const kw of j.missingKeywords) {
-        if (kw && typeof kw === "string") {
-          const cleanKw = kw.trim();
-          if (cleanKw) {
-            skillCounts[cleanKw] = (skillCounts[cleanKw] || 0) + 1;
-          }
-        }
-      }
+    const missing = safeParseSkillArray(j.missingSkills);
+    for (const kw of missing) {
+      skillCounts[kw] = (skillCounts[kw] || 0) + 1;
     }
   }
 
@@ -116,7 +120,8 @@ export function generateTodaysRecommendations(jobs: any[] = [], applications: an
       type: "UPSKILLING",
       title: "Customize Target Roles & Competences",
       actionText: "Configure Profile ⚙️",
-      rationale: "Configure target roles, skills, and minimum match score threshold in your profile.",
+      rationale:
+        "Configure target roles, skills, and minimum match score threshold in your profile.",
       priorityBadge: "⚙️ Competence Profile",
       targetTab: "profile",
       actionType: "NAVIGATE_TAB",

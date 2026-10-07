@@ -6,7 +6,9 @@ import { translations, Language } from "@/lib/services/i18n";
 
 interface NavbarProps {
   activeTab: "feed" | "tracker" | "profile" | "logs" | "intelligence" | "settings";
-  setActiveTab: (tab: "feed" | "tracker" | "profile" | "logs" | "intelligence" | "settings") => void;
+  setActiveTab: (
+    tab: "feed" | "tracker" | "profile" | "logs" | "intelligence" | "settings"
+  ) => void;
   profileName: string;
   jobCount: number;
   appCount: number;
@@ -28,6 +30,13 @@ interface NavbarProps {
 // Enhanced Uniform Hover & Active Design System Class for Navbar Buttons
 const navBtnClass =
   "h-11 px-4 text-xs sm:text-sm font-black text-amber-950 bg-gradient-to-r from-amber-300 via-amber-400 to-orange-400 hover:from-amber-200 hover:to-orange-300 hover:scale-105 hover:shadow-xl hover:shadow-amber-400/40 hover:border-amber-100 transition-all duration-200 shadow-lg shadow-amber-950/40 rounded-xl cursor-pointer flex items-center justify-center space-x-2 border border-amber-200/70 active:scale-95 shrink-0";
+
+const LANGUAGE_OPTIONS: { value: Language; label: string }[] = [
+  { value: "sv", label: "🇸🇪 Svenska (Default)" },
+  { value: "en", label: "🇬🇧 English" },
+  { value: "no", label: "🇳🇴 Norsk" },
+  { value: "da", label: "🇩🇰 Dansk" },
+];
 
 export function Navbar({
   activeTab,
@@ -62,6 +71,16 @@ export function Navbar({
   const handleLangSelect = (l: Language) => {
     setSelectedLang(l);
     if (onLanguageChange) onLanguageChange(l);
+  };
+
+  const handleIncreaseFontSize = () => {
+    const root = document.documentElement;
+    const currentSize = parseFloat(
+      getComputedStyle(root).getPropertyValue("--base-font-size") || "19px"
+    );
+    const nextSize = currentSize >= 25 ? 17 : currentSize + 2;
+    root.style.setProperty("--base-font-size", `${nextSize}px`);
+    document.body.style.fontSize = `${nextSize}px`;
   };
 
   // Close dropdowns on click outside
@@ -100,11 +119,18 @@ export function Navbar({
             <Link href="/" className="flex items-center space-x-2 sm:space-x-3.5 group">
               <div className="flex items-center space-x-2 sm:space-x-3">
                 <span className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white drop-shadow-xl group-hover:scale-[1.02] transition-transform duration-200">
-                  JobseekeR<span className="text-amber-400 text-sm sm:text-xl lg:text-2xl align-super font-extrabold ml-0.5">™</span>
+                  JobseekeR
+                  <span className="text-amber-400 text-sm sm:text-xl lg:text-2xl align-super font-extrabold ml-0.5">
+                    ™
+                  </span>
                 </span>
                 <div className="hidden sm:inline-flex flex-col px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-xl bg-[#361804]/90 border border-amber-400/60 shadow-md text-left group-hover:border-amber-300 transition-colors">
-                  <span className="text-[10px] sm:text-xs font-extrabold tracking-wide text-amber-300">Open Source Scanner</span>
-                  <span className="text-[9px] sm:text-[11px] font-semibold text-amber-200/90 border-t border-amber-500/30 pt-0.5 mt-0.5">SE Job Tech API</span>
+                  <span className="text-[10px] sm:text-xs font-extrabold tracking-wide text-amber-300">
+                    Open Source Scanner
+                  </span>
+                  <span className="text-[9px] sm:text-[11px] font-semibold text-amber-200/90 border-t border-amber-500/30 pt-0.5 mt-0.5">
+                    SE Job Tech API
+                  </span>
                 </div>
               </div>
             </Link>
@@ -128,11 +154,7 @@ export function Navbar({
           {/* Desktop Top Action Buttons (Visible on lg and larger viewports) */}
           <div className="hidden lg:flex items-center space-x-3">
             {/* 1. 🏠 Home Button */}
-            <Link
-              href="/landing"
-              className={navBtnClass}
-              title="Navigate to Landing Page"
-            >
+            <Link href="/landing" className={navBtnClass} title="Navigate to Landing Page">
               <span>🏠</span>
               <span>Home</span>
             </Link>
@@ -180,7 +202,9 @@ export function Navbar({
                       {currentUser.name.charAt(0).toUpperCase()}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="font-extrabold text-sm text-white truncate">{currentUser.name}</p>
+                      <p className="font-extrabold text-sm text-white truncate">
+                        {currentUser.name}
+                      </p>
                       <p className="text-xs text-amber-300/80 truncate">{currentUser.email}</p>
                       <span className="inline-block mt-1 px-2 py-0.5 text-[10px] font-bold rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
                         ✓ Verified Candidate
@@ -199,7 +223,9 @@ export function Navbar({
                       >
                         <div className="flex items-center space-x-2">
                           <span>📖</span>
-                          <span className="font-extrabold text-amber-300">User Guide &amp; Docs</span>
+                          <span className="font-extrabold text-amber-300">
+                            User Guide &amp; Docs
+                          </span>
                         </div>
                         <span className="text-amber-400 font-bold">↗</span>
                       </button>
@@ -286,10 +312,11 @@ export function Navbar({
                       onChange={(e) => handleLangSelect(e.target.value as Language)}
                       className="w-full bg-[#241203] text-xs font-bold text-amber-100 p-2 rounded-xl border border-amber-500/40 hover:border-amber-400 focus:outline-none cursor-pointer transition-colors"
                     >
-                      <option value="sv">🇸🇪 Svenska (Default)</option>
-                      <option value="en">🇬🇧 English</option>
-                      <option value="no">🇳🇴 Norsk</option>
-                      <option value="da">🇩🇰 Dansk</option>
+                      {LANGUAGE_OPTIONS.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
                     </select>
                   </div>
 
@@ -300,13 +327,7 @@ export function Navbar({
 
                     <div className="flex items-center gap-2">
                       <button
-                        onClick={() => {
-                          const root = document.documentElement;
-                          const currentSize = parseFloat(getComputedStyle(root).getPropertyValue("--base-font-size") || "19px");
-                          const nextSize = currentSize >= 25 ? 17 : currentSize + 2;
-                          root.style.setProperty("--base-font-size", `${nextSize}px`);
-                          document.body.style.fontSize = `${nextSize}px`;
-                        }}
+                        onClick={handleIncreaseFontSize}
                         className="flex-1 px-3 py-2 text-xs font-bold rounded-xl bg-[#241203] text-amber-200 border border-amber-500/40 hover:bg-amber-900/60 hover:scale-105 hover:border-amber-300 cursor-pointer text-center transition-all active:scale-95"
                         title="Increase text size"
                       >
@@ -321,7 +342,14 @@ export function Navbar({
                             } else {
                               const ttsText = `Välkommen till JobseekeR. Sidan innehåller ${jobCount} lediga jobb och ${appCount} ansökningar.`;
                               const u = new SpeechSynthesisUtterance(ttsText);
-                              u.lang = selectedLang === "en" ? "en-US" : selectedLang === "no" ? "no-NO" : selectedLang === "da" ? "da-DK" : "sv-SE";
+                              u.lang =
+                                selectedLang === "en"
+                                  ? "en-US"
+                                  : selectedLang === "no"
+                                    ? "no-NO"
+                                    : selectedLang === "da"
+                                      ? "da-DK"
+                                      : "sv-SE";
                               window.speechSynthesis.speak(u);
                             }
                           }
@@ -367,9 +395,19 @@ export function Navbar({
             >
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 {isMobileMenuOpen ? (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2.5}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 ) : (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6h16M4 12h16M4 18h16" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2.5}
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
                 )}
               </svg>
             </button>
@@ -593,10 +631,11 @@ export function Navbar({
                 onChange={(e) => handleLangSelect(e.target.value as Language)}
                 className="w-full bg-[#241203] text-xs font-bold text-amber-100 p-2.5 rounded-xl border border-amber-500/40 hover:border-amber-300 focus:outline-none cursor-pointer transition-colors"
               >
-                <option value="sv">🇸🇪 Svenska (Default)</option>
-                <option value="en">🇬🇧 English</option>
-                <option value="no">🇳🇴 Norsk</option>
-                <option value="da">🇩🇰 Dansk</option>
+                {LANGUAGE_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -606,13 +645,7 @@ export function Navbar({
               </label>
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => {
-                    const root = document.documentElement;
-                    const currentSize = parseFloat(getComputedStyle(root).getPropertyValue("--base-font-size") || "19px");
-                    const nextSize = currentSize >= 25 ? 17 : currentSize + 2;
-                    root.style.setProperty("--base-font-size", `${nextSize}px`);
-                    document.body.style.fontSize = `${nextSize}px`;
-                  }}
+                  onClick={handleIncreaseFontSize}
                   className="flex-1 px-3 py-2 text-xs font-bold rounded-xl bg-[#241203] text-amber-200 border border-amber-500/40 hover:bg-amber-900/60 hover:scale-105 hover:border-amber-300 cursor-pointer text-center transition-all active:scale-95"
                 >
                   A+ Font

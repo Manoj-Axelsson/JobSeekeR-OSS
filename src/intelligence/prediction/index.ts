@@ -1,3 +1,5 @@
+import type { JobAd, Application } from "@/types/domain";
+
 export interface PredictiveConfidence {
   confidencePct: number;
   statusState: "Learning" | "Ready" | "High Confidence";
@@ -10,9 +12,14 @@ export interface PredictiveConfidence {
  * MATHEMATICAL CONFIDENCE MODEL (Evidence-Based, Non-Arbitrary)
  * Confidence = min(100, (N_apps / 10 * 40) + (N_interviews / 3 * 30) + (N_evaluations / 20 * 30))
  */
-export function calculatePredictiveConfidence(jobs: any[] = [], applications: any[] = []): PredictiveConfidence {
+export function calculatePredictiveConfidence(
+  jobs: JobAd[] = [],
+  applications: Application[] = []
+): PredictiveConfidence {
   const nApps = applications.length;
-  const nInterviews = applications.filter((a) => a.status === "INTERVIEWING" || a.status === "OFFER").length;
+  const nInterviews = applications.filter(
+    (a) => a.status === "INTERVIEWING" || a.status === "OFFER"
+  ).length;
   const nEvaluations = jobs.length;
 
   const appScore = Math.min(40, (nApps / 10) * 40);
@@ -23,12 +30,14 @@ export function calculatePredictiveConfidence(jobs: any[] = [], applications: an
 
   let statusState: "Learning" | "Ready" | "High Confidence" = "Learning";
   let statusBadge = "🌱 Learning";
-  let message = "Accumulating candidate interaction history to build statistical predictive accuracy.";
+  let message =
+    "Accumulating candidate interaction history to build statistical predictive accuracy.";
 
   if (confidencePct >= 71) {
     statusState = "High Confidence";
     statusBadge = "🎯 High Confidence";
-    message = "High statistical confidence based on verified interview callbacks and application history.";
+    message =
+      "High statistical confidence based on verified interview callbacks and application history.";
   } else if (confidencePct >= 31) {
     statusState = "Ready";
     statusBadge = "⚡ Ready";
@@ -37,7 +46,10 @@ export function calculatePredictiveConfidence(jobs: any[] = [], applications: an
 
   // Base interview probability on matched scores and callback history
   const matchedScores = jobs.map((j) => j.matchScore || 0);
-  const avgMatch = matchedScores.length > 0 ? Math.round(matchedScores.reduce((a, b) => a + b, 0) / matchedScores.length) : 74;
+  const avgMatch =
+    matchedScores.length > 0
+      ? Math.round(matchedScores.reduce((a, b) => a + b, 0) / matchedScores.length)
+      : 74;
   const interviewProbabilityPct = Math.round(avgMatch * 0.5);
 
   return {
@@ -49,6 +61,6 @@ export function calculatePredictiveConfidence(jobs: any[] = [], applications: an
   };
 }
 
-export function predictInterviewProbability(jobs: any[], applications: any[]): number {
+export function predictInterviewProbability(jobs: JobAd[], applications: Application[]): number {
   return calculatePredictiveConfidence(jobs, applications).interviewProbabilityPct;
 }

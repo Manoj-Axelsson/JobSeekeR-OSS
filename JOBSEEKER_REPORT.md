@@ -14,17 +14,17 @@ The platform combines external job ingestion, normalized opportunity data, candi
 
 ## 2. Current Technology Stack
 
-| Layer | Current technology |
-|---|---|
-| Web framework | Next.js 16 App Router |
-| UI | React 19 |
-| Language | TypeScript |
-| ORM | Prisma 6 |
-| Cloud web database | PostgreSQL |
-| Local/desktop database option | SQLite |
-| Styling | Tailwind CSS |
-| Deployment | Vercel |
-| Primary job source | Arbetsförmedlingen JobTech |
+| Layer                         | Current technology         |
+| ----------------------------- | -------------------------- |
+| Web framework                 | Next.js 16 App Router      |
+| UI                            | React 19                   |
+| Language                      | TypeScript                 |
+| ORM                           | Prisma 6                   |
+| Cloud web database            | PostgreSQL                 |
+| Local/desktop database option | SQLite                     |
+| Styling                       | Tailwind CSS               |
+| Deployment                    | Vercel                     |
+| Primary job source            | Arbetsförmedlingen JobTech |
 
 The current Prisma schema is PostgreSQL-backed. SQLite remains a deployment option for local-first desktop architecture rather than the production web database.
 

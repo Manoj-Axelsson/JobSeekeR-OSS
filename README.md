@@ -46,15 +46,15 @@ Sweden's official **Arbetsförmedlingen JobTech API** remains the primary job-da
 
 The current intelligence architecture is organized around domain-specific services:
 
-| Subsystem | Purpose |
-|---|---|
-| Opportunity | Determines whether an opportunity merits pursuit |
-| Competency | Evaluates candidate competencies, relationships and transferability |
-| Positioning | Determines how existing candidate evidence should be presented |
-| Coaching | Provides non-fabricating application and interview guidance |
-| Decision | Synthesizes intelligence into explainable decision support |
-| Pipeline | Classifies eligibility, capability and intent |
-| Canonical Identity | Resolves duplicate representations of the same vacancy |
+| Subsystem          | Purpose                                                             |
+| ------------------ | ------------------------------------------------------------------- |
+| Opportunity        | Determines whether an opportunity merits pursuit                    |
+| Competency         | Evaluates candidate competencies, relationships and transferability |
+| Positioning        | Determines how existing candidate evidence should be presented      |
+| Coaching           | Provides non-fabricating application and interview guidance         |
+| Decision           | Synthesizes intelligence into explainable decision support          |
+| Pipeline           | Classifies eligibility, capability and intent                       |
+| Canonical Identity | Resolves duplicate representations of the same vacancy              |
 
 The governing product principle is:
 
@@ -75,6 +75,7 @@ JobSeekeR uses deployment-specific persistence:
 The production web architecture does **not** fall back to an ephemeral local database when PostgreSQL is unavailable. Production database configuration is an explicit deployment contract.
 
 See:
+
 - [ADR-001 — Local-First Architecture](docs/architecture/ADR-001-local-first-architecture.md)
 - [ADR-002 — Production Persistence & Account Ownership](docs/adr/ADR-002-production-persistence-and-account-ownership.md)
 - [ADR-004 — Career, Search & Territory Domain Model](docs/architecture/ADR-004-decoupled-career-search-and-territory-domain-model.md)
@@ -100,16 +101,16 @@ For milestone-specific evidence, see [Phase 5 Gate 3](docs/milestones/phase-5-ga
 
 # 🏗️ Technology Stack
 
-| Layer | Technology |
-|---|---|
-| Frontend | Next.js + React |
-| Language | TypeScript |
-| Database / ORM | PostgreSQL + Prisma |
+| Layer                 | Technology                                             |
+| --------------------- | ------------------------------------------------------ |
+| Frontend              | Next.js + React                                        |
+| Language              | TypeScript                                             |
+| Database / ORM        | PostgreSQL + Prisma                                    |
 | Local database option | SQLite architectural path for local/desktop deployment |
-| Styling | Tailwind CSS |
-| Authentication | Local/session-derived account authentication |
-| Deployment | Vercel |
-| Primary data source | Arbetsförmedlingen JobTech API |
+| Styling               | Tailwind CSS                                           |
+| Authentication        | Local/session-derived account authentication           |
+| Deployment            | Vercel                                                 |
+| Primary data source   | Arbetsförmedlingen JobTech API                         |
 
 ---
 

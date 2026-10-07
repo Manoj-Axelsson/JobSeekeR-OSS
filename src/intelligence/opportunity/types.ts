@@ -4,11 +4,11 @@
  */
 
 export type MatchTier =
-  | "EXCELLENT_MATCH"   // 🌟 Excellent Match (90-100%)
-  | "STRONG_MATCH"      // 🟢 Strong Match (75-89%)
-  | "POTENTIAL_MATCH"   // 🟡 Potential Match (60-74%)
+  | "EXCELLENT_MATCH" // 🌟 Excellent Match (90-100%)
+  | "STRONG_MATCH" // 🟢 Strong Match (75-89%)
+  | "POTENTIAL_MATCH" // 🟡 Potential Match (60-74%)
   | "STRETCH_OPPORTUNITY" // 🚀 Stretch Opportunity (45-59%)
-  | "LOW_PRIORITY";     // ⚪ Low Priority (<45%)
+  | "LOW_PRIORITY"; // ⚪ Low Priority (<45%)
 
 export interface EmployerEntity {
   name: string;

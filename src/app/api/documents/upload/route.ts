@@ -42,14 +42,17 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // 2. Also merge into the legacy userProfile for fallback UI compatibility
-    const existingProfile = await db.userProfile.findFirst();
+    // 2. Also merge into the account-scoped userProfile for UI compatibility
+    const existingProfile = await db.userProfile.findFirst({
+      where: { userAccountId: user.id },
+    });
     if (existingProfile) {
       const currentSkillsObj = JSON.parse(existingProfile.skills || "{}");
       const currentCustomList: string[] = currentSkillsObj.custom || [];
 
-      const newCustomList = Array.from(new Set([...currentCustomList, ...parsedDoc.extractedSkills]));
-      currentSkillsObj.custom = newCustomList;
+      currentSkillsObj.custom = Array.from(
+        new Set([...currentCustomList, ...parsedDoc.extractedSkills])
+      );
 
       await db.userProfile.update({
         where: { id: existingProfile.id },
@@ -61,8 +64,9 @@ export async function POST(req: NextRequest) {
       success: true,
       document: parsedDoc,
     });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message || "Failed to upload document" }, { status: 500 });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "";
+    return NextResponse.json({ error: message || "Failed to upload document" }, { status: 500 });
   }
 }
 
@@ -84,7 +88,8 @@ export async function GET(req: NextRequest) {
     }));
 
     return NextResponse.json(formattedDocs);
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message || "Failed to fetch documents" }, { status: 500 });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "";
+    return NextResponse.json({ error: message || "Failed to fetch documents" }, { status: 500 });
   }
 }

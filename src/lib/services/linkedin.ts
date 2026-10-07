@@ -1,4 +1,5 @@
 import { SourceVacancy } from "@/lib/services/identity";
+import { getPublicationCutoff, isFreshPublicationDate } from "@/lib/services/publicationFreshness";
 
 export interface LinkedInJobAd {
   id: string;
@@ -24,7 +25,6 @@ export function linkedInAdToSourceVacancy(ad: LinkedInJobAd): SourceVacancy {
   };
 }
 
-
 async function fetchLinkedInJobDetails(jobIdNumeric: string): Promise<string | null> {
   try {
     const url = `https://www.linkedin.com/jobs-guest/jobs/api/jobPosting/${jobIdNumeric}`;
@@ -37,7 +37,7 @@ async function fetchLinkedInJobDetails(jobIdNumeric: string): Promise<string | n
     });
     if (!res.ok) return null;
     const html = await res.text();
-    
+
     // Extract main job description section from LinkedIn HTML
     const markupMatch =
       html.match(/<div class="show-more-less-html__markup[^"]*">([\s\S]*?)<\/div>/i) ||
@@ -45,13 +45,12 @@ async function fetchLinkedInJobDetails(jobIdNumeric: string): Promise<string | n
       html.match(/<div class="description__text[^"]*">([\s\S]*?)<\/div>/i);
 
     if (markupMatch && markupMatch[1]) {
-      const cleanText = markupMatch[1]
+      return markupMatch[1]
         .replace(/<br\s*\/?>/gi, "\n")
         .replace(/<\/p>/gi, "\n\n")
         .replace(/<[^>]*>/g, " ")
         .replace(/\s+/g, " ")
         .trim();
-      return cleanText;
     }
   } catch {
     // Ignore detail fetch errors and use synthesized description fallback
@@ -60,7 +59,15 @@ async function fetchLinkedInJobDetails(jobIdNumeric: string): Promise<string | n
 }
 
 export async function fetchLinkedInSwedishJobs(
-  keywords: string[] = ["fullstack", "react typescript", "systems engineer", "manufacturing engineer", "quality engineer", "automation engineer"]
+  keywords: string[] = [
+    "fullstack",
+    "react typescript",
+    "systems engineer",
+    "manufacturing engineer",
+    "quality engineer",
+    "automation engineer",
+  ],
+  cutoff: Date = getPublicationCutoff()
 ): Promise<LinkedInJobAd[]> {
   const jobs: LinkedInJobAd[] = [];
   const seenIds = new Set<string>();
@@ -86,23 +93,69 @@ export async function fetchLinkedInSwedishJobs(
       const html = await res.text();
 
       // Parse job card elements from LinkedIn HTML response
-      const titleMatches = Array.from(html.matchAll(/<h3 class="base-search-card__title">([\s\S]*?)<\/h3>/g));
-      const companyMatches = Array.from(html.matchAll(/<h4 class="base-search-card__subtitle">([\s\S]*?)<\/h4>/g));
-      const locationMatches = Array.from(html.matchAll(/<span class="job-search-card__location">([\s\S]*?)<\/span>/g));
-      const linkMatches = Array.from(html.matchAll(/<a class="base-card__full-link[^"]*" href="([^"?]*)/g));
+      // Parse each LinkedIn job card as a unit to keep fields aligned.
+      const cardMatches = Array.from(html.matchAll(/<li\b[^>]*>([\s\S]*?)<\/li>/gi));
 
-      const count = Math.min(titleMatches.length, companyMatches.length, locationMatches.length, linkMatches.length);
+      for (const cardMatch of cardMatches) {
+        const card = cardMatch[1];
 
-      for (let i = 0; i < count; i++) {
-        const rawTitle = titleMatches[i][1].replace(/<[^>]*>/g, "").trim();
-        const rawCompany = companyMatches[i][1].replace(/<[^>]*>/g, "").trim();
-        const rawLocation = locationMatches[i][1].replace(/<[^>]*>/g, "").trim();
-        const rawUrl = linkMatches[i][1].trim();
+        const titleMatch = card.match(
+          /<h3\b[^>]*class="[^"]*base-search-card__title[^"]*"[^>]*>([\s\S]*?)<\/h3>/i
+        );
+
+        const companyMatch = card.match(
+          /<h4\b[^>]*class="[^"]*base-search-card__subtitle[^"]*"[^>]*>([\s\S]*?)<\/h4>/i
+        );
+
+        const locationMatch = card.match(
+          /<span\b[^>]*class="[^"]*job-search-card__location[^"]*"[^>]*>([\s\S]*?)<\/span>/i
+        );
+
+        const timeMatch = card.match(/<time\b[^>]*datetime="([^"]+)"[^>]*>/i);
+
+        const linkTags = Array.from(card.matchAll(/<a\b[^>]*>/gi));
+
+        const jobLink = linkTags
+          .map((match) => match[0])
+          .find((tag) => /class="[^"]*base-card__full-link[^"]*"/i.test(tag));
+
+        const hrefMatch = jobLink?.match(/href="([^"]+)"/i);
+
+        const rawTitle = titleMatch?.[1]
+          .replace(/<[^>]*>/g, " ")
+          .replace(/\s+/g, " ")
+          .trim();
+
+        const rawCompany = companyMatch?.[1]
+          .replace(/<[^>]*>/g, " ")
+          .replace(/\s+/g, " ")
+          .trim();
+
+        const rawLocation = locationMatch?.[1]
+          .replace(/<[^>]*>/g, " ")
+          .replace(/\s+/g, " ")
+          .trim();
+
+        const rawUrl = hrefMatch?.[1].trim();
+        const publicationDate = timeMatch?.[1];
+
+        if (
+          !rawTitle ||
+          !rawCompany ||
+
+          !rawUrl ||
+          !publicationDate ||
+          !isFreshPublicationDate(publicationDate, cutoff)
+        ) {
+          continue;
+        }
 
         // Extract LinkedIn Job ID from URL
         const idMatch = rawUrl.match(/-(\d+)/) || rawUrl.match(/view\/(\d+)/);
         const numericId = idMatch ? idMatch[1] : null;
-        const jobId = numericId ? `li_${numericId}` : `li_${Math.random().toString(36).substring(2, 10)}`;
+        const jobId = numericId
+          ? `li_${numericId}`
+          : `li_${Math.random().toString(36).substring(2, 10)}`;
 
         if (!seenIds.has(jobId) && rawTitle && rawCompany) {
           seenIds.add(jobId);
@@ -112,9 +165,10 @@ export async function fetchLinkedInSwedishJobs(
             fullDesc = await fetchLinkedInJobDetails(numericId);
           }
 
-          const description = fullDesc && fullDesc.length > 50
-            ? fullDesc
-            : `${rawTitle} position at ${rawCompany} in ${rawLocation || "Sweden"}. Key domain responsibilities, skills, and qualifications for ${q} engineering role.`;
+          const description =
+            fullDesc && fullDesc.length > 50
+              ? fullDesc
+              : `${rawTitle} position at ${rawCompany} in ${rawLocation || "Sweden"}. Key domain responsibilities, skills, and qualifications for ${q} engineering role.`;
 
           jobs.push({
             id: jobId,
@@ -123,7 +177,7 @@ export async function fetchLinkedInSwedishJobs(
             location: rawLocation || "Sweden",
             description,
             webpageUrl: rawUrl,
-            publicationDate: new Date().toISOString(),
+            publicationDate,
           });
         }
       }

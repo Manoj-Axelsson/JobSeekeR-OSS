@@ -41,8 +41,9 @@ export function DocumentUploader({ onUploadSuccess }: DocumentUploaderProps) {
       setFile(null);
 
       if (onUploadSuccess) onUploadSuccess();
-    } catch (err: any) {
-      setMessage({ type: "error", text: err.message || "Failed to upload document" });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "";
+      setMessage({ type: "error", text: message || "Failed to upload document" });
     } finally {
       setUploading(false);
     }
@@ -56,7 +57,9 @@ export function DocumentUploader({ onUploadSuccess }: DocumentUploaderProps) {
         </div>
         <div>
           <h3 className="text-lg font-bold text-slate-100">Upload CV & Certificates</h3>
-          <p className="text-xs text-slate-400">PDF or Text documents for skill extraction & AI match enhancement</p>
+          <p className="text-xs text-slate-400">
+            PDF or Text documents for skill extraction & AI match enhancement
+          </p>
         </div>
       </div>
 
@@ -68,7 +71,13 @@ export function DocumentUploader({ onUploadSuccess }: DocumentUploaderProps) {
             </span>
             <select
               value={fileType}
-              onChange={(e) => setFileType(e.target.value as any)}
+              onChange={(e) => {
+                const value = e.target.value;
+
+                if (value === "CV" || value === "CERTIFICATE" || value === "COVER_LETTER") {
+                  setFileType(value);
+                }
+              }}
               className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500"
             >
               <option value="CV">Curriculum Vitae (CV / Resume)</option>

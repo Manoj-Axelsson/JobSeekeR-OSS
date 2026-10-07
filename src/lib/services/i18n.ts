@@ -84,16 +84,20 @@ export const translations: Record<Language, TranslationDictionary> = {
     listenAudio: "🔊 Lyssna",
     landingTitle: "Din Intelligenta Dagliga Jobbskanner & Kompetensmotor",
     landingSubtitle: "Automatiserad Svensk Jobbskanning med 12 Månaders Datalagring",
-    landingDescription: "Utvärderar svenska jobbannonser dagligen kl 12:00 mot dina uppladdade CV:n och kompetensbevis, beräknar viktade poäng och underhåller ett 12-månaders sökarkiv.",
+    landingDescription:
+      "Utvärderar svenska jobbannonser dagligen kl 12:00 mot dina uppladdade CV:n och kompetensbevis, beräknar viktade poäng och underhåller ett 12-månaders sökarkiv.",
     launchDashboard: "Öppna JobseekeR™ Panelen 🚀",
     onboardingWizard: "⚙️ Starta Guiden",
     multiDomainTitle: "Dynamisk AI-Matchningsmotor",
-    multiDomainDesc: "Utvärderar krav i jobbannonser mot dina uppladdade CV:n, kandidatprofil och målkompetenser med hjälp av viktade matchningsalgoritmer.",
+    multiDomainDesc:
+      "Utvärderar krav i jobbannonser mot dina uppladdade CV:n, kandidatprofil och målkompetenser med hjälp av viktade matchningsalgoritmer.",
     cvUploadTitle: "CV & Kompetensbevis",
-    cvUploadDesc: "Ladda upp PDF eller text-CV:n och examen för att automatiskt extrahera tekniska kompetenser.",
+    cvUploadDesc:
+      "Ladda upp PDF eller text-CV:n och examen för att automatiskt extrahera tekniska kompetenser.",
     autoRetentionTitle: "12-Månaders Automatisk Datalagring",
     autoRetentionDesc: "Automatisk rensningstjänst raderar sparade annonser äldre än 365 dagar.",
-    footerRights: "© RubberDuckWorks. Utvecklad av Manoj Axelsson. JobseekeR™ är öppen källkod licensierad under MIT-licensen.",
+    footerRights:
+      "© RubberDuckWorks. Utvecklad av Manoj Axelsson. JobseekeR™ är öppen källkod licensierad under MIT-licensen.",
   },
   en: {
     appName: "JobseekeR™",
@@ -128,16 +132,21 @@ export const translations: Record<Language, TranslationDictionary> = {
     listenAudio: "🔊 Listen",
     landingTitle: "Your Intelligent Daily Job Scanner & Match Engine",
     landingSubtitle: "Automated Swedish Job Market Scanner with 12-Month Data Retention",
-    landingDescription: "Evaluates daily Swedish job postings at 12:00 PM against your uploaded CVs & competence certificates, calculates weighted scores, and maintains an automated 12-month archive.",
+    landingDescription:
+      "Evaluates daily Swedish job postings at 12:00 PM against your uploaded CVs & competence certificates, calculates weighted scores, and maintains an automated 12-month archive.",
     launchDashboard: "Launch JobseekeR™ Dashboard 🚀",
     onboardingWizard: "⚙️ Onboarding Wizard",
     multiDomainTitle: "Dynamic AI Match Engine",
-    multiDomainDesc: "Evaluates job ad requirements against your uploaded CVs, candidate profile, and target competencies using weighted matching algorithms.",
+    multiDomainDesc:
+      "Evaluates job ad requirements against your uploaded CVs, candidate profile, and target competencies using weighted matching algorithms.",
     cvUploadTitle: "CV & Certificate Extraction",
-    cvUploadDesc: "Upload PDF or text CVs and educational diplomas to automatically parse technical competences into your taxonomy.",
+    cvUploadDesc:
+      "Upload PDF or text CVs and educational diplomas to automatically parse technical competences into your taxonomy.",
     autoRetentionTitle: "12-Month Auto Retention",
-    autoRetentionDesc: "Automated data pruning service purges non-saved job ads older than 365 days, keeping a clean 12-month rolling archive.",
-    footerRights: "© RubberDuckWorks. Developed by Manoj Axelsson. JobseekeR™ is Open Source software released under the MIT License.",
+    autoRetentionDesc:
+      "Automated data pruning service purges non-saved job ads older than 365 days, keeping a clean 12-month rolling archive.",
+    footerRights:
+      "© RubberDuckWorks. Developed by Manoj Axelsson. JobseekeR™ is Open Source software released under the MIT License.",
   },
   no: {
     appName: "JobseekeR™",
@@ -172,16 +181,20 @@ export const translations: Record<Language, TranslationDictionary> = {
     listenAudio: "🔊 Lytt",
     landingTitle: "Din Intelligente Daglige Jobbskanner & Matchmotor",
     landingSubtitle: "Automatisert Svensk Jobbskanning med 12 Måneders Datalagring",
-    landingDescription: "Evaluerer svenske jobbannonser daglig kl 12:00 mot dine opplastede CV-er og kompetansebevis, beregner vektede poeng og vedlikeholder et 12-måneders arkiv.",
+    landingDescription:
+      "Evaluerer svenske jobbannonser daglig kl 12:00 mot dine opplastede CV-er og kompetansebevis, beregner vektede poeng og vedlikeholder et 12-måneders arkiv.",
     launchDashboard: "Åpne JobseekeR™ Dashbord 🚀",
     onboardingWizard: "⚙️ Start Veiviser",
     multiDomainTitle: "Dynamisk AI-Matchmotor",
-    multiDomainDesc: "Evaluerer krav i jobbannonser mot dine opplastede CV-er, kandidatprofil og målkompetanser ved hjelp av vektede matchingsalgoritmer.",
+    multiDomainDesc:
+      "Evaluerer krav i jobbannonser mot dine opplastede CV-er, kandidatprofil og målkompetanser ved hjelp av vektede matchingsalgoritmer.",
     cvUploadTitle: "CV & Kompetanseuthenting",
-    cvUploadDesc: "Last opp PDF eller tekst-CV-er og vitnemål for automatisk å hente ut teknisk kompetanse.",
+    cvUploadDesc:
+      "Last opp PDF eller tekst-CV-er og vitnemål for automatisk å hente ut teknisk kompetanse.",
     autoRetentionTitle: "12-Måneders Automatisk Lagring",
     autoRetentionDesc: "Automatisk oppryddingstjeneste sletter annonser eldre enn 365 dager.",
-    footerRights: "© RubberDuckWorks. Utviklet av Manoj Axelsson. JobseekeR™ er åpen kildekode lisensiert under MIT-lisensen.",
+    footerRights:
+      "© RubberDuckWorks. Utviklet av Manoj Axelsson. JobseekeR™ er åpen kildekode lisensiert under MIT-lisensen.",
   },
   da: {
     appName: "JobseekeR™",
@@ -216,16 +229,20 @@ export const translations: Record<Language, TranslationDictionary> = {
     listenAudio: "🔊 Lyt",
     landingTitle: "Din Intelligente Daglige Jobscanner & Matchmotor",
     landingSubtitle: "Automatiseret Svensk Jobscanning med 12 Måneders Dataopbevaring",
-    landingDescription: "Evaluerer svenske jobopslag dagligt kl 12:00 mod dine uploadede CV'er og kompetencebeviser, beregner vægtede scores og vedligeholder et 12-måneders arkiv.",
+    landingDescription:
+      "Evaluerer svenske jobopslag dagligt kl 12:00 mod dine uploadede CV'er og kompetencebeviser, beregner vægtede scores og vedligeholder et 12-måneders arkiv.",
     launchDashboard: "Åbn JobseekeR™ Dashboard 🚀",
     onboardingWizard: "⚙️ Start Guiden",
     multiDomainTitle: "Dynamisk AI-Matchmotor",
-    multiDomainDesc: "Evaluerer krav i jobopslag mod dine uploadede CV'er, kandidatprofil og målkompetencer ved hjælp af vægtede matchningsalgoritmer.",
+    multiDomainDesc:
+      "Evaluerer krav i jobopslag mod dine uploadede CV'er, kandidatprofil og målkompetencer ved hjælp af vægtede matchningsalgoritmer.",
     cvUploadTitle: "CV & Kompetenceudtræk",
-    cvUploadDesc: "Upload PDF eller tekst-CV'er og eksamensbeviser for automatisk at udtrække tekniske kompetencer.",
+    cvUploadDesc:
+      "Upload PDF eller tekst-CV'er og eksamensbeviser for automatisk at udtrække tekniske kompetencer.",
     autoRetentionTitle: "12-Måneders Automatisk Opbevaring",
     autoRetentionDesc: "Automatisk oprydningstjeneste sletter opslag ældre end 365 dage.",
-    footerRights: "© RubberDuckWorks. Udviklet af Manoj Axelsson. JobseekeR™ er open source-software licenseret under MIT-licensen.",
+    footerRights:
+      "© RubberDuckWorks. Udviklet af Manoj Axelsson. JobseekeR™ er open source-software licenseret under MIT-licensen.",
   },
 };
 

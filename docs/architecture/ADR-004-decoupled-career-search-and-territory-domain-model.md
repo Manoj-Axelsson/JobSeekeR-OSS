@@ -27,13 +27,13 @@ A candidate can maintain multiple Search Profiles for different career tracks.
 
 ## 2. Human-Centric Preference Translation
 
-| Human Preference | Engine Translation |
-|---|---|
-| Must Have | Hard eligibility gate |
-| Prefer | Primary ranking signal |
-| Nice to Have | Non-punitive additive boost |
-| Exclude | Elimination rule |
-| Explore | Discovery routing |
+| Human Preference | Engine Translation          |
+| ---------------- | --------------------------- |
+| Must Have        | Hard eligibility gate       |
+| Prefer           | Primary ranking signal      |
+| Nice to Have     | Non-punitive additive boost |
+| Exclude          | Elimination rule            |
+| Explore          | Discovery routing           |
 
 ## 3. Probabilistic Occupation Classification
 

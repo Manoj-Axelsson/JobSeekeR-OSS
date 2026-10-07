@@ -1,3 +1,6 @@
+import type { JobAd } from "@/types/domain";
+import { safeParseSkillArray } from "../utils";
+
 export interface MarketTrend {
   technology: string;
   trendDirection: "UP" | "STEADY" | "DOWN";
@@ -5,13 +8,23 @@ export interface MarketTrend {
   demandPercentage: number;
 }
 
-export function calculateMarketTrends(jobs: any[] = []): MarketTrend[] {
+export function calculateMarketTrends(jobs: JobAd[] = []): MarketTrend[] {
   if (!jobs || jobs.length === 0) {
     return [
       { technology: "TypeScript", trendDirection: "UP", trendSymbol: "↑", demandPercentage: 80 },
       { technology: "React", trendDirection: "UP", trendSymbol: "↑", demandPercentage: 75 },
-      { technology: "Systems Engineering", trendDirection: "STEADY", trendSymbol: "→", demandPercentage: 65 },
-      { technology: "Quality Engineering", trendDirection: "UP", trendSymbol: "↑", demandPercentage: 70 },
+      {
+        technology: "Systems Engineering",
+        trendDirection: "STEADY",
+        trendSymbol: "→",
+        demandPercentage: 65,
+      },
+      {
+        technology: "Quality Engineering",
+        trendDirection: "UP",
+        trendSymbol: "↑",
+        demandPercentage: 70,
+      },
     ];
   }
 
@@ -19,16 +32,17 @@ export function calculateMarketTrends(jobs: any[] = []): MarketTrend[] {
   const total = jobs.length;
 
   jobs.forEach((j) => {
-    const allSkills = [...(j.matchedSkills || []), ...(j.missingKeywords || [])];
-    allSkills.forEach((s: string) => {
-      if (s && typeof s === "string") {
-        const clean = s.trim();
-        if (clean) techCounts[clean] = (techCounts[clean] || 0) + 1;
-      }
+    const matched = safeParseSkillArray(j.matchedSkills);
+    const missing = safeParseSkillArray(j.missingSkills);
+    const allSkills = [...matched, ...missing];
+    allSkills.forEach((s) => {
+      techCounts[s] = (techCounts[s] || 0) + 1;
     });
   });
 
-  const sorted = Object.entries(techCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  const sorted = Object.entries(techCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5);
 
   if (sorted.length === 0) {
     return [

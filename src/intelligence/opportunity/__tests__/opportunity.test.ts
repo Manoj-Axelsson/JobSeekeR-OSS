@@ -8,7 +8,8 @@ describe("Phase 2: Opportunity Intelligence Engine", () => {
       title: "Quality Assurance & Continuous Improvement Specialist",
       company: "Volvo Group",
       location: "Göteborg",
-      description: "We are seeking a specialist with Lean Six Sigma, DMAIC, and Root Cause Analysis experience.",
+      description:
+        "We are seeking a specialist with Lean Six Sigma, DMAIC, and Root Cause Analysis experience.",
       workingModel: "HYBRID" as const,
     };
 

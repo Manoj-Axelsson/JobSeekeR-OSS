@@ -1,10 +1,12 @@
+import type { Application } from "@/types/domain";
+
 export interface CompanyMetric {
   companyName: string;
   replyRatePct: number;
   avgResponseDays: number;
 }
 
-export function getMostResponsiveCompany(applications: any[] = []): CompanyMetric {
+export function getMostResponsiveCompany(applications: Application[] = []): CompanyMetric {
   if (!applications || applications.length === 0) {
     return {
       companyName: "No Applications Logged",
@@ -15,7 +17,7 @@ export function getMostResponsiveCompany(applications: any[] = []): CompanyMetri
 
   const companyStats: Record<string, { total: number; replied: number }> = {};
   applications.forEach((app) => {
-    const comp = app.company || "Direct Employer";
+    const comp = app.job?.company || "Direct Employer";
     if (!companyStats[comp]) companyStats[comp] = { total: 0, replied: 0 };
     companyStats[comp].total += 1;
     if (["INTERVIEWING", "OFFER", "REJECTED"].includes(app.status)) {

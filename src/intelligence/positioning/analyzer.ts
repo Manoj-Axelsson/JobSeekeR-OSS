@@ -25,10 +25,15 @@ export class PositioningAnalyzer {
 
     // 1. Evaluate strongest verified evidence present in candidate profile
     for (const item of candidate.verifiedEvidence) {
-      const transfer = competencyGraph.evaluateTransferability(item.associatedCompetency, opp.description);
+      const transfer = competencyGraph.evaluateTransferability(
+        item.associatedCompetency,
+        opp.description
+      );
       if (transfer && transfer.transferWeight >= 0.75) {
         strongestCompetencies.push(`${item.associatedCompetency} (${item.achievementText})`);
-        cvEmphasisOrder.push(`Move higher: "${item.achievementText}" directly supports the employer's requirement.`);
+        cvEmphasisOrder.push(
+          `Move higher: "${item.achievementText}" directly supports the employer's requirement.`
+        );
         if (!transferableHighlight) {
           transferableHighlight = transfer.rationale;
         }
@@ -36,11 +41,21 @@ export class PositioningAnalyzer {
     }
 
     // 2. Identify missing evidence warnings without fabricating experience
-    const keyExpectedTerms = ["lead", "quality", "automation", "dmaic", "stakeholder", "ci/cd", "agile"];
+    const keyExpectedTerms = [
+      "lead",
+      "quality",
+      "automation",
+      "dmaic",
+      "stakeholder",
+      "ci/cd",
+      "agile",
+    ];
     for (const term of keyExpectedTerms) {
       if (lowerDesc.includes(term)) {
-        const candidateHasEvidence = candidate.verifiedEvidence.some((e) =>
-          e.achievementText.toLowerCase().includes(term) || e.associatedCompetency.toLowerCase().includes(term)
+        const candidateHasEvidence = candidate.verifiedEvidence.some(
+          (e) =>
+            e.achievementText.toLowerCase().includes(term) ||
+            e.associatedCompetency.toLowerCase().includes(term)
         );
         if (!candidateHasEvidence) {
           missingEvidenceWarnings.push(
@@ -52,7 +67,9 @@ export class PositioningAnalyzer {
 
     // Default fallback order if verified evidence matches
     if (cvEmphasisOrder.length === 0) {
-      cvEmphasisOrder.push("Maintain current CV layout; highlight core strengths in executive summary.");
+      cvEmphasisOrder.push(
+        "Maintain current CV layout; highlight core strengths in executive summary."
+      );
     }
 
     const rationale = `Positioning strategy prioritizes your ${strongestCompetencies.length} verified evidence items and highlights transferable competence paths.`;

@@ -20,7 +20,7 @@ export interface CandidateStrategyProfile {
 export interface PositioningAdvice {
   strongestCompetencies: string[];
   missingEvidenceWarnings: string[];
-  cvEmphasisOrder: string[];         // Recommended layout order of existing evidence
-  transferableHighlight: string;      // Key transferable story
-  rationale: string;                 // Plain language rationale for Anna
+  cvEmphasisOrder: string[]; // Recommended layout order of existing evidence
+  transferableHighlight: string; // Key transferable story
+  rationale: string; // Plain language rationale for Anna
 }

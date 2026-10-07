@@ -32,3 +32,4 @@ export * from "./company";
 export * from "./document";
 export * from "./market";
 export * from "./scoring";
+export * from "./utils";

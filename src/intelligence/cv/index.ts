@@ -1,3 +1,5 @@
+import type { Application } from "@/types/domain";
+
 export interface CvPerformanceMetric {
   resumeVersion: string;
   totalApplied: number;
@@ -6,7 +8,7 @@ export interface CvPerformanceMetric {
   conversionRate: number; // %
 }
 
-export function calculateCvPerformance(applications: any[] = []): CvPerformanceMetric[] {
+export function calculateCvPerformance(applications: Application[] = []): CvPerformanceMetric[] {
   if (!applications || applications.length === 0) {
     return [];
   }
@@ -35,7 +37,7 @@ export function calculateCvPerformance(applications: any[] = []): CvPerformanceM
   }));
 }
 
-export function getBestPerformingCv(applications: any[] = []): string {
+export function getBestPerformingCv(applications: Application[] = []): string {
   const metrics = calculateCvPerformance(applications);
   if (metrics.length > 0) {
     return metrics.sort((a, b) => b.conversionRate - a.conversionRate)[0].resumeVersion;

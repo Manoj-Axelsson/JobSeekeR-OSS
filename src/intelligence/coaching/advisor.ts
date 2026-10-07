@@ -45,9 +45,15 @@ export class ApplicationCoachingAdvisor {
     });
 
     // 3. Career Strategist Coaching Notes (Preserving authenticity)
-    coachingGuidance.push("Focus your cover letter intro on your authentic motivation for this specific employer.");
-    coachingGuidance.push("Do not attempt to rewrite your background with buzzwords; emphasize verified evidence.");
-    coachingGuidance.push("Be prepared to explain how your transferable skills directly mitigate any experience gaps.");
+    coachingGuidance.push(
+      "Focus your cover letter intro on your authentic motivation for this specific employer."
+    );
+    coachingGuidance.push(
+      "Do not attempt to rewrite your background with buzzwords; emphasize verified evidence."
+    );
+    coachingGuidance.push(
+      "Be prepared to explain how your transferable skills directly mitigate any experience gaps."
+    );
 
     const cleanSuperpowers = candidate.superpowers.map(sanitizeText).filter(Boolean).join(" and ");
 

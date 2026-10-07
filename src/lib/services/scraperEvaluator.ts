@@ -1,8 +1,14 @@
-import { evaluateOpportunityAssessment } from "@/lib/services/matcher";
+import type { PrismaClient, Prisma, CareerProfile } from "@prisma/client";
+import { evaluateOpportunityAssessment, MatchResult } from "@/lib/services/matcher";
 import { resolveCanonicalJob, SourceVacancy, createIngestionInput } from "@/lib/services/identity";
+import type { TerritoryConfig } from "@/lib/services/pipeline/eligibility";
+
+export type SearchProfileWithTerritory = Prisma.SearchProfileGetPayload<{
+  include: { territory: true };
+}>;
 
 export interface ProcessVacancyParams {
-  db: any;
+  db: PrismaClient;
   sourceVacancy?: SourceVacancy;
   externalId?: string;
   title?: string;
@@ -13,8 +19,8 @@ export interface ProcessVacancyParams {
   source?: string;
   publishedAt?: Date;
   deadline?: Date | null;
-  activeSearchProfiles: any[];
-  activeCareerProfile: any;
+  activeSearchProfiles: SearchProfileWithTerritory[];
+  activeCareerProfile: CareerProfile | null;
   candidateSkills: string[];
 }
 
@@ -29,13 +35,7 @@ export interface ProcessVacancyResult {
 export async function processScrapedVacancy(
   params: ProcessVacancyParams
 ): Promise<ProcessVacancyResult> {
-  const {
-    db,
-    sourceVacancy,
-    activeSearchProfiles,
-    activeCareerProfile,
-    candidateSkills,
-  } = params;
+  const { db, sourceVacancy, activeSearchProfiles, activeCareerProfile, candidateSkills } = params;
 
   const vacancy: SourceVacancy = sourceVacancy || {
     externalId: params.externalId!,
@@ -53,18 +53,11 @@ export async function processScrapedVacancy(
 
   const { job: jobRecord, isNew: isNewJob } = await resolveCanonicalJob(db, ingestionInput);
 
-  const {
-    externalId,
-    title,
-    company,
-    location,
-    description,
-  } = vacancy;
-
+  const { externalId, title, company, location, description } = vacancy;
 
   let highestOverallMatchScore = 0;
   let primaryFeedType: "PRIMARY" | "DISCOVERY" = "DISCOVERY";
-  let latestMatchResult: any = null;
+  let latestMatchResult: MatchResult | null = null;
   let evaluatedProfileCount = 0;
 
   for (const sp of activeSearchProfiles) {
@@ -80,7 +73,7 @@ export async function processScrapedVacancy(
       };
     } catch {}
 
-    let territory = undefined;
+    let territory: TerritoryConfig | undefined = undefined;
     if (sp.territory) {
       try {
         territory = {
@@ -88,8 +81,8 @@ export async function processScrapedVacancy(
           regions: JSON.parse(sp.territory.regions || "[]"),
           municipalities: JSON.parse(sp.territory.municipalities || "[]"),
           cities: JSON.parse(sp.territory.cities || "[]"),
-          remotePolicy: sp.territory.remotePolicy as any,
-          discoveryPolicy: sp.territory.discoveryPolicy as any,
+          remotePolicy: (sp.territory.remotePolicy as TerritoryConfig["remotePolicy"]) || "ALLOWED",
+          discoveryPolicy: (sp.territory.discoveryPolicy as TerritoryConfig["discoveryPolicy"]) || "SHOW_SEPARATELY",
         };
       } catch {}
     }
@@ -104,11 +97,11 @@ export async function processScrapedVacancy(
         description,
       },
       {
-        name: activeCareerProfile?.headline || "Manoj Axelsson",
-        headline: activeCareerProfile?.headline || "Software & Systems Engineer",
+        name: "Candidate",
+        headline: activeCareerProfile?.headline || "Professional",
         skills: candidateSkills,
-        targetRoles: prefs?.targetOccupations || ["Software Engineer"],
-        preferredLocations: territory?.cities || ["Stockholm", "Linköping"],
+        targetRoles: prefs?.targetOccupations || [],
+        preferredLocations: territory?.cities || [],
       }
     );
 
@@ -168,15 +161,20 @@ export async function processScrapedVacancy(
         missingSkills: JSON.stringify(latestMatchResult?.missingSkills || []),
         assessmentVersion: "3.0.0",
         matchGrade: latestMatchResult?.newAssessment?.match.grade || null,
-        assessmentConfidence: latestMatchResult?.newAssessment?.confidence.assessmentConfidence || null,
+        assessmentConfidence:
+          latestMatchResult?.newAssessment?.confidence.assessmentConfidence || null,
         canonicalLocation: location,
         hardRequirements: latestMatchResult?.newAssessment?.eligibility.hardRequirements
           ? JSON.stringify(latestMatchResult.newAssessment.eligibility.hardRequirements)
           : null,
         matchedRequirements: JSON.stringify(latestMatchResult?.matchedSkills || []),
         missingRequirements: JSON.stringify(latestMatchResult?.missingSkills || []),
-        enrichmentData: latestMatchResult?.enrichment ? JSON.stringify(latestMatchResult.enrichment) : null,
-        positioningData: latestMatchResult?.positioning ? JSON.stringify(latestMatchResult.positioning) : null,
+        enrichmentData: latestMatchResult?.enrichment
+          ? JSON.stringify(latestMatchResult.enrichment)
+          : null,
+        positioningData: latestMatchResult?.positioning
+          ? JSON.stringify(latestMatchResult.positioning)
+          : null,
         legacyMatchScore: latestMatchResult?.legacyMatchScore ?? null,
       },
     });

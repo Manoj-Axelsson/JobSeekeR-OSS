@@ -1,0 +1,17 @@
+# Build and output directories
+.next
+out
+build
+coverage
+.vercel
+dist
+
+# Generated files and lockfiles
+next-env.d.ts
+*.tsbuildinfo
+package-lock.json
+
+# Tooling and IDE
+.tokensave
+.idea
+.vscode

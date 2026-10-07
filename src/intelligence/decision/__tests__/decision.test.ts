@@ -8,7 +8,8 @@ describe("Phase 5: Decision Support Engine", () => {
       title: "Senior Quality Systems Specialist",
       company: "AstraZeneca",
       location: "Södertälje",
-      description: "Requires expertise in Lean Six Sigma, DMAIC, root cause analysis, and pharmaceutical ISO standards.",
+      description:
+        "Requires expertise in Lean Six Sigma, DMAIC, root cause analysis, and pharmaceutical ISO standards.",
       workingModel: "HYBRID" as const,
     };
 
@@ -32,7 +33,11 @@ describe("Phase 5: Decision Support Engine", () => {
       workingModelPreference: "HYBRID" as const,
     };
 
-    const result = decisionSupportEngine.evaluateDecisionSupport(opp, candidateProfile, preferences);
+    const result = decisionSupportEngine.evaluateDecisionSupport(
+      opp,
+      candidateProfile,
+      preferences
+    );
 
     expect(result.stage1Opportunity.tier).toBe("EXCELLENT_MATCH");
     expect(result.stage2Competencies.matchedTransferableSkills.length).toBeGreaterThan(0);

@@ -8,7 +8,8 @@ describe("Phase 3: Positioning Intelligence Engine", () => {
       title: "Operational Excellence & Quality Manager",
       company: "Scania CV AB",
       location: "Södertälje",
-      description: "Requires expertise in Lean Six Sigma, DMAIC, and Root Cause Analysis for heavy vehicle manufacturing.",
+      description:
+        "Requires expertise in Lean Six Sigma, DMAIC, and Root Cause Analysis for heavy vehicle manufacturing.",
       workingModel: "ON_SITE" as const,
     };
 

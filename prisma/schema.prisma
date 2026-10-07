@@ -15,6 +15,8 @@ model UserAccount {
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
 
+  sessions      UserSession[]
+  userProfile   UserProfile?
   careerProfile CareerProfile?
   searchProfiles SearchProfile[]
   userDocuments UserDocument[]
@@ -22,18 +24,32 @@ model UserAccount {
   applications  Application[]
 }
 
+model UserSession {
+  id               String      @id @default(uuid())
+  sessionTokenHash String      @unique
+  userAccountId    String
+  userAccount      UserAccount @relation(fields: [userAccountId], references: [id], onDelete: Cascade)
+  expiresAt        DateTime
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  @@index([userAccountId])
+}
+
 model UserProfile {
-  id                String   @id @default("user_main")
-  name              String   @default("Manoj John Axelsson")
-  headline          String   @default("Software & Systems Engineer")
-  location          String   @default("Sweden")
-  languages         String   @default("English, Swedish")
-  targetRoles       String   // JSON string array of target roles
-  skills            String   // JSON string object of skill taxonomy
-  minMatchScore     Int      @default(50)
-  excludedCompanies String   @default("[]") // JSON string array of blocked company names
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  id                String       @id @default(uuid())
+  userAccountId     String?      @unique
+  userAccount       UserAccount? @relation(fields: [userAccountId], references: [id], onDelete: Cascade)
+  name              String       @default("Candidate")
+  headline          String       @default("Software & Systems Engineer")
+  location          String       @default("Sweden")
+  languages         String       @default("English, Swedish")
+  targetRoles       String       // JSON string array of target roles
+  skills            String       // JSON string object of skill taxonomy
+  minMatchScore     Int          @default(50)
+  excludedCompanies String       @default("[]") // JSON string array of blocked company names
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
 }
 
 model CareerProfile {

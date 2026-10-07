@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import type { JobAd, Prisma, PrismaClient } from "@prisma/client";
 
 export function normalizeUrl(rawUrl: string | null | undefined): string | null {
   if (!rawUrl || typeof rawUrl !== "string") return null;
@@ -12,9 +13,23 @@ export function normalizeUrl(rawUrl: string | null | undefined): string | null {
     const protocol = parsed.protocol.toLowerCase();
 
     const trackingParams = new Set([
-      "utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content",
-      "gclid", "fbclid", "ref", "referrer", "trackingid", "refid", "trk",
-      "sf_id", "mid", "originalsubdomain", "lipi", "licu",
+      "utm_source",
+      "utm_medium",
+      "utm_campaign",
+      "utm_term",
+      "utm_content",
+      "gclid",
+      "fbclid",
+      "ref",
+      "referrer",
+      "trackingid",
+      "refid",
+      "trk",
+      "sf_id",
+      "mid",
+      "originalsubdomain",
+      "lipi",
+      "licu",
     ]);
 
     const cleanParams = new URLSearchParams();
@@ -36,14 +51,22 @@ export function normalizeUrl(rawUrl: string | null | undefined): string | null {
 
 export function normalizeText(text: string | null | undefined): string {
   if (!text || typeof text !== "string") return "";
-  return text.normalize("NFC").toLowerCase().replace(/[^\p{L}\p{N}\s]/gu, " ").replace(/\s+/g, " ").trim();
+  return text
+    .normalize("NFC")
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 export function computeCanonicalHash(company: string, title: string, location: string): string {
   const normCompany = normalizeText(company);
   const normTitle = normalizeText(title);
   const normLocation = normalizeText(location);
-  return crypto.createHash("sha256").update(`${normCompany}::${normTitle}::${normLocation}`, "utf8").digest("hex");
+  return crypto
+    .createHash("sha256")
+    .update(`${normCompany}::${normTitle}::${normLocation}`, "utf8")
+    .digest("hex");
 }
 
 export interface SourceVacancy {
@@ -107,7 +130,7 @@ export interface IngestionVacancyInput {
 }
 
 export interface IdentityResolutionResult {
-  job: any;
+  job: JobAd;
   isNew: boolean;
   canonicalUrl: string | null;
   canonicalHash: string;
@@ -122,7 +145,12 @@ export function getActiveLockCount(): number {
 async function acquireCanonicalLock(key: string): Promise<() => void> {
   const currentLock = resolutionLocks.get(key) || Promise.resolve();
   let releaseNext: () => void;
-  const nextLock = currentLock.then(() => new Promise<void>((resolve) => { releaseNext = resolve; }));
+  const nextLock = currentLock.then(
+    () =>
+      new Promise<void>((resolve) => {
+        releaseNext = resolve;
+      })
+  );
   resolutionLocks.set(key, nextLock);
   await currentLock.catch(() => {});
   return () => {
@@ -140,8 +168,10 @@ function hashStringToBigInt(str: string): string {
   return hash.toString();
 }
 
+export type IdentityResolutionDbClient = PrismaClient | Prisma.TransactionClient;
+
 export async function resolveCanonicalJob(
-  dbClient: any,
+  dbClient: IdentityResolutionDbClient,
   input: IngestionVacancyInput
 ): Promise<IdentityResolutionResult> {
   const canonicalUrl = normalizeUrl(input.webpageUrl);
@@ -152,7 +182,7 @@ export async function resolveCanonicalJob(
     const dbUrl = process.env.TEST_DATABASE_URL || process.env.DATABASE_URL || "";
     const isPostgres = dbUrl.startsWith("postgresql://") || dbUrl.startsWith("postgres://");
 
-    const runResolution = async (client: any) => {
+    const runResolution = async (client: IdentityResolutionDbClient) => {
       if (isPostgres && typeof client.$executeRawUnsafe === "function") {
         const lockId = hashStringToBigInt(canonicalHash);
         await client.$executeRawUnsafe(`SELECT pg_advisory_xact_lock(${lockId});`);
@@ -206,7 +236,7 @@ export async function resolveCanonicalJob(
           },
         });
 
-        if (input.source && input.externalId && typeof client.jobAdSource?.upsert === "function") {
+        if (input.source && input.externalId && client.jobAdSource?.upsert) {
           await client.jobAdSource.upsert({
             where: {
               source_externalId: {
@@ -231,22 +261,37 @@ export async function resolveCanonicalJob(
           });
         }
 
-        return { job: updatedJob, isNew: false, canonicalUrl: updatedJob.canonicalUrl, canonicalHash: updatedJob.canonicalHash };
+        return {
+          job: updatedJob,
+          isNew: false,
+          canonicalUrl: updatedJob.canonicalUrl,
+          canonicalHash: updatedJob.canonicalHash || canonicalHash,
+        };
       }
 
       const newJob = await client.jobAd.create({
         data: {
-          externalId: input.externalId, title: input.title, company: input.company, location: input.location,
-          description: input.description.slice(0, 3000), webpageUrl: input.webpageUrl || null,
-          source: input.source, publishedAt: input.publishedAt, deadline: input.deadline || null,
-          userAccountId: targetUserAccountId, canonicalHash, canonicalUrl,
-          matchScore: input.matchScore ?? 0, matchedSkills: input.matchedSkills ?? "[]",
-          missingSkills: input.missingSkills ?? "[]", domainScores: input.domainScores ?? "{}",
+          externalId: input.externalId,
+          title: input.title,
+          company: input.company,
+          location: input.location,
+          description: input.description.slice(0, 3000),
+          webpageUrl: input.webpageUrl || null,
+          source: input.source,
+          publishedAt: input.publishedAt,
+          deadline: input.deadline || null,
+          userAccountId: targetUserAccountId,
+          canonicalHash,
+          canonicalUrl,
+          matchScore: input.matchScore ?? 0,
+          matchedSkills: input.matchedSkills ?? "[]",
+          missingSkills: input.missingSkills ?? "[]",
+          domainScores: input.domainScores ?? "{}",
           status: input.status ?? "NEW",
         },
       });
 
-      if (input.source && input.externalId && typeof client.jobAdSource?.upsert === "function") {
+      if (input.source && input.externalId && client.jobAdSource?.upsert) {
         await client.jobAdSource.upsert({
           where: {
             source_externalId: {
@@ -274,8 +319,8 @@ export async function resolveCanonicalJob(
       return { job: newJob, isNew: true, canonicalUrl, canonicalHash };
     };
 
-    if (typeof dbClient.$transaction === "function") {
-      return await dbClient.$transaction(async (tx: any) => runResolution(tx));
+    if ("$transaction" in dbClient && typeof dbClient.$transaction === "function") {
+      return await dbClient.$transaction(async (tx: Prisma.TransactionClient) => runResolution(tx));
     }
     return await runResolution(dbClient);
   } finally {

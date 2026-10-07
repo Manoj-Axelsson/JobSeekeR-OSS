@@ -35,7 +35,10 @@ export class CompetencyGraph {
   /**
    * Calculate transferability & relationship weight between two competencies
    */
-  public evaluateTransferability(candidateSkillInput: string, jobRequirementInput: string): TransferabilityResult | null {
+  public evaluateTransferability(
+    candidateSkillInput: string,
+    jobRequirementInput: string
+  ): TransferabilityResult | null {
     const sourceNode = this.findCompetency(candidateSkillInput);
     const targetNode = this.findCompetency(jobRequirementInput);
 
@@ -86,7 +89,7 @@ export class CompetencyGraph {
       return {
         sourceCompetency: sourceNode,
         targetCompetency: targetNode,
-        transferWeight: 0.60,
+        transferWeight: 0.6,
         relationshipType: "ENABLES",
         rationale: `Both ${sourceNode.name} and ${targetNode.name} belong to the ${sourceNode.category.replace(/_/g, " ")} domain.`,
       };
@@ -98,7 +101,10 @@ export class CompetencyGraph {
   /**
    * Breadth-first search for multi-hop graph path between two nodes
    */
-  private findTransitivePath(startId: string, endId: string): { cumulativeWeight: number; pathNames: string[] } | null {
+  private findTransitivePath(
+    startId: string,
+    endId: string
+  ): { cumulativeWeight: number; pathNames: string[] } | null {
     const visited = new Set<string>();
     const queue: { currentId: string; weight: number; path: string[] }[] = [
       { currentId: startId, weight: 1.0, path: [this.nodes[startId]?.name || startId] },
@@ -107,7 +113,7 @@ export class CompetencyGraph {
     while (queue.length > 0) {
       const { currentId, weight, path } = queue.shift()!;
       if (currentId === endId) {
-        return { cumulativeWeight: Math.max(0.40, Number(weight.toFixed(2))), pathNames: path };
+        return { cumulativeWeight: Math.max(0.4, Number(weight.toFixed(2))), pathNames: path };
       }
 
       if (visited.has(currentId)) continue;

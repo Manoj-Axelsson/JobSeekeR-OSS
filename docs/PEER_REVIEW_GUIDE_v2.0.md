@@ -2,7 +2,7 @@
 
 **Target Version:** v2.0.0  
 **Architectural Model:** Domain-Driven 5-Stage Human-in-the-Loop Decision Support Engine  
-**Core Philosophy:** *AI assists. Humans decide.* (Zero fabrication, evidence-first candidate coaching).
+**Core Philosophy:** _AI assists. Humans decide._ (Zero fabrication, evidence-first candidate coaching).
 
 > **Documentation status:** This document describes the v2.0 architectural target and preserves a historical QA snapshot. It is not the current repository verification record. For current implementation status, use the README and release checklist together with the current source tree.
 
@@ -62,14 +62,14 @@ flowchart TD
 
 ## 📂 Subsystem Directory Structure & Core Modules
 
-| Module Path | Responsible Purpose | Key Exports & Classes |
-| :--- | :--- | :--- |
-| `src/intelligence/competency/` | Semantic Competency Knowledge Graph & Taxonomy | `CompetencyGraph`, `COMPETENCY_NODES`, `evaluateTransferability()` |
-| `src/intelligence/opportunity/` | 5-Tier Opportunity Classifier & Pursuit Advice | `OpportunityEvaluator`, `MatchTier`, `evaluateOpportunity()` |
-| `src/intelligence/positioning/` | CV Evidence Layout & Gap Analysis | `PositioningAnalyzer`, `analyzePositioning()` |
-| `src/intelligence/coaching/` | Non-Generative Career Strategist Coaching | `ApplicationCoachingAdvisor`, `generateCoaching()` |
-| `src/intelligence/decision/` | 5-Stage Decision Context Synthesis | `DecisionSupportEngine`, `evaluateDecisionSupport()` |
-| `src/lib/services/matcher.ts` | Integration layer connecting matcher service | `evaluateJobMatch()` |
+| Module Path                     | Responsible Purpose                            | Key Exports & Classes                                              |
+| :------------------------------ | :--------------------------------------------- | :----------------------------------------------------------------- |
+| `src/intelligence/competency/`  | Semantic Competency Knowledge Graph & Taxonomy | `CompetencyGraph`, `COMPETENCY_NODES`, `evaluateTransferability()` |
+| `src/intelligence/opportunity/` | 5-Tier Opportunity Classifier & Pursuit Advice | `OpportunityEvaluator`, `MatchTier`, `evaluateOpportunity()`       |
+| `src/intelligence/positioning/` | CV Evidence Layout & Gap Analysis              | `PositioningAnalyzer`, `analyzePositioning()`                      |
+| `src/intelligence/coaching/`    | Non-Generative Career Strategist Coaching      | `ApplicationCoachingAdvisor`, `generateCoaching()`                 |
+| `src/intelligence/decision/`    | 5-Stage Decision Context Synthesis             | `DecisionSupportEngine`, `evaluateDecisionSupport()`               |
+| `src/lib/services/matcher.ts`   | Integration layer connecting matcher service   | `evaluateJobMatch()`                                               |
 
 ---
 

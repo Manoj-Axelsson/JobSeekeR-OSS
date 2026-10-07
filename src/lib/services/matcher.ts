@@ -1,11 +1,22 @@
 import { decisionSupportEngine, DecisionSupportContext } from "../../intelligence";
 import { classifyOccupation, OccupationCandidate } from "./pipeline/classifier";
-import { evaluateEligibility, EligibilityResult, PreferencesConfig, TerritoryConfig } from "./pipeline/eligibility";
+import {
+  evaluateEligibility,
+  EligibilityResult,
+  PreferencesConfig,
+  TerritoryConfig,
+} from "./pipeline/eligibility";
 import { evaluateCapabilityAndIntent, DualScoreResult } from "./pipeline/scoring";
 import { assessOpportunity } from "../../intelligence/assessment/evaluator";
-import { evaluateHistoryIntelligence, ApplicationRecord } from "../../intelligence/assessment/historyIntelligence";
+import {
+  evaluateHistoryIntelligence,
+  ApplicationRecord,
+} from "../../intelligence/assessment/historyIntelligence";
 import { enrichOpportunity, JobEnrichment } from "../../intelligence/assessment/enrichmentEngine";
-import { generateCandidatePositioning, CandidatePositioning } from "../../intelligence/assessment/candidatePositioning";
+import {
+  generateCandidatePositioning,
+  CandidatePositioning,
+} from "../../intelligence/assessment/candidatePositioning";
 import { resolveCanonicalLocation } from "../../intelligence/assessment/locationResolver";
 import { OpportunityAssessment } from "../../intelligence/assessment/contract";
 import { createCandidateEvidenceModel } from "../../intelligence/assessment/evidence";
@@ -53,33 +64,104 @@ export interface MatchResult {
 
 const TAXONOMY = {
   software: [
-    "react", "typescript", "next.js", "nextjs", "node.js", "nodejs", "express", 
-    "postgresql", "postgres", "sql", "rest", "api", "git", "github", "frontend", 
-    "fullstack", "web", "tailwind", "vercel", "render", "javascript", "developer",
-    "software engineer", "frontend developer", "backend", "cloud", "aws", "azure", 
-    "gcp", "kubernetes", "docker", "python", "terraform", "devops", "infrastructure"
+    "react",
+    "typescript",
+    "next.js",
+    "nextjs",
+    "node.js",
+    "nodejs",
+    "express",
+    "postgresql",
+    "postgres",
+    "sql",
+    "rest",
+    "api",
+    "git",
+    "github",
+    "frontend",
+    "fullstack",
+    "web",
+    "tailwind",
+    "vercel",
+    "render",
+    "javascript",
+    "developer",
+    "software engineer",
+    "frontend developer",
+    "backend",
+    "cloud",
+    "aws",
+    "azure",
+    "gcp",
+    "kubernetes",
+    "docker",
+    "python",
+    "terraform",
+    "devops",
+    "infrastructure",
   ],
   systems: [
-    "systems engineering", "systems engineer", "systems thinking", "software architecture", 
-    "system architecture", "requirements engineering", "requirement engineer", 
-    "requirements management", "validation", "verification", "technical documentation", 
-    "plm", "business analyst", "system analyst", "lifecycle", "specification", "solutions engineer"
+    "systems engineering",
+    "systems engineer",
+    "systems thinking",
+    "software architecture",
+    "system architecture",
+    "requirements engineering",
+    "requirement engineer",
+    "requirements management",
+    "validation",
+    "verification",
+    "technical documentation",
+    "plm",
+    "business analyst",
+    "system analyst",
+    "lifecycle",
+    "specification",
+    "solutions engineer",
   ],
   quality: [
-    "six sigma", "lean", "dmaic", "fmea", "poka-yoke", "root cause", "quality assurance", 
-    "qa", "process optimization", "standard work", "continuous improvement", "validation", 
-    "quality engineer", "test engineer", "verification engineer", "iso 9001", "audit"
+    "six sigma",
+    "lean",
+    "dmaic",
+    "fmea",
+    "poka-yoke",
+    "root cause",
+    "quality assurance",
+    "qa",
+    "process optimization",
+    "standard work",
+    "continuous improvement",
+    "validation",
+    "quality engineer",
+    "test engineer",
+    "verification engineer",
+    "iso 9001",
+    "audit",
   ],
   industrial: [
-    "manufacturing", "manufacturing engineer", "production developer", "production engineer", 
-    "industrial digitalization", "industry 4.0", "automation", "automation engineer", 
-    "cnc", "cad", "cam", "cad/cam", "preventive maintenance", "uptime", "plant", "factory", "assembly"
-  ]
+    "manufacturing",
+    "manufacturing engineer",
+    "production developer",
+    "production engineer",
+    "industrial digitalization",
+    "industry 4.0",
+    "automation",
+    "automation engineer",
+    "cnc",
+    "cad",
+    "cam",
+    "cad/cam",
+    "preventive maintenance",
+    "uptime",
+    "plant",
+    "factory",
+    "assembly",
+  ],
 };
 
 export function evaluateJobMatch(
-  title: string, 
-  description: string, 
+  title: string,
+  description: string,
   customProfileSkills: string[] = [],
   userName: string = "JobseekeR Candidate",
   userHeadline: string = "Software & Systems Engineer",
@@ -113,7 +195,14 @@ export function evaluateJobMatch(
   };
 
   // 2. Evaluate Eligibility & Feed Routing (Must Have, Exclude, Territory, Primary vs Discovery)
-  const eligibility = evaluateEligibility(title, jobLocation, description, companyName, prefs, territory);
+  const eligibility = evaluateEligibility(
+    title,
+    jobLocation,
+    description,
+    companyName,
+    prefs,
+    territory
+  );
 
   // 3. Separate Capability Fit Score from Intent Fit Score
   const dualScores = evaluateCapabilityAndIntent(
@@ -144,7 +233,11 @@ export function evaluateJobMatch(
     company: companyName,
     location: jobLocation,
     description,
-    workingModel: (text.includes("remote") ? "REMOTE" : text.includes("hybrid") ? "HYBRID" : "ON_SITE") as "REMOTE" | "HYBRID" | "ON_SITE",
+    workingModel: (text.includes("remote")
+      ? "REMOTE"
+      : text.includes("hybrid")
+        ? "HYBRID"
+        : "ON_SITE") as "REMOTE" | "HYBRID" | "ON_SITE",
   };
 
   const candidateProfile = {
@@ -165,7 +258,11 @@ export function evaluateJobMatch(
     workingModelPreference: oppEntity.workingModel,
   };
 
-  const decisionSupport = decisionSupportEngine.evaluateDecisionSupport(oppEntity, candidateProfile, decisionPreferences);
+  const decisionSupport = decisionSupportEngine.evaluateDecisionSupport(
+    oppEntity,
+    candidateProfile,
+    decisionPreferences
+  );
 
   // 6. Generate Narrative Analysis for Cover Letter & Pitch Strategy
   const whyMatched: string[] = [
@@ -173,9 +270,10 @@ export function evaluateJobMatch(
     ...eligibility.reasons,
   ];
 
-  const whatLacking: string[] = decisionSupport.stage3Positioning.missingEvidenceWarnings.length > 0
-    ? decisionSupport.stage3Positioning.missingEvidenceWarnings
-    : ["No critical skill gaps identified. Profile covers the core requirements."];
+  const whatLacking: string[] =
+    decisionSupport.stage3Positioning.missingEvidenceWarnings.length > 0
+      ? decisionSupport.stage3Positioning.missingEvidenceWarnings
+      : ["No critical skill gaps identified. Profile covers the core requirements."];
 
   return {
     matchScore: dualScores.totalMatchScore,
@@ -194,7 +292,9 @@ export function evaluateJobMatch(
       coverLetterPitch: {
         openingHook: decisionSupport.stage4Coaching.coverLetterHook,
         keyStrengthsToLeadWith: decisionSupport.stage3Positioning.strongestCompetencies.slice(0, 3),
-        gapMitigationStrategy: decisionSupport.stage3Positioning.transferableHighlight || "Highlight your technical adaptability and transferable engineering foundations.",
+        gapMitigationStrategy:
+          decisionSupport.stage3Positioning.transferableHighlight ||
+          "Highlight your technical adaptability and transferable engineering foundations.",
         suggestedBulletPoints: decisionSupport.stage4Coaching.keyInterviewTalkingPoints.slice(0, 3),
       },
     },
@@ -245,7 +345,9 @@ export function evaluateOpportunityAssessment(
     jobAd.location
   );
 
-  const useNonNumerical = process.env.USE_NON_NUMERICAL_ASSESSMENT_ENGINE === "true" || process.env.SHADOW_MODE_NON_NUMERICAL === "true";
+  const useNonNumerical =
+    process.env.USE_NON_NUMERICAL_ASSESSMENT_ENGINE === "true" ||
+    process.env.SHADOW_MODE_NON_NUMERICAL === "true";
 
   if (!useNewEngine && !useNonNumerical) {
     // Kill Switch Active -> Fall back 100% to legacy result
@@ -253,13 +355,29 @@ export function evaluateOpportunityAssessment(
   }
 
   if (!useNewEngine && useNonNumerical) {
-    const locationResolution = resolveCanonicalLocation(jobAd.title, jobAd.description, jobAd.location);
+    const locationResolution = resolveCanonicalLocation(
+      jobAd.title,
+      jobAd.description,
+      jobAd.location
+    );
     const mandatoryGates = evaluateMandatoryGates(
       { location: jobAd.location, targetCitizenship: "SE" },
-      { preferredLocations: profileInput.preferredLocations, workingModelPreference: profileInput.workingModelPreference, languages: profileInput.languages, citizenship: profileInput.citizenship, citizenships: profileInput.citizenships }
+      {
+        preferredLocations: profileInput.preferredLocations,
+        workingModelPreference: profileInput.workingModelPreference,
+        languages: profileInput.languages,
+        citizenship: profileInput.citizenship,
+        citizenships: profileInput.citizenships,
+      }
     );
     const matchDiagnostics = computeMatchDiagnostics(
-      { title: jobAd.title, company: jobAd.company, location: jobAd.location, description: jobAd.description, requirements: profileInput.skills || [] },
+      {
+        title: jobAd.title,
+        company: jobAd.company,
+        location: jobAd.location,
+        description: jobAd.description,
+        requirements: profileInput.skills || [],
+      },
       { skills: profileInput.skills }
     );
 
@@ -276,7 +394,11 @@ export function evaluateOpportunityAssessment(
   }
 
   // Feature Flag Active -> Opportunity Assessment Engine is Authoritative
-  const locationResolution = resolveCanonicalLocation(jobAd.title, jobAd.description, jobAd.location);
+  const locationResolution = resolveCanonicalLocation(
+    jobAd.title,
+    jobAd.description,
+    jobAd.location
+  );
 
   const assessment = assessOpportunity(
     {
@@ -315,17 +437,21 @@ export function evaluateOpportunityAssessment(
       securityClearanceRequired: false,
       workingModel: "HYBRID",
     },
-    { ...assessment, recommendation: { ...assessment.recommendation, type: effectiveRecommendation } }
+    {
+      ...assessment,
+      recommendation: { ...assessment.recommendation, type: effectiveRecommendation },
+    }
   );
 
-  const positioning = effectiveRecommendation === "PRIMARY"
-    ? generateCandidatePositioning(
-        jobAd,
-        createCandidateEvidenceModel(profileInput),
-        assessment,
-        enrichment
-      )
-    : null;
+  const positioning =
+    effectiveRecommendation === "PRIMARY"
+      ? generateCandidatePositioning(
+          jobAd,
+          createCandidateEvidenceModel(profileInput),
+          assessment,
+          enrichment
+        )
+      : null;
 
   const whyMatched: string[] = [
     `[${effectiveRecommendation} FEED - Grade ${assessment.match.grade}] Match Score: ${assessment.match.score}%, Intent: ${assessment.intent.score}%`,
@@ -334,7 +460,10 @@ export function evaluateOpportunityAssessment(
 
   // Check Non-Numerical Evidence Assessment Feature Flag (v3.1.1)
   let nonNumericalAssessment: NonNumericalOpportunityAssessment | undefined;
-  if (process.env.USE_NON_NUMERICAL_ASSESSMENT_ENGINE === "true" || process.env.SHADOW_MODE_NON_NUMERICAL === "true") {
+  if (
+    process.env.USE_NON_NUMERICAL_ASSESSMENT_ENGINE === "true" ||
+    process.env.SHADOW_MODE_NON_NUMERICAL === "true"
+  ) {
     const mandatoryGates = evaluateMandatoryGates(
       {
         location: jobAd.location,
@@ -384,13 +513,16 @@ export function evaluateOpportunityAssessment(
     domainScores: legacyResult.domainScores,
     analysis: {
       whyMatched,
-      whatLacking: assessment.match.missingRequirements.length > 0
-        ? assessment.match.missingRequirements
-        : ["No critical technical gaps identified."],
+      whatLacking:
+        assessment.match.missingRequirements.length > 0
+          ? assessment.match.missingRequirements
+          : ["No critical technical gaps identified."],
       coverLetterPitch: {
-        openingHook: positioning?.coverLetterHook.theme || "Software & Systems Engineering excellence.",
-        keyStrengthsToLeadWith: positioning?.strongestEvidence.map(e => e.competency) || [],
-        gapMitigationStrategy: positioning?.howToAddressConcern || "Highlight technical adaptability.",
+        openingHook:
+          positioning?.coverLetterHook.theme || "Software & Systems Engineering excellence.",
+        keyStrengthsToLeadWith: positioning?.strongestEvidence.map((e) => e.competency) || [],
+        gapMitigationStrategy:
+          positioning?.howToAddressConcern || "Highlight technical adaptability.",
         suggestedBulletPoints: positioning?.cvPointsToEmphasize || [],
       },
     },
@@ -406,9 +538,9 @@ export function evaluateOpportunityAssessment(
 }
 
 function calculateDomainScore(
-  text: string, 
-  keywords: string[], 
-  matchedSet: Set<string>, 
+  text: string,
+  keywords: string[],
+  matchedSet: Set<string>,
   missingSet: Set<string>
 ): number {
   let count = 0;
@@ -418,11 +550,14 @@ function calculateDomainScore(
       matchedSet.add(capitalize(kw));
     }
   }
-  
+
   const ratio = count / Math.min(keywords.length, 8);
   return Math.min(100, Math.round(ratio * 100));
 }
 
 function capitalize(str: string): string {
-  return str.split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+  return str
+    .split(" ")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
 }

@@ -18,6 +18,7 @@ interface StoreRecord {
 vi.mock("../../db", () => {
   const store = {
     userAccount: new Map<string, StoreRecord>(),
+    userSession: new Map<string, StoreRecord>(),
     userProfile: new Map<string, StoreRecord>(),
     careerProfile: new Map<string, StoreRecord>(),
     searchProfile: new Map<string, StoreRecord>(),
@@ -27,6 +28,27 @@ vi.mock("../../db", () => {
 
   return {
     db: {
+      _store: store,
+      userSession: {
+        findUnique: vi.fn(async ({ where }: { where: { sessionTokenHash?: string } }) => {
+          if (where.sessionTokenHash) {
+            for (const sess of store.userSession.values()) {
+              if (sess.sessionTokenHash === where.sessionTokenHash) {
+                const userAccount = store.userAccount.get(sess.userAccountId as string);
+                return { ...sess, userAccount };
+              }
+            }
+          }
+          return null;
+        }),
+        create: vi.fn(async ({ data }: { data: StoreRecord }) => {
+          const id = data.id || `sess-${Math.random()}`;
+          const sess = { ...data, id };
+          store.userSession.set(id, sess);
+          return sess;
+        }),
+        deleteMany: vi.fn(async () => ({ count: 0 })),
+      },
       userAccount: {
         findUnique: vi.fn(async ({ where }: { where: { email?: string; id?: string } }) => {
           if (where.email) {
@@ -45,72 +67,111 @@ vi.mock("../../db", () => {
         }),
       },
       userProfile: {
-        findFirst: vi.fn(async () => {
-          const values = Array.from(store.userProfile.values());
-          return values[0] || null;
-        }),
+        findFirst: vi.fn(
+          async ({ where }: { where?: { userAccountId?: string | null; OR?: Array<{ userAccountId?: string | null }> } }) => {
+            const values = Array.from(store.userProfile.values());
+            if (!where) return values[0] || null;
+            if (where.userAccountId !== undefined) {
+              return values.find((p) => p.userAccountId === where.userAccountId) || null;
+            }
+            if (where.OR) {
+              return (
+                values.find((p) =>
+                  where.OR?.some((cond) => cond.userAccountId === p.userAccountId)
+                ) || null
+              );
+            }
+            return values[0] || null;
+          }
+        ),
+        findUnique: vi.fn(
+          async ({ where }: { where: { userAccountId?: string } }) => {
+            const values = Array.from(store.userProfile.values());
+            return values.find((p) => p.userAccountId === where.userAccountId) || null;
+          }
+        ),
         create: vi.fn(async ({ data }: { data: Record<string, unknown> & { id?: string } }) => {
-          const id = data.id || "user_main";
+          const id = data.id || `prof-${Math.random()}`;
           const profile = { ...data, id };
           store.userProfile.set(id, profile as StoreRecord);
           return profile;
         }),
-        update: vi.fn(async ({ where, data }: { where: { id: string }; data: Record<string, unknown> }) => {
-          const profile = store.userProfile.get(where.id) || {};
-          const updated = { ...profile, ...data };
-          store.userProfile.set(where.id, updated as StoreRecord);
-          return updated;
-        }),
+        update: vi.fn(
+          async ({ where, data }: { where: { id: string }; data: Record<string, unknown> }) => {
+            const profile = store.userProfile.get(where.id) || {};
+            const updated = { ...profile, ...data };
+            store.userProfile.set(where.id, updated as StoreRecord);
+            return updated;
+          }
+        ),
       },
       careerProfile: {
-        findFirst: vi.fn(async ({ where }: { where: { id?: string; userAccountId?: string | null } }) => {
-          for (const cp of store.careerProfile.values()) {
-            if (where.id && cp.id !== where.id) continue;
-            if (where.userAccountId !== undefined && cp.userAccountId !== where.userAccountId) continue;
-            return cp;
+        findFirst: vi.fn(
+          async ({ where }: { where: { id?: string; userAccountId?: string | null } }) => {
+            for (const cp of store.careerProfile.values()) {
+              if (where.id && cp.id !== where.id) continue;
+              if (where.userAccountId !== undefined && cp.userAccountId !== where.userAccountId)
+                continue;
+              return cp;
+            }
+            return null;
           }
-          return null;
-        }),
+        ),
         create: vi.fn(async ({ data }: { data: Record<string, unknown> & { id?: string } }) => {
           const id = data.id || `cp-${Math.random()}`;
           const cp = { ...data, id };
           store.careerProfile.set(id, cp as StoreRecord);
           return cp;
         }),
-        update: vi.fn(async ({ where, data }: { where: { id: string }; data: Record<string, unknown> }) => {
-          const cp = store.careerProfile.get(where.id);
-          if (!cp) throw new Error("CareerProfile not found");
-          const updated = { ...cp, ...data };
-          store.careerProfile.set(where.id, updated as StoreRecord);
-          return updated;
-        }),
+        update: vi.fn(
+          async ({ where, data }: { where: { id: string }; data: Record<string, unknown> }) => {
+            const cp = store.careerProfile.get(where.id);
+            if (!cp) throw new Error("CareerProfile not found");
+            const updated = { ...cp, ...data };
+            store.careerProfile.set(where.id, updated as StoreRecord);
+            return updated;
+          }
+        ),
       },
       searchProfile: {
-        findMany: vi.fn(async ({ where }: { where?: { userAccountId?: string | null; name?: { in: string[] } } } = {}) => {
-          const results: StoreRecord[] = [];
-          for (const sp of store.searchProfile.values()) {
-            if (where?.userAccountId !== undefined && sp.userAccountId !== where.userAccountId) continue;
-            if (where?.name?.in && sp.name && !where.name.in.includes(sp.name)) continue;
-            results.push(sp);
+        findMany: vi.fn(
+          async ({
+            where,
+          }: { where?: { userAccountId?: string | null; name?: { in: string[] } } } = {}) => {
+            const results: StoreRecord[] = [];
+            for (const sp of store.searchProfile.values()) {
+              if (where?.userAccountId !== undefined && sp.userAccountId !== where.userAccountId)
+                continue;
+              if (where?.name?.in && sp.name && !where.name.in.includes(sp.name)) continue;
+              results.push(sp);
+            }
+            return results;
           }
-          return results;
-        }),
+        ),
         create: vi.fn(async ({ data }: { data: Record<string, unknown> & { id?: string } }) => {
           const id = data.id || `sp-${Math.random()}`;
           const sp = { ...data, id };
           store.searchProfile.set(id, sp as StoreRecord);
           return sp;
         }),
-        updateMany: vi.fn(async ({ where, data }: { where: { id?: { in: string[] } }; data: Record<string, unknown> }) => {
-          let count = 0;
-          for (const sp of store.searchProfile.values()) {
-            if (where.id?.in && where.id.in.includes(sp.id)) {
-              store.searchProfile.set(sp.id, { ...sp, ...data } as StoreRecord);
-              count++;
+        updateMany: vi.fn(
+          async ({
+            where,
+            data,
+          }: {
+            where: { id?: { in: string[] } };
+            data: Record<string, unknown>;
+          }) => {
+            let count = 0;
+            for (const sp of store.searchProfile.values()) {
+              if (where.id?.in && where.id.in.includes(sp.id)) {
+                store.searchProfile.set(sp.id, { ...sp, ...data } as StoreRecord);
+                count++;
+              }
             }
+            return { count };
           }
-          return { count };
-        }),
+        ),
       },
       searchTerritory: {
         findFirst: vi.fn(async () => {
@@ -128,7 +189,8 @@ vi.mock("../../db", () => {
         findMany: vi.fn(async ({ where }: { where?: { userAccountId?: string | null } } = {}) => {
           const results: StoreRecord[] = [];
           for (const doc of store.userDocument.values()) {
-            if (where?.userAccountId !== undefined && doc.userAccountId !== where.userAccountId) continue;
+            if (where?.userAccountId !== undefined && doc.userAccountId !== where.userAccountId)
+              continue;
             results.push(doc);
           }
           return results;
@@ -140,7 +202,6 @@ vi.mock("../../db", () => {
           return doc;
         }),
       },
-      _store: store,
     },
   };
 });
@@ -161,8 +222,24 @@ describe("CONTROLLED V2 ACCOUNT-OWNERSHIP EDGE-CASE TEST MATRIX", () => {
 
   // Helper to construct request with session cookie
   function createSessionReq(url: string, email: string, options: RequestInit = {}) {
+    const user: any = Array.from((db as any)._store?.userAccount?.values() || []).find((u: any) => u.email === email);
+    let rawToken = "a".repeat(64);
+    if (user) {
+      const crypto = require("crypto");
+      rawToken = crypto.createHash("sha256").update(user.id).digest("hex").slice(0, 64);
+      const sessionTokenHash = crypto.createHash("sha256").update(rawToken).digest("hex");
+      (db as any)._store.userSession.set(sessionTokenHash, {
+        id: `sess-${user.id}`,
+        sessionTokenHash,
+        userAccountId: user.id,
+        expiresAt: new Date(Date.now() + 86400000),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+    }
+
     const headers = new Headers(options.headers || {});
-    headers.set("cookie", `jobseeker_session=${encodeURIComponent(JSON.stringify({ email }))}`);
+    headers.set("cookie", `jobseeker_session=${rawToken}`);
     const { signal, ...restOptions } = options;
     return new NextRequest(url, {
       ...restOptions,
@@ -172,11 +249,7 @@ describe("CONTROLLED V2 ACCOUNT-OWNERSHIP EDGE-CASE TEST MATRIX", () => {
   }
 
   // Typed test helper for creating UserAccount with required fields
-  async function createUserAccount(data: {
-    id: string;
-    email: string;
-    name: string;
-  }) {
+  async function createUserAccount(data: { id: string; email: string; name: string }) {
     return db.userAccount.create({
       data: {
         ...data,
@@ -233,10 +306,14 @@ describe("CONTROLLED V2 ACCOUNT-OWNERSHIP EDGE-CASE TEST MATRIX", () => {
 
     it("P0.2: User A cannot modify User B's candidate data", async () => {
       await createUserAccount({ id: "user-a", email: "usera@example.com", name: "User A" });
-      await db.careerProfile.create({ data: { id: "cp-user-a", userAccountId: "user-a", headline: "User A Headline" } });
+      await db.careerProfile.create({
+        data: { id: "cp-user-a", userAccountId: "user-a", headline: "User A Headline" },
+      });
 
       await createUserAccount({ id: "user-b", email: "userb@example.com", name: "User B" });
-      await db.careerProfile.create({ data: { id: "cp-user-b", userAccountId: "user-b", headline: "User B Headline Original" } });
+      await db.careerProfile.create({
+        data: { id: "cp-user-b", userAccountId: "user-b", headline: "User B Headline Original" },
+      });
 
       // User A attempts PUT request
       const putReqA = createSessionReq("http://localhost:3000/api/profile", "usera@example.com", {
@@ -256,10 +333,14 @@ describe("CONTROLLED V2 ACCOUNT-OWNERSHIP EDGE-CASE TEST MATRIX", () => {
 
     it("P0.3: Client cannot supply another userAccountId (Prevents Ownership Spoofing)", async () => {
       await createUserAccount({ id: "user-a", email: "usera@example.com", name: "User A" });
-      await db.careerProfile.create({ data: { id: "cp-user-a", userAccountId: "user-a", headline: "User A Original" } });
+      await db.careerProfile.create({
+        data: { id: "cp-user-a", userAccountId: "user-a", headline: "User A Original" },
+      });
 
       await createUserAccount({ id: "user-b", email: "userb@example.com", name: "User B" });
-      await db.careerProfile.create({ data: { id: "cp-user-b", userAccountId: "user-b", headline: "User B Original" } });
+      await db.careerProfile.create({
+        data: { id: "cp-user-b", userAccountId: "user-b", headline: "User B Original" },
+      });
 
       // Malicious request claiming userAccountId = user-b
       const spoofReq = createSessionReq("http://localhost:3000/api/profile", "usera@example.com", {
@@ -282,13 +363,19 @@ describe("CONTROLLED V2 ACCOUNT-OWNERSHIP EDGE-CASE TEST MATRIX", () => {
       const resGetProfile = await getProfile(emptyReq);
       expect(resGetProfile.status).toBe(401);
 
-      const resPutProfile = await putProfile(new NextRequest("http://localhost:3000/api/profile", { method: "PUT" }));
+      const resPutProfile = await putProfile(
+        new NextRequest("http://localhost:3000/api/profile", { method: "PUT" })
+      );
       expect(resPutProfile.status).toBe(401);
 
-      const resGetDocs = await getDocs(new NextRequest("http://localhost:3000/api/documents/upload"));
+      const resGetDocs = await getDocs(
+        new NextRequest("http://localhost:3000/api/documents/upload")
+      );
       expect(resGetDocs.status).toBe(401);
 
-      const resPostDocs = await postDocs(new NextRequest("http://localhost:3000/api/documents/upload", { method: "POST" }));
+      const resPostDocs = await postDocs(
+        new NextRequest("http://localhost:3000/api/documents/upload", { method: "POST" })
+      );
       expect(resPostDocs.status).toBe(401);
 
       // Direct verification of authHelper
@@ -329,20 +416,30 @@ describe("CONTROLLED V2 ACCOUNT-OWNERSHIP EDGE-CASE TEST MATRIX", () => {
   describe("🟠 P1 Core Flow & Document Scoping", () => {
     it("P1.1: CV skill extraction updates only the authenticated user's profile", async () => {
       await createUserAccount({ id: "user-a", email: "usera@example.com", name: "User A" });
-      await db.careerProfile.create({ data: { id: "cp-a", userAccountId: "user-a", skills: JSON.stringify(["React"]) } });
+      await db.careerProfile.create({
+        data: { id: "cp-a", userAccountId: "user-a", skills: JSON.stringify(["React"]) },
+      });
 
       await createUserAccount({ id: "user-b", email: "userb@example.com", name: "User B" });
-      await db.careerProfile.create({ data: { id: "cp-b", userAccountId: "user-b", skills: JSON.stringify(["PLC"]) } });
+      await db.careerProfile.create({
+        data: { id: "cp-b", userAccountId: "user-b", skills: JSON.stringify(["PLC"]) },
+      });
 
       // User A uploads CV containing "TypeScript"
       const formData = new FormData();
-      const file = new File(["Resume content with TypeScript and Node.js"], "resume_a.txt", { type: "text/plain" });
+      const file = new File(["Resume content with TypeScript and Node.js"], "resume_a.txt", {
+        type: "text/plain",
+      });
       formData.append("file", file);
 
-      const uploadReqA = createSessionReq("http://localhost:3000/api/documents/upload", "usera@example.com", {
-        method: "POST",
-        body: formData,
-      });
+      const uploadReqA = createSessionReq(
+        "http://localhost:3000/api/documents/upload",
+        "usera@example.com",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
 
       await postDocs(uploadReqA);
 
@@ -361,16 +458,33 @@ describe("CONTROLLED V2 ACCOUNT-OWNERSHIP EDGE-CASE TEST MATRIX", () => {
     it("P1.2: Documents are strictly account-scoped on GET /api/documents/upload", async () => {
       await createUserAccount({ id: "user-a", email: "usera@example.com", name: "User A" });
       await db.userDocument.create({
-        data: { id: "doc-a", userAccountId: "user-a", filename: "usera_cv.pdf", fileType: "CV", extractedText: "", extractedSkills: "[]" },
+        data: {
+          id: "doc-a",
+          userAccountId: "user-a",
+          filename: "usera_cv.pdf",
+          fileType: "CV",
+          extractedText: "",
+          extractedSkills: "[]",
+        },
       });
 
       await createUserAccount({ id: "user-b", email: "userb@example.com", name: "User B" });
       await db.userDocument.create({
-        data: { id: "doc-b", userAccountId: "user-b", filename: "userb_cv.pdf", fileType: "CV", extractedText: "", extractedSkills: "[]" },
+        data: {
+          id: "doc-b",
+          userAccountId: "user-b",
+          filename: "userb_cv.pdf",
+          fileType: "CV",
+          extractedText: "",
+          extractedSkills: "[]",
+        },
       });
 
       // User A GET documents
-      const getReqA = createSessionReq("http://localhost:3000/api/documents/upload", "usera@example.com");
+      const getReqA = createSessionReq(
+        "http://localhost:3000/api/documents/upload",
+        "usera@example.com"
+      );
       const resA = await getDocs(getReqA);
       const docsA = await resA.json();
 
@@ -378,7 +492,10 @@ describe("CONTROLLED V2 ACCOUNT-OWNERSHIP EDGE-CASE TEST MATRIX", () => {
       expect(docsA[0].filename).toBe("usera_cv.pdf");
 
       // User B GET documents
-      const getReqB = createSessionReq("http://localhost:3000/api/documents/upload", "userb@example.com");
+      const getReqB = createSessionReq(
+        "http://localhost:3000/api/documents/upload",
+        "userb@example.com"
+      );
       const resB = await getDocs(getReqB);
       const docsB = await resB.json();
 
@@ -405,7 +522,11 @@ describe("CONTROLLED V2 ACCOUNT-OWNERSHIP EDGE-CASE TEST MATRIX", () => {
     });
 
     it("P2.2: Maintain complete API contract shape expected by frontend UI", async () => {
-      await createUserAccount({ id: "user-contract", email: "contract@example.com", name: "Contract Candidate" });
+      await createUserAccount({
+        id: "user-contract",
+        email: "contract@example.com",
+        name: "Contract Candidate",
+      });
 
       const req = createSessionReq("http://localhost:3000/api/profile", "contract@example.com");
       const res = await getProfile(req);
@@ -426,7 +547,11 @@ describe("CONTROLLED V2 ACCOUNT-OWNERSHIP EDGE-CASE TEST MATRIX", () => {
     });
 
     it("P2.3: Logout action clears session and blocks protected endpoints", async () => {
-      await createUserAccount({ id: "user-logout", email: "logout@example.com", name: "Logout Test" });
+      await createUserAccount({
+        id: "user-logout",
+        email: "logout@example.com",
+        name: "Logout Test",
+      });
 
       // Perform logout action
       const logoutReq = new NextRequest("http://localhost:3000/api/auth", {

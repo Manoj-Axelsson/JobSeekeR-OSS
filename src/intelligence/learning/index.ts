@@ -1,3 +1,6 @@
+import type { JobAd } from "@/types/domain";
+import { safeParseSkillArray } from "../utils";
+
 export interface SkillDemandMetric {
   skill: string;
   count: number;
@@ -13,16 +16,12 @@ export interface LearningMetric {
   unlockedPositionCount: number;
 }
 
-export function calculateHighestRoiCourse(jobs: any[] = []): LearningMetric {
+export function calculateHighestRoiCourse(jobs: JobAd[] = []): LearningMetric {
   const skillCounts: Record<string, number> = {};
   for (const j of jobs) {
-    if (Array.isArray(j.missingKeywords)) {
-      for (const kw of j.missingKeywords) {
-        if (kw && typeof kw === "string") {
-          const cleanKw = kw.trim();
-          if (cleanKw) skillCounts[cleanKw] = (skillCounts[cleanKw] || 0) + 1;
-        }
-      }
+    const missing = safeParseSkillArray(j.missingSkills);
+    for (const kw of missing) {
+      skillCounts[kw] = (skillCounts[kw] || 0) + 1;
     }
   }
 
@@ -46,26 +45,39 @@ export function calculateHighestRoiCourse(jobs: any[] = []): LearningMetric {
   };
 }
 
-export function calculateUpskillingRoadmap(jobs: any[] = []): SkillDemandMetric[] {
+export function calculateUpskillingRoadmap(jobs: JobAd[] = []): SkillDemandMetric[] {
   const skillCounts: Record<string, number> = {};
   const totalJobs = jobs.length || 1;
 
   for (const j of jobs) {
-    const keywords = Array.isArray(j.matchedSkills) ? [...j.matchedSkills, ...(j.missingKeywords || [])] : (j.missingKeywords || []);
+    const matched = safeParseSkillArray(j.matchedSkills);
+    const missing = safeParseSkillArray(j.missingSkills);
+    const keywords = [...matched, ...missing];
     for (const kw of keywords) {
-      if (kw && typeof kw === "string") {
-        const cleanKw = kw.trim();
-        if (cleanKw) skillCounts[cleanKw] = (skillCounts[cleanKw] || 0) + 1;
-      }
+      skillCounts[kw] = (skillCounts[kw] || 0) + 1;
     }
   }
 
-  const sorted = Object.entries(skillCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  const sorted = Object.entries(skillCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5);
 
   if (sorted.length === 0) {
     return [
-      { skill: "Software & Systems Architecture", count: 5, percentage: 70, growthVelocity: "🔥 High Demand", scoreBoostPct: 15 },
-      { skill: "Quality Assurance & Compliance", count: 4, percentage: 60, growthVelocity: "⚡ Essential", scoreBoostPct: 12 },
+      {
+        skill: "Software & Systems Architecture",
+        count: 5,
+        percentage: 70,
+        growthVelocity: "🔥 High Demand",
+        scoreBoostPct: 15,
+      },
+      {
+        skill: "Quality Assurance & Compliance",
+        count: 4,
+        percentage: 60,
+        growthVelocity: "⚡ Essential",
+        scoreBoostPct: 12,
+      },
     ];
   }
 

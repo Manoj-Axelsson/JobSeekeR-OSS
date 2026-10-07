@@ -36,7 +36,12 @@ vi.mock("../../db", () => {
           let count = 0;
           for (const item of store.jobAd.values()) {
             if (where.status && item.status !== where.status) continue;
-            if (where.publishedAt?.lt && item.publishedAt && !(item.publishedAt < where.publishedAt.lt)) continue;
+            if (
+              where.publishedAt?.lt &&
+              item.publishedAt &&
+              !(item.publishedAt < where.publishedAt.lt)
+            )
+              continue;
             item.status = data.status;
             count++;
           }

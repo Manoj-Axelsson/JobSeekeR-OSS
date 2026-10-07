@@ -76,8 +76,9 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
         onSuccess(data.user);
         onClose();
       }
-    } catch (err: any) {
-      setError(err.message || "Failed to process request");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "";
+      setError(message || "Failed to process request.");
     } finally {
       setLoading(false);
     }
@@ -101,15 +102,15 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
             {mode === "login"
               ? "Sign In to JobseekeR™"
               : mode === "register"
-              ? "Create Account"
-              : "Reset Password"}
+                ? "Create Account"
+                : "Reset Password"}
           </h2>
           <p className="text-xs text-slate-400 mt-1">
             {mode === "login"
               ? "Access your personal job feeds & trackers"
               : mode === "register"
-              ? "Set up your open-source profile"
-              : "Regain access to your jobseeker account"}
+                ? "Set up your open-source profile"
+                : "Regain access to your jobseeker account"}
           </p>
         </div>
 
@@ -200,7 +201,9 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 text-xs py-1 px-2 rounded-lg bg-slate-800/60 hover:bg-slate-800 border border-slate-700/50 cursor-pointer transition-colors"
-                  title={showPassword ? "Hide password" : "Show password to verify case sensitivity"}
+                  title={
+                    showPassword ? "Hide password" : "Show password to verify case sensitivity"
+                  }
                 >
                   {showPassword ? "🙈 Hide" : "👁️ Show"}
                 </button>
@@ -268,10 +271,10 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
               {loading
                 ? "Processing..."
                 : mode === "login"
-                ? "Sign In"
-                : mode === "register"
-                ? "Register Account"
-                : "Reset Password"}
+                  ? "Sign In"
+                  : mode === "register"
+                    ? "Register Account"
+                    : "Reset Password"}
             </button>
           </form>
         )}

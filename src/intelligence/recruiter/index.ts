@@ -1,3 +1,5 @@
+import type { Application } from "@/types/domain";
+
 export interface RecruiterMetric {
   id: string;
   name: string;
@@ -10,14 +12,14 @@ export interface RecruiterMetric {
   totalApplications: number;
 }
 
-export function calculateRecruiterAnalytics(applications: any[] = []): RecruiterMetric[] {
+export function calculateRecruiterAnalytics(applications: Application[] = []): RecruiterMetric[] {
   if (!applications || applications.length === 0) {
     return [];
   }
 
   const recruiterMap: Record<string, { company: string; total: number; interviews: number }> = {};
   applications.forEach((app) => {
-    const company = app.company || "Direct Employer";
+    const company = app.job?.company || "Direct Employer";
     const key = `${company}`;
     if (!recruiterMap[key]) {
       recruiterMap[key] = { company, total: 0, interviews: 0 };

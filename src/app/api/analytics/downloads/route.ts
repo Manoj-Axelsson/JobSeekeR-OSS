@@ -7,7 +7,7 @@ export async function GET() {
     const repoRes = await fetch("https://api.github.com/repos/Manoj-Axelsson/JobSeekeR-OSS", {
       headers: {
         "User-Agent": "JobSeekeR-Analytics/1.0",
-        "Accept": "application/vnd.github.v3+json",
+        Accept: "application/vnd.github.v3+json",
       },
       next: { revalidate: 3600 }, // Cache for 1 hour
     });
@@ -21,13 +21,16 @@ export async function GET() {
       forks = repoData.forks_count || 0;
     }
 
-    const releaseRes = await fetch("https://api.github.com/repos/Manoj-Axelsson/JobSeekeR-OSS/releases", {
-      headers: {
-        "User-Agent": "JobSeekeR-Analytics/1.0",
-        "Accept": "application/vnd.github.v3+json",
-      },
-      next: { revalidate: 3600 },
-    });
+    const releaseRes = await fetch(
+      "https://api.github.com/repos/Manoj-Axelsson/JobSeekeR-OSS/releases",
+      {
+        headers: {
+          "User-Agent": "JobSeekeR-Analytics/1.0",
+          Accept: "application/vnd.github.v3+json",
+        },
+        next: { revalidate: 3600 },
+      }
+    );
 
     let releaseDownloads = 0;
 
@@ -46,8 +49,9 @@ export async function GET() {
 
     // Baseline community download count + live GitHub API activity
     const baseCount = 142;
-    const totalDownloads = baseCount + releaseDownloads + (forks * 15) + (stars * 5);
-    const formattedCount = totalDownloads > 1000 ? `${(totalDownloads / 1000).toFixed(1)}k+` : `${totalDownloads}+`;
+    const totalDownloads = baseCount + releaseDownloads + forks * 15 + stars * 5;
+    const formattedCount =
+      totalDownloads > 1000 ? `${(totalDownloads / 1000).toFixed(1)}k+` : `${totalDownloads}+`;
 
     return NextResponse.json({
       success: true,
