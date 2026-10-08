@@ -26,20 +26,32 @@ export async function ensureV2ProfilesExist(userAccountId?: string) {
     }
 
     if (!careerProfile) {
-      // Fetch existing UserProfile data to preserve history
-      const oldProfile = await db.userProfile.findFirst({
-        where: { id: "user_main" },
-      });
+      // Fetch user's profile data to preserve history if available
+      const oldProfile = userAccountId
+        ? await db.userProfile.findFirst({
+            where: { userAccountId },
+          })
+        : null;
 
-      let parsedSkills: string[] = ["React", "TypeScript", "Next.js", "Systems Engineering", "Quality Engineering"];
-      let parsedRoles: string[] = ["Software & Systems Engineer", "Fullstack Developer", "Automation Engineer"];
+      let parsedSkills: string[] = [
+        "React",
+        "TypeScript",
+        "Next.js",
+        "Systems Engineering",
+        "Quality Engineering",
+      ];
+      let parsedRoles: string[] = [
+        "Software & Systems Engineer",
+        "Fullstack Developer",
+        "Automation Engineer",
+      ];
 
       if (oldProfile) {
         try {
           if (oldProfile.targetRoles) {
             parsedRoles = JSON.parse(oldProfile.targetRoles);
           }
-        } catch { }
+        } catch {}
 
         try {
           if (oldProfile.skills) {
@@ -50,7 +62,7 @@ export async function ensureV2ProfilesExist(userAccountId?: string) {
               parsedSkills = Object.values(rawSkills).flat() as string[];
             }
           }
-        } catch { }
+        } catch {}
       }
 
       careerProfile = await db.careerProfile.create({
@@ -61,7 +73,11 @@ export async function ensureV2ProfilesExist(userAccountId?: string) {
           summary: "Verified candidate career profile migrated to V2 architecture.",
           skills: JSON.stringify(parsedSkills),
           experience: JSON.stringify([
-            { title: oldProfile?.headline || "Software & Systems Engineer", company: "Engineering Practice", years: 5 }
+            {
+              title: oldProfile?.headline || "Software & Systems Engineer",
+              company: "Engineering Practice",
+              years: 5,
+            },
           ]),
           qualifications: JSON.stringify(["B.Sc. Engineering", "Certified Systems Practitioner"]),
           currentRoles: JSON.stringify(parsedRoles),
@@ -80,7 +96,13 @@ export async function ensureV2ProfilesExist(userAccountId?: string) {
           name: "Sweden Primary Territory",
           countries: JSON.stringify(["SE"]),
           regions: JSON.stringify(["Östergötland", "Stockholm", "Västra Götaland"]),
-          municipalities: JSON.stringify(["Linköping", "Norrköping", "Stockholm", "Göteborg", "Skellefteå"]),
+          municipalities: JSON.stringify([
+            "Linköping",
+            "Norrköping",
+            "Stockholm",
+            "Göteborg",
+            "Skellefteå",
+          ]),
           cities: JSON.stringify(["Linköping", "Norrköping", "Stockholm", "Göteborg"]),
           maxCommuteMinutes: 60,
           commuteMode: "PUBLIC_TRANSIT",
@@ -121,7 +143,11 @@ export async function ensureV2ProfilesExist(userAccountId?: string) {
             userAccountId: userAccountId || null,
             name: "Software & Systems Track",
             isPrimary: true,
-            targetOccupations: JSON.stringify(["Fullstack Developer", "Software Engineer", "Systems Engineer"]),
+            targetOccupations: JSON.stringify([
+              "Fullstack Developer",
+              "Software Engineer",
+              "Systems Engineer",
+            ]),
             targetIndustries: JSON.stringify(["Technology", "Cleantech", "Software"]),
             workModes: JSON.stringify(["HYBRID", "REMOTE", "ON_SITE"]),
             employmentPreferences: JSON.stringify(["FULL_TIME", "CONTRACT"]),
@@ -141,8 +167,16 @@ export async function ensureV2ProfilesExist(userAccountId?: string) {
             userAccountId: userAccountId || null,
             name: "Industrial & Automation Track",
             isPrimary: false,
-            targetOccupations: JSON.stringify(["Automation Engineer", "Production Developer", "Process Engineer"]),
-            targetIndustries: JSON.stringify(["Manufacturing", "Automotive", "Industrial Automation"]),
+            targetOccupations: JSON.stringify([
+              "Automation Engineer",
+              "Production Developer",
+              "Process Engineer",
+            ]),
+            targetIndustries: JSON.stringify([
+              "Manufacturing",
+              "Automotive",
+              "Industrial Automation",
+            ]),
             workModes: JSON.stringify(["ON_SITE", "HYBRID"]),
             employmentPreferences: JSON.stringify(["FULL_TIME"]),
             minMatchScore: 40,
