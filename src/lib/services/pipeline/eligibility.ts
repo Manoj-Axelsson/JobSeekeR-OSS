@@ -96,7 +96,8 @@ export function evaluateEligibility(
 
   // 3. Evaluate SearchTerritory Boundaries
   let inTerritory = false;
-  const isRemoteJob = locLower.includes("remote") || text.includes("distans") || text.includes("work from home");
+  const isRemoteJob =
+    locLower.includes("remote") || text.includes("distans") || text.includes("work from home");
 
   if (isRemoteJob && territory.remotePolicy !== "NO_REMOTE") {
     inTerritory = true;
@@ -108,12 +109,12 @@ export function evaluateEligibility(
       ...(territory.regions || []),
       ...(territory.cities || []),
       ...(territory.countries || []),
-    ].map(l => l.toLowerCase());
+    ].map((l) => l.toLowerCase());
 
     if (allLocations.length === 0 || locLower.includes("sweden") || locLower.includes("sverige")) {
       inTerritory = true;
     } else {
-      inTerritory = allLocations.some(l => locLower.includes(l) || text.includes(l));
+      inTerritory = allLocations.some((l) => locLower.includes(l) || text.includes(l));
     }
   }
 

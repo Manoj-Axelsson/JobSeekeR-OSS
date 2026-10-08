@@ -1,6 +1,6 @@
 export interface DualScoreResult {
   capabilityScore: number; // 0 to 100
-  intentScore: number;     // 0 to 100
+  intentScore: number; // 0 to 100
   totalMatchScore: number; // 0 to 100
   matchedSkills: string[];
   missingSkills: string[];
@@ -18,7 +18,7 @@ export function evaluateCapabilityAndIntent(
   targetOccupations: string[]
 ): DualScoreResult {
   const text = `${title} ${description}`.toLowerCase();
-  
+
   // 1. Calculate Capability Fit Score (What can this candidate actually do?)
   const matchedSet = new Set<string>();
   const missingSet = new Set<string>();
@@ -34,9 +34,8 @@ export function evaluateCapabilityAndIntent(
     }
   }
 
-  const capabilityRatio = candidateSkills.length > 0
-    ? capabilityHits / Math.min(candidateSkills.length, 10)
-    : 0.5;
+  const capabilityRatio =
+    candidateSkills.length > 0 ? capabilityHits / Math.min(candidateSkills.length, 10) : 0.5;
 
   const capabilityScore = Math.min(100, Math.round(capabilityRatio * 100));
 
@@ -92,7 +91,10 @@ export function evaluateCapabilityAndIntent(
   // Transferable Strengths for Pitching
   const transferableStrengths = Array.from(matchedSet).slice(0, 4);
   if (transferableStrengths.length === 0) {
-    transferableStrengths.push(candidateHeadline || "Engineering Fundamentals", "Systematic Problem Solving");
+    transferableStrengths.push(
+      candidateHeadline || "Engineering Fundamentals",
+      "Systematic Problem Solving"
+    );
   }
 
   return {
@@ -107,5 +109,8 @@ export function evaluateCapabilityAndIntent(
 }
 
 function capitalize(str: string): string {
-  return str.split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+  return str
+    .split(" ")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
 }

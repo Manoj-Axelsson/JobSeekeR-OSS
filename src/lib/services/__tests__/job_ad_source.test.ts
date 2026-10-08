@@ -1,10 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { PrismaClient } from "@prisma/client";
-import {
-  resolveCanonicalJob,
-  createIngestionInput,
-  SourceVacancy,
-} from "@/lib/services/identity";
+import { resolveCanonicalJob, createIngestionInput, SourceVacancy } from "@/lib/services/identity";
 import {
   parseWebbjobbTitleAndLocation,
   parseWebbjobbCompany,
@@ -14,7 +10,9 @@ import {
 } from "@/lib/services/webbjobb";
 
 const testDbUrl = process.env.TEST_DATABASE_URL || process.env.DATABASE_URL;
-const isPostgresUrl = Boolean(testDbUrl && (testDbUrl.startsWith("postgresql://") || testDbUrl.startsWith("postgres://")));
+const isPostgresUrl = Boolean(
+  testDbUrl && (testDbUrl.startsWith("postgresql://") || testDbUrl.startsWith("postgres://"))
+);
 
 describe("Webbjobb.io Source Adapter Unit Suite", () => {
   it("extracts title and location from Webbjobb title formats deterministically", () => {
@@ -36,7 +34,8 @@ describe("Webbjobb.io Source Adapter Unit Suite", () => {
   });
 
   it("extracts company name deterministically from Webbjobb RSS item description or title without synthetic manufacturer", () => {
-    const desc1 = "Company description: Ericsson AB Job description: Join our global team of engineers...";
+    const desc1 =
+      "Company description: Ericsson AB Job description: Join our global team of engineers...";
     expect(parseWebbjobbCompany(desc1)).toBe("Ericsson AB");
 
     const desc2 = "General position description without company section";
@@ -47,7 +46,6 @@ describe("Webbjobb.io Source Adapter Unit Suite", () => {
     const title3 = "Fullstack Developer";
     expect(parseWebbjobbCompany(desc3, title3)).toBe("");
   });
-
 
   it("extracts numerical externalId from Webbjobb job URL", () => {
     const url = "https://webbjobb.io/jobb/347508/systemadministrator-inom-dataplattform";
@@ -105,120 +103,155 @@ describe("SourceVacancy Transformer Unit Suite", () => {
   });
 });
 
-describe.runIf(isPostgresUrl)("JobAdSource Provenance & Deduplication Integration Suite (PostgreSQL)", () => {
-  let db: PrismaClient;
+describe.runIf(isPostgresUrl)(
+  "JobAdSource Provenance & Deduplication Integration Suite (PostgreSQL)",
+  () => {
+    let db: PrismaClient;
 
-  beforeAll(async () => {
-    db = new PrismaClient({ datasources: { db: { url: testDbUrl } } });
-    await db.$connect();
-    await db.jobAdSource.deleteMany({ where: { source: { in: ["Test JobTech", "Test LinkedIn", "Test Webbjobb"] } } });
-    await db.jobAd.deleteMany({ where: { company: { in: ["Provenance TestCorp AB"] } } });
-  });
-
-  afterAll(async () => {
-    if (db) {
-      await db.jobAdSource.deleteMany({ where: { source: { in: ["Test JobTech", "Test LinkedIn", "Test Webbjobb"] } } });
+    beforeAll(async () => {
+      db = new PrismaClient({ datasources: { db: { url: testDbUrl } } });
+      await db.$connect();
+      await db.jobAdSource.deleteMany({
+        where: { source: { in: ["Test JobTech", "Test LinkedIn", "Test Webbjobb"] } },
+      });
       await db.jobAd.deleteMany({ where: { company: { in: ["Provenance TestCorp AB"] } } });
-      await db.$disconnect();
-    }
-  });
+    });
 
-  it("1. Same source + same externalId creates 1 JobAd and 1 JobAdSource", async () => {
-    const vacancy: SourceVacancy = {
-      externalId: "test_prov_101",
-      title: "Senior Backend Architect",
-      company: "Provenance TestCorp AB",
-      location: "Stockholm",
-      description: "Distributed Microservices Architecture",
-      webpageUrl: "https://platsbanken.se/annonser/101",
-      source: "Test JobTech",
-      publishedAt: new Date(),
-      deadline: null,
-    };
+    afterAll(async () => {
+      if (db) {
+        await db.jobAdSource.deleteMany({
+          where: { source: { in: ["Test JobTech", "Test LinkedIn", "Test Webbjobb"] } },
+        });
+        await db.jobAd.deleteMany({ where: { company: { in: ["Provenance TestCorp AB"] } } });
+        await db.$disconnect();
+      }
+    });
 
-    const res1 = await resolveCanonicalJob(db, createIngestionInput(vacancy));
-    expect(res1.isNew).toBe(true);
+    it("1. Same source + same externalId creates 1 JobAd and 1 JobAdSource", async () => {
+      const vacancy: SourceVacancy = {
+        externalId: "test_prov_101",
+        title: "Senior Backend Architect",
+        company: "Provenance TestCorp AB",
+        location: "Stockholm",
+        description: "Distributed Microservices Architecture",
+        webpageUrl: "https://platsbanken.se/annonser/101",
+        source: "Test JobTech",
+        publishedAt: new Date(),
+        deadline: null,
+      };
 
-    const sources = await db.jobAdSource.findMany({ where: { jobId: res1.job.id } });
-    expect(sources.length).toBe(1);
-    expect(sources[0].source).toBe("Test JobTech");
-    expect(sources[0].externalId).toBe("test_prov_101");
-  });
+      const res1 = await resolveCanonicalJob(db, createIngestionInput(vacancy));
+      expect(res1.isNew).toBe(true);
 
-  it("2. Repeated ingestion of same source observation is idempotent (no duplicate JobAdSource)", async () => {
-    const vacancy: SourceVacancy = {
-      externalId: "test_prov_101",
-      title: "Senior Backend Architect",
-      company: "Provenance TestCorp AB",
-      location: "Stockholm",
-      description: "Distributed Microservices Architecture",
-      webpageUrl: "https://platsbanken.se/annonser/101",
-      source: "Test JobTech",
-      publishedAt: new Date(),
-      deadline: null,
-    };
+      const sources = await db.jobAdSource.findMany({ where: { jobId: res1.job.id } });
+      expect(sources.length).toBe(1);
+      expect(sources[0].source).toBe("Test JobTech");
+      expect(sources[0].externalId).toBe("test_prov_101");
+    });
 
-    const res2 = await resolveCanonicalJob(db, createIngestionInput(vacancy));
-    expect(res2.isNew).toBe(false);
+    it("2. Repeated ingestion of same source observation is idempotent (no duplicate JobAdSource)", async () => {
+      const vacancy: SourceVacancy = {
+        externalId: "test_prov_101",
+        title: "Senior Backend Architect",
+        company: "Provenance TestCorp AB",
+        location: "Stockholm",
+        description: "Distributed Microservices Architecture",
+        webpageUrl: "https://platsbanken.se/annonser/101",
+        source: "Test JobTech",
+        publishedAt: new Date(),
+        deadline: null,
+      };
 
-    const sources = await db.jobAdSource.findMany({ where: { jobId: res2.job.id } });
-    expect(sources.length).toBe(1);
-  });
+      const res2 = await resolveCanonicalJob(db, createIngestionInput(vacancy));
+      expect(res2.isNew).toBe(false);
 
-  it("3. Cross-source ingestion of same canonical job yields 1 JobAd + 3 JobAdSource records", async () => {
-    const base = {
-      title: "Principal Platform Engineer",
-      company: "Provenance TestCorp AB",
-      location: "Linköping",
-      description: "Kubernetes Cloud Infrastructure Architecture",
-      publishedAt: new Date(),
-      deadline: null,
-    };
+      const sources = await db.jobAdSource.findMany({ where: { jobId: res2.job.id } });
+      expect(sources.length).toBe(1);
+    });
 
-    const vacJobTech: SourceVacancy = { ...base, externalId: "prov_jt_202", source: "Test JobTech", webpageUrl: "https://platsbanken.se/202" };
-    const vacLinkedIn: SourceVacancy = { ...base, externalId: "prov_li_202", source: "Test LinkedIn", webpageUrl: "https://linkedin.com/jobs/view/202" };
-    const vacWebbjobb: SourceVacancy = { ...base, externalId: "prov_wj_202", source: "Test Webbjobb", webpageUrl: "https://webbjobb.io/jobb/202" };
+    it("3. Cross-source ingestion of same canonical job yields 1 JobAd + 3 JobAdSource records", async () => {
+      const base = {
+        title: "Principal Platform Engineer",
+        company: "Provenance TestCorp AB",
+        location: "Linköping",
+        description: "Kubernetes Cloud Infrastructure Architecture",
+        publishedAt: new Date(),
+        deadline: null,
+      };
 
-    const res1 = await resolveCanonicalJob(db, createIngestionInput(vacJobTech));
-    const res2 = await resolveCanonicalJob(db, createIngestionInput(vacLinkedIn));
-    const res3 = await resolveCanonicalJob(db, createIngestionInput(vacWebbjobb));
+      const vacJobTech: SourceVacancy = {
+        ...base,
+        externalId: "prov_jt_202",
+        source: "Test JobTech",
+        webpageUrl: "https://platsbanken.se/202",
+      };
+      const vacLinkedIn: SourceVacancy = {
+        ...base,
+        externalId: "prov_li_202",
+        source: "Test LinkedIn",
+        webpageUrl: "https://linkedin.com/jobs/view/202",
+      };
+      const vacWebbjobb: SourceVacancy = {
+        ...base,
+        externalId: "prov_wj_202",
+        source: "Test Webbjobb",
+        webpageUrl: "https://webbjobb.io/jobb/202",
+      };
 
-    expect(res1.isNew).toBe(true);
-    expect(res2.isNew).toBe(false);
-    expect(res3.isNew).toBe(false);
+      const res1 = await resolveCanonicalJob(db, createIngestionInput(vacJobTech));
+      const res2 = await resolveCanonicalJob(db, createIngestionInput(vacLinkedIn));
+      const res3 = await resolveCanonicalJob(db, createIngestionInput(vacWebbjobb));
 
-    expect(res2.job.id).toBe(res1.job.id);
-    expect(res3.job.id).toBe(res1.job.id);
+      expect(res1.isNew).toBe(true);
+      expect(res2.isNew).toBe(false);
+      expect(res3.isNew).toBe(false);
 
-    const sources = await db.jobAdSource.findMany({ where: { jobId: res1.job.id }, orderBy: { source: "asc" } });
-    expect(sources.length).toBe(3);
-    const sourceNames = sources.map((s) => s.source);
-    expect(sourceNames).toContain("Test JobTech");
-    expect(sourceNames).toContain("Test LinkedIn");
-    expect(sourceNames).toContain("Test Webbjobb");
-  });
+      expect(res2.job.id).toBe(res1.job.id);
+      expect(res3.job.id).toBe(res1.job.id);
 
-  it("4. Concurrent cross-source ingestion yields 1 canonical JobAd + separate JobAdSource records", async () => {
-    const base = {
-      title: "Lead AI Systems Engineer",
-      company: "Provenance TestCorp AB",
-      location: "Stockholm",
-      description: "LLM Agentic Execution Systems",
-      publishedAt: new Date(),
-      deadline: null,
-    };
+      const sources = await db.jobAdSource.findMany({
+        where: { jobId: res1.job.id },
+        orderBy: { source: "asc" },
+      });
+      expect(sources.length).toBe(3);
+      const sourceNames = sources.map((s) => s.source);
+      expect(sourceNames).toContain("Test JobTech");
+      expect(sourceNames).toContain("Test LinkedIn");
+      expect(sourceNames).toContain("Test Webbjobb");
+    });
 
-    const vacA: SourceVacancy = { ...base, externalId: "prov_conc_jt_303", source: "Test JobTech", webpageUrl: "https://platsbanken.se/303" };
-    const vacB: SourceVacancy = { ...base, externalId: "prov_conc_li_303", source: "Test LinkedIn", webpageUrl: "https://linkedin.com/jobs/view/303" };
+    it("4. Concurrent cross-source ingestion yields 1 canonical JobAd + separate JobAdSource records", async () => {
+      const base = {
+        title: "Lead AI Systems Engineer",
+        company: "Provenance TestCorp AB",
+        location: "Stockholm",
+        description: "LLM Agentic Execution Systems",
+        publishedAt: new Date(),
+        deadline: null,
+      };
 
-    const [resA, resB] = await Promise.all([
-      resolveCanonicalJob(db, createIngestionInput(vacA)),
-      resolveCanonicalJob(db, createIngestionInput(vacB)),
-    ]);
+      const vacA: SourceVacancy = {
+        ...base,
+        externalId: "prov_conc_jt_303",
+        source: "Test JobTech",
+        webpageUrl: "https://platsbanken.se/303",
+      };
+      const vacB: SourceVacancy = {
+        ...base,
+        externalId: "prov_conc_li_303",
+        source: "Test LinkedIn",
+        webpageUrl: "https://linkedin.com/jobs/view/303",
+      };
 
-    expect(resA.job.id).toBe(resB.job.id);
+      const [resA, resB] = await Promise.all([
+        resolveCanonicalJob(db, createIngestionInput(vacA)),
+        resolveCanonicalJob(db, createIngestionInput(vacB)),
+      ]);
 
-    const sources = await db.jobAdSource.findMany({ where: { jobId: resA.job.id } });
-    expect(sources.length).toBe(2);
-  });
-});
+      expect(resA.job.id).toBe(resB.job.id);
+
+      const sources = await db.jobAdSource.findMany({ where: { jobId: resA.job.id } });
+      expect(sources.length).toBe(2);
+    });
+  }
+);

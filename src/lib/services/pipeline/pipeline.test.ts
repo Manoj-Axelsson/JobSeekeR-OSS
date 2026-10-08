@@ -50,7 +50,9 @@ vi.mock("../../db", () => {
         findUnique: vi.fn(async ({ where }: { where: { id: string } }) => {
           const job = store.jobAd.get(where.id);
           if (!job) return null;
-          const evals = Array.from(store.jobAdSearchProfile.values()).filter(e => e.jobId === job.id);
+          const evals = Array.from(store.jobAdSearchProfile.values()).filter(
+            (e) => e.jobId === job.id
+          );
           return {
             ...job,
             profileEvaluations: evals,
@@ -80,7 +82,6 @@ vi.mock("../../db", () => {
 });
 
 describe("JobSeekeR V2 Constitutional Architecture Pipeline Tests", () => {
-
   const sampleTerritory: TerritoryConfig = {
     countries: ["SE"],
     regions: ["Östergötland"],
@@ -257,7 +258,9 @@ describe("JobSeekeR V2 Constitutional Architecture Pipeline Tests", () => {
 
     expect(transitionMatch.capabilityScore).toBeGreaterThan(0);
     expect(transitionMatch.analysis.coverLetterPitch.gapMitigationStrategy).toBeDefined();
-    expect(transitionMatch.analysis.coverLetterPitch.openingHook).toContain("Production Technician");
+    expect(transitionMatch.analysis.coverLetterPitch.openingHook).toContain(
+      "Production Technician"
+    );
   });
 
   test("11. Multi-Profile Track Separation: Software Track vs Industrial Track produce distinct results", () => {
@@ -329,7 +332,9 @@ describe("JobSeekeR V2 Constitutional Architecture Pipeline Tests", () => {
     // Clean test records
     await db.jobAdSearchProfile.deleteMany();
     await db.jobAd.deleteMany({ where: { externalId: "test-critical-001" } });
-    await db.searchProfile.deleteMany({ where: { name: { in: ["Test Software Track", "Test Industrial Track"] } } });
+    await db.searchProfile.deleteMany({
+      where: { name: { in: ["Test Software Track", "Test Industrial Track"] } },
+    });
 
     // Create 2 distinct search profiles
     const profileSoftware = await db.searchProfile.create({
@@ -406,8 +411,12 @@ describe("JobSeekeR V2 Constitutional Architecture Pipeline Tests", () => {
     expect(queriedJob).not.toBeNull();
     expect(queriedJob?.profileEvaluations.length).toBe(2);
 
-    const evalSoftware = queriedJob?.profileEvaluations.find(e => e.searchProfileId === profileSoftware.id);
-    const evalIndustrial = queriedJob?.profileEvaluations.find(e => e.searchProfileId === profileIndustrial.id);
+    const evalSoftware = queriedJob?.profileEvaluations.find(
+      (e) => e.searchProfileId === profileSoftware.id
+    );
+    const evalIndustrial = queriedJob?.profileEvaluations.find(
+      (e) => e.searchProfileId === profileIndustrial.id
+    );
 
     expect(evalSoftware).toBeDefined();
     expect(evalIndustrial).toBeDefined();
@@ -419,7 +428,8 @@ describe("JobSeekeR V2 Constitutional Architecture Pipeline Tests", () => {
     // Clean up test records
     await db.jobAdSearchProfile.deleteMany({ where: { jobId: job.id } });
     await db.jobAd.delete({ where: { id: job.id } });
-    await db.searchProfile.deleteMany({ where: { id: { in: [profileSoftware.id, profileIndustrial.id] } } });
+    await db.searchProfile.deleteMany({
+      where: { id: { in: [profileSoftware.id, profileIndustrial.id] } },
+    });
   });
-
 });

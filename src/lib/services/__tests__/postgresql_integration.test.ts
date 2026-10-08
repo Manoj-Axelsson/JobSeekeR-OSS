@@ -5,7 +5,9 @@ import path from "path";
 import fs from "fs";
 
 const testDbUrl = process.env.TEST_DATABASE_URL || process.env.DATABASE_URL;
-const isPostgresUrl = Boolean(testDbUrl && (testDbUrl.startsWith("postgresql://") || testDbUrl.startsWith("postgres://")));
+const isPostgresUrl = Boolean(
+  testDbUrl && (testDbUrl.startsWith("postgresql://") || testDbUrl.startsWith("postgres://"))
+);
 
 describe.runIf(isPostgresUrl)("Real PostgreSQL Integration Verification Gate (Unmocked)", () => {
   let db: PrismaClient;
@@ -23,16 +25,24 @@ describe.runIf(isPostgresUrl)("Real PostgreSQL Integration Verification Gate (Un
     await db.$connect();
 
     // Clean test schema records
-    await db.application.deleteMany({ where: { resumeVersion: { contains: "Postgres Integration" } } });
+    await db.application.deleteMany({
+      where: { resumeVersion: { contains: "Postgres Integration" } },
+    });
     await db.jobAd.deleteMany({ where: { externalId: { startsWith: "pg_integration_" } } });
-    await db.userAccount.deleteMany({ where: { email: { in: ["pg_usera@test.com", "pg_userb@test.com"] } } });
+    await db.userAccount.deleteMany({
+      where: { email: { in: ["pg_usera@test.com", "pg_userb@test.com"] } },
+    });
   });
 
   afterAll(async () => {
     if (db) {
-      await db.application.deleteMany({ where: { resumeVersion: { contains: "Postgres Integration" } } });
+      await db.application.deleteMany({
+        where: { resumeVersion: { contains: "Postgres Integration" } },
+      });
       await db.jobAd.deleteMany({ where: { externalId: { startsWith: "pg_integration_" } } });
-      await db.userAccount.deleteMany({ where: { email: { in: ["pg_usera@test.com", "pg_userb@test.com"] } } });
+      await db.userAccount.deleteMany({
+        where: { email: { in: ["pg_usera@test.com", "pg_userb@test.com"] } },
+      });
       await db.$disconnect();
     }
   });
@@ -173,7 +183,10 @@ describe.runIf(isPostgresUrl)("Real PostgreSQL Integration Verification Gate (Un
     // Extract baseline counts directly from SQLite
     const getSqliteRows = (tableName: string): any[] => {
       try {
-        const output = execSync(`sqlite3 "${sqliteDbPath}" ".mode json" "SELECT * FROM ${tableName};"`, { encoding: "utf-8" });
+        const output = execSync(
+          `sqlite3 "${sqliteDbPath}" ".mode json" "SELECT * FROM ${tableName};"`,
+          { encoding: "utf-8" }
+        );
         return output.trim() ? JSON.parse(output) : [];
       } catch {
         return [];
@@ -184,7 +197,9 @@ describe.runIf(isPostgresUrl)("Real PostgreSQL Integration Verification Gate (Un
     const sqliteApps = getSqliteRows("Application");
     const sqliteDocs = getSqliteRows("UserDocument");
 
-    console.log(`Rehearsal Baseline Counts: JobAd=${sqliteJobs.length}, Application=${sqliteApps.length}, UserDocument=${sqliteDocs.length}`);
+    console.log(
+      `Rehearsal Baseline Counts: JobAd=${sqliteJobs.length}, Application=${sqliteApps.length}, UserDocument=${sqliteDocs.length}`
+    );
     expect(sqliteJobs.length).toBeGreaterThan(0);
     expect(sqliteApps.length).toBeGreaterThan(0);
   });
