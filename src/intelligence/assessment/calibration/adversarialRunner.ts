@@ -86,7 +86,8 @@ export const ADVERSARIAL_DATASET: AdversarialTestCase[] = [
       eligibilityStatus: "ELIGIBLE",
       recommendationType: "PRIMARY",
       historyConflictExpected: false,
-      keyAssertionReason: "US citizenship requirement is satisfied because candidate explicitly holds US dual citizenship.",
+      keyAssertionReason:
+        "US citizenship requirement is satisfied because candidate explicitly holds US dual citizenship.",
     },
   },
 
@@ -100,7 +101,8 @@ export const ADVERSARIAL_DATASET: AdversarialTestCase[] = [
       title: "Global Systems Engineer",
       company: "AeroTech AB",
       location: "Stockholm",
-      description: "React, TypeScript. Meriterande: US citizenship preferred for transatlantic projects.",
+      description:
+        "React, TypeScript. Meriterande: US citizenship preferred for transatlantic projects.",
     },
     candidateProfile: {
       name: "Manoj Axelsson",
@@ -114,7 +116,8 @@ export const ADVERSARIAL_DATASET: AdversarialTestCase[] = [
       eligibilityStatus: "ELIGIBLE",
       recommendationType: "PRIMARY",
       historyConflictExpected: false,
-      keyAssertionReason: "Citizenship listed under preferences does not trigger INELIGIBLE for SE citizen.",
+      keyAssertionReason:
+        "Citizenship listed under preferences does not trigger INELIGIBLE for SE citizen.",
     },
   },
 
@@ -142,7 +145,8 @@ export const ADVERSARIAL_DATASET: AdversarialTestCase[] = [
       eligibilityStatus: "ELIGIBLE",
       recommendationType: "DISCOVERY",
       historyConflictExpected: false,
-      keyAssertionReason: "Unrecorded active security clearance generates UNKNOWN state, remaining ELIGIBLE and routing to DISCOVERY for review.",
+      keyAssertionReason:
+        "Unrecorded active security clearance generates UNKNOWN state, remaining ELIGIBLE and routing to DISCOVERY for review.",
     },
   },
 
@@ -242,7 +246,8 @@ export const ADVERSARIAL_DATASET: AdversarialTestCase[] = [
       title: "Fullstack Developer (Remote / Distans)",
       company: "Stockholm Cloud AB",
       location: "Stockholm",
-      description: "Roll från vårt kontor i Stockholm med möjlighet till 100% distansarbete. React, TypeScript.",
+      description:
+        "Roll från vårt kontor i Stockholm med möjlighet till 100% distansarbete. React, TypeScript.",
     },
     candidateProfile: {
       name: "Manoj Axelsson",
@@ -257,7 +262,8 @@ export const ADVERSARIAL_DATASET: AdversarialTestCase[] = [
       eligibilityStatus: "ELIGIBLE",
       recommendationType: "PRIMARY",
       historyConflictExpected: false,
-      keyAssertionReason: "Remote option enables Linköping candidate to apply for Stockholm-based company.",
+      keyAssertionReason:
+        "Remote option enables Linköping candidate to apply for Stockholm-based company.",
     },
   },
 
@@ -271,7 +277,8 @@ export const ADVERSARIAL_DATASET: AdversarialTestCase[] = [
       title: "Frontend Developer (Hybrid 2d/week)",
       company: "Fintech HQ",
       location: "Stockholm",
-      description: "Hybridarbete: 2 dagar i veckan på plats på kontoret i Stockholm. React, TypeScript.",
+      description:
+        "Hybridarbete: 2 dagar i veckan på plats på kontoret i Stockholm. React, TypeScript.",
     },
     candidateProfile: {
       name: "Manoj Axelsson",
@@ -300,7 +307,8 @@ export const ADVERSARIAL_DATASET: AdversarialTestCase[] = [
       title: "Systems Engineer (On-site HQ)",
       company: "Stockholm Systems AB",
       location: "Stockholm",
-      description: "100% på plats på vårt kontor i Stockholm. React, TypeScript, Systems Engineering.",
+      description:
+        "100% på plats på vårt kontor i Stockholm. React, TypeScript, Systems Engineering.",
     },
     candidateProfile: {
       name: "Manoj Axelsson",
@@ -344,7 +352,8 @@ export const ADVERSARIAL_DATASET: AdversarialTestCase[] = [
       eligibilityStatus: "INELIGIBLE",
       recommendationType: "SUPPRESS",
       historyConflictExpected: false,
-      keyAssertionReason: "Out-of-territory 100% Onsite role in Gothenburg blocked for Linköping candidate.",
+      keyAssertionReason:
+        "Out-of-territory 100% Onsite role in Gothenburg blocked for Linköping candidate.",
     },
   },
 
@@ -367,7 +376,13 @@ export const ADVERSARIAL_DATASET: AdversarialTestCase[] = [
       skills: ["React", "TypeScript", "Node.js", "Software Architecture"],
       targetRoles: ["Software Engineer", "Fullstack Developer"],
       preferredLocations: ["Stockholm"],
-      experience: [{ title: "Senior Software Architect", company: "Tech Giant", description: "10 years experience" }],
+      experience: [
+        {
+          title: "Senior Software Architect",
+          company: "Tech Giant",
+          description: "10 years experience",
+        },
+      ],
     },
     expectedOutcome: {
       eligibilityStatus: "ELIGIBLE",
@@ -387,7 +402,8 @@ export const ADVERSARIAL_DATASET: AdversarialTestCase[] = [
       title: "Lead Principal Enterprise Architect",
       company: "Global Enterprise AB",
       location: "Stockholm",
-      description: "Krav: Minst 12 års erfarenhet som Principal Architect. Systems Architecture, C++, Enterprise PLM.",
+      description:
+        "Krav: Minst 12 års erfarenhet som Principal Architect. Systems Architecture, C++, Enterprise PLM.",
     },
     candidateProfile: {
       name: "Junior Manoj",
@@ -396,13 +412,16 @@ export const ADVERSARIAL_DATASET: AdversarialTestCase[] = [
       skills: ["React", "TypeScript"],
       targetRoles: ["Junior Web Developer"],
       preferredLocations: ["Stockholm"],
-      experience: [{ title: "Junior Web Developer", company: "Startup", description: "1 year experience" }],
+      experience: [
+        { title: "Junior Web Developer", company: "Startup", description: "1 year experience" },
+      ],
     },
     expectedOutcome: {
       eligibilityStatus: "INELIGIBLE",
       recommendationType: "SUPPRESS",
       historyConflictExpected: false,
-      keyAssertionReason: "Underqualified candidate lacks mandatory principal tech & seniority requirements.",
+      keyAssertionReason:
+        "Underqualified candidate lacks mandatory principal tech & seniority requirements.",
     },
   },
 
@@ -416,7 +435,8 @@ export const ADVERSARIAL_DATASET: AdversarialTestCase[] = [
       title: "Fullstack Developer",
       company: "Consulting Co",
       location: "Stockholm",
-      description: "React, TypeScript. Lön enligt överenskommelse / Individuell lönesättning beroende på erfarenhet.",
+      description:
+        "React, TypeScript. Lön enligt överenskommelse / Individuell lönesättning beroende på erfarenhet.",
     },
     candidateProfile: {
       name: "Manoj Axelsson",
@@ -470,7 +490,8 @@ export const ADVERSARIAL_DATASET: AdversarialTestCase[] = [
       eligibilityStatus: "ELIGIBLE",
       recommendationType: "SUPPRESS",
       historyConflictExpected: true,
-      keyAssertionReason: "Substantive fingerprint match intercepts duplicate re-issued ad despite different job title.",
+      keyAssertionReason:
+        "Substantive fingerprint match intercepts duplicate re-issued ad despite different job title.",
     },
   },
 
@@ -484,7 +505,8 @@ export const ADVERSARIAL_DATASET: AdversarialTestCase[] = [
       company: "Volvo Group",
       title: "Senior Quality & DMAIC Assurance Specialist",
       location: "Linköping",
-      description: "Krav: Six Sigma Green Belt, DMAIC, FMEA, Poka-Yoke, process optimization in manufacturing.",
+      description:
+        "Krav: Six Sigma Green Belt, DMAIC, FMEA, Poka-Yoke, process optimization in manufacturing.",
     },
     candidateProfile: {
       name: "Manoj Axelsson",
@@ -508,7 +530,8 @@ export const ADVERSARIAL_DATASET: AdversarialTestCase[] = [
       eligibilityStatus: "ELIGIBLE",
       recommendationType: "PRIMARY",
       historyConflictExpected: false,
-      keyAssertionReason: "Genuinely different role at same employer is NOT suppressed (No naive employer blacklist!).",
+      keyAssertionReason:
+        "Genuinely different role at same employer is NOT suppressed (No naive employer blacklist!).",
     },
   },
 
@@ -522,7 +545,8 @@ export const ADVERSARIAL_DATASET: AdversarialTestCase[] = [
       company: "Ericsson AB",
       title: "Systems Engineer",
       location: "Stockholm",
-      description: "Systems Engineering, Requirements Engineering, Telemetry, Software Architecture.",
+      description:
+        "Systems Engineering, Requirements Engineering, Telemetry, Software Architecture.",
     },
     candidateProfile: {
       name: "Manoj Axelsson",
@@ -537,7 +561,8 @@ export const ADVERSARIAL_DATASET: AdversarialTestCase[] = [
         id: "adv-job-ericsson-old",
         company: "Ericsson AB",
         title: "Systems Engineer",
-        description: "Systems Engineering, Requirements Engineering, Telemetry, Software Architecture.",
+        description:
+          "Systems Engineering, Requirements Engineering, Telemetry, Software Architecture.",
         status: "REJECTED",
         appliedAt: new Date(Date.now() - 200 * 24 * 60 * 60 * 1000),
         rejectedAt: new Date(Date.now() - 180 * 24 * 60 * 60 * 1000),
@@ -561,7 +586,8 @@ export const ADVERSARIAL_DATASET: AdversarialTestCase[] = [
       company: "Ericsson AB",
       title: "Systems Engineer",
       location: "Stockholm",
-      description: "Systems Engineering, Requirements Engineering, Telemetry, Software Architecture.",
+      description:
+        "Systems Engineering, Requirements Engineering, Telemetry, Software Architecture.",
     },
     candidateProfile: {
       name: "Manoj Axelsson",
@@ -576,7 +602,8 @@ export const ADVERSARIAL_DATASET: AdversarialTestCase[] = [
         id: "adv-job-ericsson-expired",
         company: "Ericsson AB",
         title: "Systems Engineer",
-        description: "Systems Engineering, Requirements Engineering, Telemetry, Software Architecture.",
+        description:
+          "Systems Engineering, Requirements Engineering, Telemetry, Software Architecture.",
         status: "REJECTED",
         appliedAt: new Date(Date.now() - 240 * 24 * 60 * 60 * 1000),
         rejectedAt: new Date(Date.now() - 214 * 24 * 60 * 60 * 1000),
@@ -600,13 +627,21 @@ export const ADVERSARIAL_DATASET: AdversarialTestCase[] = [
       title: "Process Improvement & Root Cause Specialist",
       company: "Scania Industrial",
       location: "Stockholm",
-      description: "Krav: Erfarenhet av root cause analysis, standard work, poka-yoke och kontinuerliga förbättringar i produktion.",
+      description:
+        "Krav: Erfarenhet av root cause analysis, standard work, poka-yoke och kontinuerliga förbättringar i produktion.",
     },
     candidateProfile: {
       name: "Manoj Axelsson",
       headline: "Systems & Quality Engineer",
       citizenships: ["SE"],
-      skills: ["Six Sigma Green Belt", "DMAIC", "FMEA", "Poka-Yoke", "Root Cause Analysis", "Process Optimization"],
+      skills: [
+        "Six Sigma Green Belt",
+        "DMAIC",
+        "FMEA",
+        "Poka-Yoke",
+        "Root Cause Analysis",
+        "Process Optimization",
+      ],
       targetRoles: ["Process Engineer", "Quality Assurance Engineer"],
       preferredLocations: ["Stockholm"],
     },
@@ -614,7 +649,8 @@ export const ADVERSARIAL_DATASET: AdversarialTestCase[] = [
       eligibilityStatus: "ELIGIBLE",
       recommendationType: "PRIMARY",
       historyConflictExpected: false,
-      keyAssertionReason: "Candidate evidence model recognizes high transferable capability for process quality role.",
+      keyAssertionReason:
+        "Candidate evidence model recognizes high transferable capability for process quality role.",
     },
   },
 ];
@@ -643,9 +679,12 @@ export function runAdversarialCalibration(): AdversarialResult[] {
       historyConflictDetail = `${historyResult.conflictType}: ${historyResult.suppressReason}`;
     }
 
-    const passedEligibility = newAssessment.eligibility.status === testCase.expectedOutcome.eligibilityStatus;
-    const passedRecommendation = effectiveRecommendationType === testCase.expectedOutcome.recommendationType;
-    const passedHistory = historyResult.hasHistoryConflict === testCase.expectedOutcome.historyConflictExpected;
+    const passedEligibility =
+      newAssessment.eligibility.status === testCase.expectedOutcome.eligibilityStatus;
+    const passedRecommendation =
+      effectiveRecommendationType === testCase.expectedOutcome.recommendationType;
+    const passedHistory =
+      historyResult.hasHistoryConflict === testCase.expectedOutcome.historyConflictExpected;
 
     const passed = passedEligibility && passedRecommendation && passedHistory;
 

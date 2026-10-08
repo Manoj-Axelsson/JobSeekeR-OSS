@@ -20,13 +20,20 @@ import { resolveLocationAlignment } from "./locationResolver";
 
 function isCitizenshipSatisfied(candidateCitizenships: string[], reqCitizenship: string): boolean {
   const reqUpper = reqCitizenship.toUpperCase().trim();
-  return candidateCitizenships.some(c => {
+  return candidateCitizenships.some((c) => {
     const cUpper = c.toUpperCase().trim();
     if (cUpper === reqUpper) return true;
-    if (reqUpper === "SE" && (cUpper === "SWEDISH" || cUpper === "SWEDEN" || cUpper === "SE")) return true;
-    if (reqUpper === "US" && (cUpper === "AMERICAN" || cUpper === "USA" || cUpper === "US")) return true;
-    if (reqUpper === "DE" && (cUpper === "GERMAN" || cUpper === "GERMANY" || cUpper === "DE")) return true;
-    if (reqUpper === "EU" && (cUpper === "SE" || cUpper === "DE" || cUpper === "FR" || cUpper === "EU")) return true;
+    if (reqUpper === "SE" && (cUpper === "SWEDISH" || cUpper === "SWEDEN" || cUpper === "SE"))
+      return true;
+    if (reqUpper === "US" && (cUpper === "AMERICAN" || cUpper === "USA" || cUpper === "US"))
+      return true;
+    if (reqUpper === "DE" && (cUpper === "GERMAN" || cUpper === "GERMANY" || cUpper === "DE"))
+      return true;
+    if (
+      reqUpper === "EU" &&
+      (cUpper === "SE" || cUpper === "DE" || cUpper === "FR" || cUpper === "EU")
+    )
+      return true;
     return false;
   });
 }
@@ -72,7 +79,9 @@ export function evaluateEligibility(
         evidenceText: `Candidate Citizenship: ${candidate.citizenships.join(", ")}`,
         reason: `Role mandates ${reqCitizenship} citizenship; candidate evidence establishes ${candidate.citizenships.join(", ")} citizenship.`,
       });
-      blockers.push(`Missing mandatory ${reqCitizenship} citizenship requirement (candidate holds ${candidate.citizenships.join(", ")}).`);
+      blockers.push(
+        `Missing mandatory ${reqCitizenship} citizenship requirement (candidate holds ${candidate.citizenships.join(", ")}).`
+      );
     }
   }
 
@@ -104,7 +113,8 @@ export function evaluateEligibility(
         priority: "REQUIRED",
         state: "UNKNOWN",
         evidenceText: "No active security clearance recorded on profile",
-        reason: "Employer conducts security vetting (Säkerhetsprövning) post-offer; active clearance unrecorded on profile.",
+        reason:
+          "Employer conducts security vetting (Säkerhetsprövning) post-offer; active clearance unrecorded on profile.",
       });
       reasons.push("Security clearance vetting required post-offer.");
     }
@@ -113,7 +123,9 @@ export function evaluateEligibility(
   // 3. Evaluate Mandatory Language Requirements
   for (const lang of jobReqs.languages.required) {
     const hasExplicitLang = candidate.languages.some(
-      l => l.toLowerCase().includes(lang.toLowerCase()) || (lang.toLowerCase() === "swedish" && l.toLowerCase().includes("svenska"))
+      (l) =>
+        l.toLowerCase().includes(lang.toLowerCase()) ||
+        (lang.toLowerCase() === "swedish" && l.toLowerCase().includes("svenska"))
     );
     const hasCapabilityEvidence = findEvidence(candidate, lang) !== null;
 
@@ -152,7 +164,9 @@ export function evaluateEligibility(
         priority: "REQUIRED",
         state: evidence.isTransferable ? "TRANSFERABLE" : "SATISFIED",
         evidenceText: evidence.demonstratedIn.join(", "),
-        reason: evidence.isTransferable ? `Satisfied via transferable competency: ${evidence.capability}` : `Direct evidence of ${tech}`,
+        reason: evidence.isTransferable
+          ? `Satisfied via transferable competency: ${evidence.capability}`
+          : `Direct evidence of ${tech}`,
       });
     } else {
       hardRequirements.push({

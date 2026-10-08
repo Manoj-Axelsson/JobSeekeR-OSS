@@ -54,7 +54,8 @@ export interface SimulationJobResult {
     blockers: string[];
     reasons: string[];
   };
-  finalFeedSelection: "SELECTED_PRIMARY" | "SELECTED_DISCOVERY" | "EXCLUDED_BORDERLINE" | "SUPPRESSED";
+  finalFeedSelection:
+    "SELECTED_PRIMARY" | "SELECTED_DISCOVERY" | "EXCLUDED_BORDERLINE" | "SUPPRESSED";
   exclusionReason?: string;
   enrichment?: JobEnrichment | null;
   positioning?: CandidatePositioning | null;
@@ -85,14 +86,43 @@ export async function runRealFeedSimulation(): Promise<SimulationReportData> {
       citizenships: ["SE"],
       languages: ["Swedish", "English"],
       skills: [
-        "React", "TypeScript", "Next.js", "Node.js", "Express", "PostgreSQL", "SQL", "REST APIs", "Git", "GitHub", "Tailwind CSS",
-        "Systems Engineering", "Software Architecture", "Requirements Engineering", "Validation & Verification", "PLM",
-        "Six Sigma Green Belt", "DMAIC", "FMEA", "Poka-Yoke", "Root Cause Analysis", "Quality Assurance", "Process Optimization",
-        "Manufacturing Engineering", "Production Development", "Lean Manufacturing", "Automation", "CAD/CAM"
+        "React",
+        "TypeScript",
+        "Next.js",
+        "Node.js",
+        "Express",
+        "PostgreSQL",
+        "SQL",
+        "REST APIs",
+        "Git",
+        "GitHub",
+        "Tailwind CSS",
+        "Systems Engineering",
+        "Software Architecture",
+        "Requirements Engineering",
+        "Validation & Verification",
+        "PLM",
+        "Six Sigma Green Belt",
+        "DMAIC",
+        "FMEA",
+        "Poka-Yoke",
+        "Root Cause Analysis",
+        "Quality Assurance",
+        "Process Optimization",
+        "Manufacturing Engineering",
+        "Production Development",
+        "Lean Manufacturing",
+        "Automation",
+        "CAD/CAM",
       ],
       targetRoles: [
-        "Fullstack Developer", "Software Engineer", "Systems Engineer", "Requirements Engineer",
-        "Production Developer", "Automation Engineer", "Quality Assurance Engineer"
+        "Fullstack Developer",
+        "Software Engineer",
+        "Systems Engineer",
+        "Requirements Engineer",
+        "Production Developer",
+        "Automation Engineer",
+        "Quality Assurance Engineer",
       ],
       preferredLocations: ["Stockholm", "Linköping", "Norrköping", "Göteborg", "Sweden"],
       workingModelPreference: "HYBRID" as const,
@@ -104,7 +134,7 @@ export async function runRealFeedSimulation(): Promise<SimulationReportData> {
       include: { job: true },
     });
 
-    const historyRecords: ApplicationRecord[] = applications.map(app => ({
+    const historyRecords: ApplicationRecord[] = applications.map((app) => ({
       id: app.jobId,
       externalId: app.job?.externalId,
       company: app.job?.company || "Unknown Company",
@@ -192,14 +222,18 @@ export async function runRealFeedSimulation(): Promise<SimulationReportData> {
     }
 
     const primaryCandidates = evaluatedJobs
-      .filter(j => j.newAssessment.recommendationType === "PRIMARY")
-      .sort((a, b) => b.newAssessment.matchScore - a.newAssessment.matchScore || b.newAssessment.intentScore - a.newAssessment.intentScore);
+      .filter((j) => j.newAssessment.recommendationType === "PRIMARY")
+      .sort(
+        (a, b) =>
+          b.newAssessment.matchScore - a.newAssessment.matchScore ||
+          b.newAssessment.intentScore - a.newAssessment.intentScore
+      );
 
     const selectedPrimary = primaryCandidates.slice(0, 15);
     const borderlinePrimaryExcluded = primaryCandidates.slice(15);
 
     const discoveryCandidates = evaluatedJobs
-      .filter(j => j.newAssessment.recommendationType === "DISCOVERY")
+      .filter((j) => j.newAssessment.recommendationType === "DISCOVERY")
       .sort((a, b) => b.newAssessment.matchScore - a.newAssessment.matchScore);
 
     const selectedDiscovery = discoveryCandidates.slice(0, 5);
@@ -207,17 +241,22 @@ export async function runRealFeedSimulation(): Promise<SimulationReportData> {
 
     for (const job of selectedPrimary) {
       job.finalFeedSelection = "SELECTED_PRIMARY";
-      const rawJob = rawJobs.find(r => r.id === job.id)!;
+      const rawJob = rawJobs.find((r) => r.id === job.id)!;
       const assessment = assessOpportunity(rawJob, candidateInput);
       const reqs = extractJobRequirements(rawJob.title, rawJob.description, rawJob.location);
 
       job.enrichment = enrichOpportunity(rawJob, reqs, assessment);
-      job.positioning = generateCandidatePositioning(rawJob, candidateModel, assessment, job.enrichment);
+      job.positioning = generateCandidatePositioning(
+        rawJob,
+        candidateModel,
+        assessment,
+        job.enrichment
+      );
     }
 
     for (const job of selectedDiscovery) {
       job.finalFeedSelection = "SELECTED_DISCOVERY";
-      const rawJob = rawJobs.find(r => r.id === job.id)!;
+      const rawJob = rawJobs.find((r) => r.id === job.id)!;
       const assessment = assessOpportunity(rawJob, candidateInput);
       const reqs = extractJobRequirements(rawJob.title, rawJob.description, rawJob.location);
 
@@ -226,7 +265,8 @@ export async function runRealFeedSimulation(): Promise<SimulationReportData> {
 
     for (const job of [...borderlinePrimaryExcluded, ...borderlineDiscoveryExcluded]) {
       job.finalFeedSelection = "EXCLUDED_BORDERLINE";
-      job.exclusionReason = "Feed capacity cap reached (selected top candidates by Match & Intent score).";
+      job.exclusionReason =
+        "Feed capacity cap reached (selected top candidates by Match & Intent score).";
     }
 
     const funnel: FunnelCounts = {
@@ -241,7 +281,9 @@ export async function runRealFeedSimulation(): Promise<SimulationReportData> {
       finalDiscoverySelectedCount: selectedDiscovery.length,
     };
 
-    const ineligibleSampleJobs = evaluatedJobs.filter(j => j.newAssessment.eligibilityStatus === "INELIGIBLE").slice(0, 10);
+    const ineligibleSampleJobs = evaluatedJobs
+      .filter((j) => j.newAssessment.eligibilityStatus === "INELIGIBLE")
+      .slice(0, 10);
 
     return {
       candidateProfileName: candidateInput.name,

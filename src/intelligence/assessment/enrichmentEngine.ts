@@ -81,11 +81,19 @@ export function enrichOpportunity(
 
   const descLower = jobAd.description.toLowerCase();
   let domain = "General Engineering";
-  if (descLower.includes("software") || descLower.includes("fullstack") || descLower.includes("web")) {
+  if (
+    descLower.includes("software") ||
+    descLower.includes("fullstack") ||
+    descLower.includes("web")
+  ) {
     domain = "Software Development";
   } else if (descLower.includes("system") || descLower.includes("architecture")) {
     domain = "Systems Engineering";
-  } else if (descLower.includes("quality") || descLower.includes("six sigma") || descLower.includes("dmaic")) {
+  } else if (
+    descLower.includes("quality") ||
+    descLower.includes("six sigma") ||
+    descLower.includes("dmaic")
+  ) {
     domain = "Quality & Process Improvement";
   } else if (descLower.includes("manufacturing") || descLower.includes("production")) {
     domain = "Industrial Production";

@@ -60,7 +60,8 @@ export interface SideBySideComparisonResult {
   primaryFeedTrustVerdict: {
     legacyWouldPutInPrimary: boolean;
     newWouldPutInPrimary: boolean;
-    trustVerdict: "AGREE_PRIMARY" | "NEW_CORRECTLY_SUPPRESSES" | "NEW_CORRECTLY_PROMOTES" | "AGREE_SUPPRESS";
+    trustVerdict:
+      "AGREE_PRIMARY" | "NEW_CORRECTLY_SUPPRESSES" | "NEW_CORRECTLY_PROMOTES" | "AGREE_SUPPRESS";
     analysis: string;
   };
 }
@@ -70,13 +71,15 @@ export const CALIBRATION_DATASET: CalibrationTestCase[] = [
   {
     id: "case-1",
     caseName: "1. Excellent genuine match",
-    categoryDescription: "Direct alignment on role, tech stack, location, language, and working model.",
+    categoryDescription:
+      "Direct alignment on role, tech stack, location, language, and working model.",
     jobAd: {
       id: "job-001",
       title: "Fullstack Utvecklare (React & Node.js)",
       company: "TechNova AB",
       location: "Stockholm (Hybrid)",
-      description: "Vi söker en Fullstack-utvecklare med goda kunskaper i React, TypeScript, Node.js och PostgreSQL. Krav: Svenska i tal och skrift. Hybridarbete från vårt kontor i Stockholm.",
+      description:
+        "Vi söker en Fullstack-utvecklare med goda kunskaper i React, TypeScript, Node.js och PostgreSQL. Krav: Svenska i tal och skrift. Hybridarbete från vårt kontor i Stockholm.",
     },
     candidateProfile: {
       name: "Manoj John Axelsson",
@@ -95,13 +98,15 @@ export const CALIBRATION_DATASET: CalibrationTestCase[] = [
   {
     id: "case-2",
     caseName: "2. Good technical match but eligibility failure",
-    categoryDescription: "Strong technical skill alignment but fails a mandatory hard requirement (US Citizenship & Security Clearance).",
+    categoryDescription:
+      "Strong technical skill alignment but fails a mandatory hard requirement (US Citizenship & Security Clearance).",
     jobAd: {
       id: "job-002",
       title: "Defense Software Engineer (US Citizen Required)",
       company: "Global Defense Corp",
       location: "Stockholm",
-      description: "Building defense software. Skills required: React, TypeScript, Node.js, C++. MANDATORY REQUIREMENT: Must hold active US Citizenship and active US DoD Secret Security Clearance.",
+      description:
+        "Building defense software. Skills required: React, TypeScript, Node.js, C++. MANDATORY REQUIREMENT: Must hold active US Citizenship and active US DoD Secret Security Clearance.",
     },
     candidateProfile: {
       name: "Manoj John Axelsson",
@@ -113,20 +118,23 @@ export const CALIBRATION_DATASET: CalibrationTestCase[] = [
       preferredLocations: ["Stockholm"],
       workingModelPreference: "HYBRID",
     },
-    primaryFeedTrustQuestion: "Does the model block this position due to citizenship/clearance eligibility failure?",
+    primaryFeedTrustQuestion:
+      "Does the model block this position due to citizenship/clearance eligibility failure?",
   },
 
   // 3. Good technical match but poor career intent
   {
     id: "case-3",
     caseName: "3. Good technical match but poor career intent",
-    categoryDescription: "High technical skill overlap but candidate does not want this legacy role / 100% on-site Kiruna location.",
+    categoryDescription:
+      "High technical skill overlap but candidate does not want this legacy role / 100% on-site Kiruna location.",
     jobAd: {
       id: "job-003",
       title: "Senior Mainframe & Legacy COBOL Maintenance Developer",
       company: "Mining Legacy Systems",
       location: "Kiruna",
-      description: "Krav: React, TypeScript, Node.js, Systems Engineering. Mandatory 100% on-site in Kiruna. Main task: Maintaining legacy 1980s COBOL mainframe banking software.",
+      description:
+        "Krav: React, TypeScript, Node.js, Systems Engineering. Mandatory 100% on-site in Kiruna. Main task: Maintaining legacy 1980s COBOL mainframe banking software.",
     },
     candidateProfile: {
       name: "Manoj John Axelsson",
@@ -138,32 +146,47 @@ export const CALIBRATION_DATASET: CalibrationTestCase[] = [
       preferredLocations: ["Stockholm", "Linköping"],
       workingModelPreference: "HYBRID",
     },
-    primaryFeedTrustQuestion: "Does the model prevent putting a high-capability / poor-intent job into Primary Feed?",
+    primaryFeedTrustQuestion:
+      "Does the model prevent putting a high-capability / poor-intent job into Primary Feed?",
   },
 
   // 4. Transferable-capability opportunity
   {
     id: "case-4",
     caseName: "4. Transferable-capability opportunity",
-    categoryDescription: "Title isn't software developer, but candidate's Lean/Quality/Process background satisfies requirements.",
+    categoryDescription:
+      "Title isn't software developer, but candidate's Lean/Quality/Process background satisfies requirements.",
     jobAd: {
       id: "job-004",
       title: "Technical Project & Quality Coordinator",
       company: "Industrial Tech Solutions",
       location: "Linköping",
-      description: "Krav: Erfarenhet av stakeholder collaboration, kvalitetsarbete, tillverkningsprocesser, DMAIC och agilt samarbete.",
+      description:
+        "Krav: Erfarenhet av stakeholder collaboration, kvalitetsarbete, tillverkningsprocesser, DMAIC och agilt samarbete.",
     },
     candidateProfile: {
       name: "Manoj John Axelsson",
       headline: "Software & Systems Engineer",
       citizenship: "SE",
       languages: ["Swedish", "English"],
-      skills: ["Six Sigma Green Belt", "DMAIC", "FMEA", "Quality Assurance", "Lean Manufacturing", "Production Development"],
-      targetRoles: ["Quality Assurance Engineer", "Technical Project Coordinator", "Systems Engineer"],
+      skills: [
+        "Six Sigma Green Belt",
+        "DMAIC",
+        "FMEA",
+        "Quality Assurance",
+        "Lean Manufacturing",
+        "Production Development",
+      ],
+      targetRoles: [
+        "Quality Assurance Engineer",
+        "Technical Project Coordinator",
+        "Systems Engineer",
+      ],
       preferredLocations: ["Linköping", "Stockholm"],
       workingModelPreference: "HYBRID",
     },
-    primaryFeedTrustQuestion: "Does the engine recognize transferable capability and route appropriately?",
+    primaryFeedTrustQuestion:
+      "Does the engine recognize transferable capability and route appropriately?",
   },
 
   // 5. Startup / unconventional role
@@ -176,7 +199,8 @@ export const CALIBRATION_DATASET: CalibrationTestCase[] = [
       title: "Founding Fullstack Engineer",
       company: "GreenGrid Cleantech AB",
       location: "Linköping (Hybrid)",
-      description: "Söker en mångsidig utvecklare för att bygga nästa generations energisystem. React, TypeScript, Node.js, IoT, snabbt tempo i Cleantech.",
+      description:
+        "Söker en mångsidig utvecklare för att bygga nästa generations energisystem. React, TypeScript, Node.js, IoT, snabbt tempo i Cleantech.",
     },
     candidateProfile: {
       name: "Manoj John Axelsson",
@@ -188,7 +212,8 @@ export const CALIBRATION_DATASET: CalibrationTestCase[] = [
       preferredLocations: ["Linköping"],
       workingModelPreference: "HYBRID",
     },
-    primaryFeedTrustQuestion: "Does the engine surface this valuable startup opportunity correctly?",
+    primaryFeedTrustQuestion:
+      "Does the engine surface this valuable startup opportunity correctly?",
   },
 
   // 6. Obvious poor match
@@ -201,7 +226,8 @@ export const CALIBRATION_DATASET: CalibrationTestCase[] = [
       title: "Legitimerad Sjuksköterska till Akutmottagningen",
       company: "Region Östergötland",
       location: "Linköping",
-      description: "Krav: Legitimerad sjuksköterska med minst 3 års erfarenhet inom akutsjukvård och triagering.",
+      description:
+        "Krav: Legitimerad sjuksköterska med minst 3 års erfarenhet inom akutsjukvård och triagering.",
     },
     candidateProfile: {
       name: "Manoj John Axelsson",
@@ -220,13 +246,15 @@ export const CALIBRATION_DATASET: CalibrationTestCase[] = [
   {
     id: "case-7",
     caseName: "7. Strong match with missing explicit terminology",
-    categoryDescription: "Describes component web frameworks and typed code without writing literal words 'React' or 'TypeScript'.",
+    categoryDescription:
+      "Describes component web frameworks and typed code without writing literal words 'React' or 'TypeScript'.",
     jobAd: {
       id: "job-007",
       title: "Web Frontend Specialist",
       company: "Modern Web Media",
       location: "Stockholm",
-      description: "Vi söker en frontend-specialist för att bygga moderna webbgränssnitt med komponentbaserad källkod, typsäker programmering och REST API:er. Svenska i tal och skrift.",
+      description:
+        "Vi söker en frontend-specialist för att bygga moderna webbgränssnitt med komponentbaserad källkod, typsäker programmering och REST API:er. Svenska i tal och skrift.",
     },
     candidateProfile: {
       name: "Manoj John Axelsson",
@@ -238,14 +266,16 @@ export const CALIBRATION_DATASET: CalibrationTestCase[] = [
       preferredLocations: ["Stockholm"],
       workingModelPreference: "HYBRID",
     },
-    primaryFeedTrustQuestion: "Does the evidence model recognize concept alignment when exact keywords are missing?",
+    primaryFeedTrustQuestion:
+      "Does the evidence model recognize concept alignment when exact keywords are missing?",
   },
 
   // 8. Unknown mandatory requirement
   {
     id: "case-8",
     caseName: "8. Unknown mandatory requirement",
-    categoryDescription: "Job specifies mandatory German language requirement ('Tyska i tal och skrift'), unverified in profile.",
+    categoryDescription:
+      "Job specifies mandatory German language requirement ('Tyska i tal och skrift'), unverified in profile.",
     jobAd: {
       id: "job-008",
       title: "Fullstack Developer (DACH Market)",
@@ -263,20 +293,23 @@ export const CALIBRATION_DATASET: CalibrationTestCase[] = [
       preferredLocations: ["Stockholm"],
       workingModelPreference: "HYBRID",
     },
-    primaryFeedTrustQuestion: "Does UNKNOWN state flag requirement for review without erroneously auto-declaring INELIGIBLE?",
+    primaryFeedTrustQuestion:
+      "Does UNKNOWN state flag requirement for review without erroneously auto-declaring INELIGIBLE?",
   },
 
   // 9. Location mismatch
   {
     id: "case-9",
     caseName: "9. Location mismatch",
-    categoryDescription: "100% on-site role in Gothenburg while candidate specifically targets Stockholm.",
+    categoryDescription:
+      "100% on-site role in Gothenburg while candidate specifically targets Stockholm.",
     jobAd: {
       id: "job-009",
       title: "Fullstack Developer (100% On-site Gothenburg)",
       company: "West Coast Automotive AB",
       location: "Göteborg",
-      description: "Krav: React, TypeScript, Node.js. Obetvingligt krav: 100% på plats på kontoret i Göteborg. Inget distansarbete.",
+      description:
+        "Krav: React, TypeScript, Node.js. Obetvingligt krav: 100% på plats på kontoret i Göteborg. Inget distansarbete.",
     },
     candidateProfile: {
       name: "Manoj John Axelsson",
@@ -288,14 +321,16 @@ export const CALIBRATION_DATASET: CalibrationTestCase[] = [
       preferredLocations: ["Stockholm"], // Explicitly Stockholm
       workingModelPreference: "HYBRID",
     },
-    primaryFeedTrustQuestion: "Does geographic hierarchy correctly suppress or route out-of-territory on-site roles?",
+    primaryFeedTrustQuestion:
+      "Does geographic hierarchy correctly suppress or route out-of-territory on-site roles?",
   },
 
   // 10. A role you have actually applied for
   {
     id: "case-10",
     caseName: "10. A role you have actually applied for",
-    categoryDescription: "Candidate has already submitted an application to this exact position ID.",
+    categoryDescription:
+      "Candidate has already submitted an application to this exact position ID.",
     jobAd: {
       id: "job-100",
       externalId: "ext-100",
@@ -325,21 +360,24 @@ export const CALIBRATION_DATASET: CalibrationTestCase[] = [
         appliedAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000), // 14 days ago
       },
     ],
-    primaryFeedTrustQuestion: "Does history intelligence prevent showing an already applied job as a fresh Primary opportunity?",
+    primaryFeedTrustQuestion:
+      "Does history intelligence prevent showing an already applied job as a fresh Primary opportunity?",
   },
 
   // 11. A substantially similar re-issued advertisement
   {
     id: "case-11",
     caseName: "11. A substantially similar re-issued advertisement",
-    categoryDescription: "Re-posted job listing with a new external ID but 90%+ identical requirement fingerprint.",
+    categoryDescription:
+      "Re-posted job listing with a new external ID but 90%+ identical requirement fingerprint.",
     jobAd: {
       id: "job-101-reissue",
       externalId: "ext-999-new",
       title: "Senior Fullstack Engineer (Re-issued)",
       company: "Spotify AB",
       location: "Stockholm",
-      description: "React, TypeScript, Node.js, Distributed Systems. Join our core web infrastructure team.",
+      description:
+        "React, TypeScript, Node.js, Distributed Systems. Join our core web infrastructure team.",
     },
     candidateProfile: {
       name: "Manoj John Axelsson",
@@ -357,12 +395,14 @@ export const CALIBRATION_DATASET: CalibrationTestCase[] = [
         externalId: "ext-100-old",
         company: "Spotify AB",
         title: "Senior Fullstack Engineer",
-        description: "React, TypeScript, Node.js, Distributed Systems. Join our core web infrastructure team.",
+        description:
+          "React, TypeScript, Node.js, Distributed Systems. Join our core web infrastructure team.",
         status: "APPLIED",
         appliedAt: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000),
       },
     ],
-    primaryFeedTrustQuestion: "Does history intelligence suppress re-issued duplicate ads by substantive fingerprint?",
+    primaryFeedTrustQuestion:
+      "Does history intelligence suppress re-issued duplicate ads by substantive fingerprint?",
   },
 
   // 12. A previously rejected similar role
@@ -398,7 +438,8 @@ export const CALIBRATION_DATASET: CalibrationTestCase[] = [
         rejectedAt: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000),
       },
     ],
-    primaryFeedTrustQuestion: "Does history intelligence suppress role fingerprints matching recent rejections (< 7 months)?",
+    primaryFeedTrustQuestion:
+      "Does history intelligence suppress role fingerprints matching recent rejections (< 7 months)?",
   },
 ];
 
@@ -439,10 +480,13 @@ export function runCalibrationSideBySide(): SideBySideComparisonResult[] {
       historyConflictDetail = `${historyResult.conflictType}: ${historyResult.suppressReason}`;
     }
 
-    const legacyWouldPutInPrimary = legacy.feedType === "PRIMARY" && legacy.eligibilityStatus === "ELIGIBLE";
-    const newWouldPutInPrimary = effectiveRecommendationType === "PRIMARY" && newAssessment.eligibility.status === "ELIGIBLE";
+    const legacyWouldPutInPrimary =
+      legacy.feedType === "PRIMARY" && legacy.eligibilityStatus === "ELIGIBLE";
+    const newWouldPutInPrimary =
+      effectiveRecommendationType === "PRIMARY" && newAssessment.eligibility.status === "ELIGIBLE";
 
-    let trustVerdict: SideBySideComparisonResult["primaryFeedTrustVerdict"]["trustVerdict"] = "AGREE_PRIMARY";
+    let trustVerdict: SideBySideComparisonResult["primaryFeedTrustVerdict"]["trustVerdict"] =
+      "AGREE_PRIMARY";
     let analysis = "";
 
     if (legacyWouldPutInPrimary && newWouldPutInPrimary) {
@@ -453,10 +497,12 @@ export function runCalibrationSideBySide(): SideBySideComparisonResult[] {
       analysis = `Legacy engine placed this in Primary feed (Score: ${legacy.matchScore}%), but New Engine correctly suppressed/routed it (${effectiveRecommendationType}, Reason: ${historyConflictDetail || newAssessment.eligibility.blockers.join("; ") || newAssessment.recommendation.suppressReason}).`;
     } else if (!legacyWouldPutInPrimary && newWouldPutInPrimary) {
       trustVerdict = "NEW_CORRECTLY_PROMOTES";
-      analysis = "New Engine correctly identified high-quality capability and intent fit for Primary feed.";
+      analysis =
+        "New Engine correctly identified high-quality capability and intent fit for Primary feed.";
     } else {
       trustVerdict = "AGREE_SUPPRESS";
-      analysis = "Both engines agree this opportunity should be suppressed or routed away from Primary feed.";
+      analysis =
+        "Both engines agree this opportunity should be suppressed or routed away from Primary feed.";
     }
 
     results.push({

@@ -7,7 +7,8 @@ describe("Location Normalisation Gate", () => {
   it("should correctly resolve Tullverket regression case (Title Luleå vs Metadata Stockholm)", () => {
     const title = "Tullverket söker systemutvecklare, IT, Luleå";
     const rawMetadataLocation = "Stockholm";
-    const description = "Utvecklare platform engineering med passion för verktyg och CI/CD till team i Luleå.";
+    const description =
+      "Utvecklare platform engineering med passion för verktyg och CI/CD till team i Luleå.";
 
     const resolution = resolveCanonicalLocation(title, description, rawMetadataLocation);
 
@@ -56,7 +57,8 @@ describe("Location Normalisation Gate", () => {
       title: "Tullverket söker systemutvecklare, IT, Luleå",
       company: "TULLVERKET",
       location: "Stockholm", // Metadata is Stockholm, but title/canonical is Luleå!
-      description: "100% på plats på vårt kontor i Luleå. Inget distansarbete. React, TypeScript, Node.js.",
+      description:
+        "100% på plats på vårt kontor i Luleå. Inget distansarbete. React, TypeScript, Node.js.",
     };
 
     const candidateProfile = {

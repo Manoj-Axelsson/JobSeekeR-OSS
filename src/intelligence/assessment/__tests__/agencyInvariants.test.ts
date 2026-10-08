@@ -17,61 +17,99 @@ describe("Behavioral Test Suite 1: Candidate Agency & Ownership Invariants", () 
       mandatoryGates: {
         overallStatus: "ELIGIBLE",
         evaluations: [
-          { name: "Location & Working Model", gateStatus: "SATISFIED", explanation: "Stockholm Hybrid matches profile" },
-          { name: "Work Authorization", gateStatus: "SATISFIED", explanation: "Swedish citizen" }
+          {
+            name: "Location & Working Model",
+            gateStatus: "SATISFIED",
+            explanation: "Stockholm Hybrid matches profile",
+          },
+          { name: "Work Authorization", gateStatus: "SATISFIED", explanation: "Swedish citizen" },
         ],
-        blockers: []
+        blockers: [],
       },
       competencyFit: {
         essentialCompetencies: [
-          { competency: "React", status: "DEMONSTRATED_PRESENCE", depthRating: "ANCHORED_EVIDENCE" },
-          { competency: "TypeScript", status: "DEMONSTRATED_PRESENCE", depthRating: "ANCHORED_EVIDENCE" },
-          { competency: "Node.js", status: "DEMONSTRATED_PRESENCE", depthRating: "ANCHORED_EVIDENCE" },
-          { competency: "PostgreSQL", status: "DEMONSTRATED_PRESENCE", depthRating: "ANCHORED_EVIDENCE" }
+          {
+            competency: "React",
+            status: "DEMONSTRATED_PRESENCE",
+            depthRating: "ANCHORED_EVIDENCE",
+          },
+          {
+            competency: "TypeScript",
+            status: "DEMONSTRATED_PRESENCE",
+            depthRating: "ANCHORED_EVIDENCE",
+          },
+          {
+            competency: "Node.js",
+            status: "DEMONSTRATED_PRESENCE",
+            depthRating: "ANCHORED_EVIDENCE",
+          },
+          {
+            competency: "PostgreSQL",
+            status: "DEMONSTRATED_PRESENCE",
+            depthRating: "ANCHORED_EVIDENCE",
+          },
         ],
         optionalCompetencies: [
-          { competency: "Tailwind CSS", priority: "PREFERRED", isMatched: true }
+          { competency: "Tailwind CSS", priority: "PREFERRED", isMatched: true },
         ],
         transferableCapabilities: [
-          { targetRequirement: "IoT Sensor Data", sourceCapability: "Systems Engineering", escoRelationship: "CROSS_DOMAIN_TRANSFER" }
-        ]
+          {
+            targetRequirement: "IoT Sensor Data",
+            sourceCapability: "Systems Engineering",
+            escoRelationship: "CROSS_DOMAIN_TRANSFER",
+          },
+        ],
       },
       autonomyAlignment: {
         requiredLevel: "EQF_LEVEL_7",
         candidateLevel: "EQF_LEVEL_7",
         alignmentStatus: "MATCHED",
-        autonomyDescriptor: "Position matches candidate recorded senior architectural autonomy level."
+        autonomyDescriptor:
+          "Position matches candidate recorded senior architectural autonomy level.",
       },
       unverifiedNotices: [],
       decisionSupport: {
         recommendation: {
           verdict: "STRONG_OPPORTUNITY_VERIFIED",
-          headline: "STRONG OPPORTUNITY — VERIFIED EVIDENCE: Your profile provides strong, attributable evidence for this position's core requirements. This opportunity appears worthy of your consideration.",
+          headline:
+            "STRONG OPPORTUNITY — VERIFIED EVIDENCE: Your profile provides strong, attributable evidence for this position's core requirements. This opportunity appears worthy of your consideration.",
           candidateActionContext: "CONSIDER_APPLICATION",
           summaryRationale: [
             "React, TypeScript, Node.js, and PostgreSQL verified in profile work history.",
-            "Hybrid working model in Stockholm satisfies location preferences."
-          ]
+            "Hybrid working model in Stockholm satisfies location preferences.",
+          ],
         },
         coverLetterHookTheme: "Software Architecture & Systems Engineering Excellence",
         interviewTalkingPoints: [
           "Lead with your verified fullstack web stack experience.",
-          "Discuss your systems engineering background for IoT sensor context."
-        ]
-      }
+          "Discuss your systems engineering background for IoT sensor context.",
+        ],
+      },
     };
 
     // 1. Verifies that recommendation verdict uses descriptive opportunity language
-    expect(mockAssessmentPayload.decisionSupport.recommendation.verdict).toBe("STRONG_OPPORTUNITY_VERIFIED");
-    expect(mockAssessmentPayload.decisionSupport.recommendation.headline).toContain("STRONG OPPORTUNITY — VERIFIED EVIDENCE");
-    expect(mockAssessmentPayload.decisionSupport.recommendation.headline).toContain("worthy of your consideration");
+    expect(mockAssessmentPayload.decisionSupport.recommendation.verdict).toBe(
+      "STRONG_OPPORTUNITY_VERIFIED"
+    );
+    expect(mockAssessmentPayload.decisionSupport.recommendation.headline).toContain(
+      "STRONG OPPORTUNITY — VERIFIED EVIDENCE"
+    );
+    expect(mockAssessmentPayload.decisionSupport.recommendation.headline).toContain(
+      "worthy of your consideration"
+    );
 
     // 2. Verifies that output DOES NOT contain prescriptive commands telling candidate they "should apply"
-    expect(mockAssessmentPayload.decisionSupport.recommendation.headline).not.toContain("You should apply");
-    expect(mockAssessmentPayload.decisionSupport.recommendation.headline).not.toContain("Apply now");
+    expect(mockAssessmentPayload.decisionSupport.recommendation.headline).not.toContain(
+      "You should apply"
+    );
+    expect(mockAssessmentPayload.decisionSupport.recommendation.headline).not.toContain(
+      "Apply now"
+    );
 
     // 3. Verifies candidateActionContext leaves decision ownership (#3) to the candidate
-    expect(mockAssessmentPayload.decisionSupport.recommendation.candidateActionContext).toBe("CONSIDER_APPLICATION");
+    expect(mockAssessmentPayload.decisionSupport.recommendation.candidateActionContext).toBe(
+      "CONSIDER_APPLICATION"
+    );
   });
 
   it("should enforce complete absence of numerical percentage scores or letter grades across payload", () => {
@@ -82,9 +120,9 @@ describe("Behavioral Test Suite 1: Candidate Agency & Ownership Invariants", () 
         recommendation: {
           verdict: "STRONG_OPPORTUNITY_VERIFIED",
           headline: "STRONG OPPORTUNITY — VERIFIED EVIDENCE",
-          candidateActionContext: "CONSIDER_APPLICATION"
-        }
-      }
+          candidateActionContext: "CONSIDER_APPLICATION",
+        },
+      },
     };
 
     const jsonPayload = JSON.stringify(mockAssessmentPayload);

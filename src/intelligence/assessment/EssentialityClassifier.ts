@@ -74,7 +74,12 @@ export function classifyEssentiality(
 
     if (reqIndex !== -1) {
       const precedingText = descLower.substring(Math.max(0, reqIndex - 100), reqIndex);
-      if (precedingText.includes("meriterande") || precedingText.includes("plus") || precedingText.includes("nice to have") || precedingText.includes("preferred")) {
+      if (
+        precedingText.includes("meriterande") ||
+        precedingText.includes("plus") ||
+        precedingText.includes("nice to have") ||
+        precedingText.includes("preferred")
+      ) {
         return {
           requirementName,
           isEssential: false,

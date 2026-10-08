@@ -73,7 +73,10 @@ export function verifyEvidenceDepth(
   const demonstratedIn: string[] = [];
 
   // 1. Check for explicit negative declaration / declared absence
-  if (profile.declaredAbsences && profile.declaredAbsences.some((abs) => isMatch(requirement, abs))) {
+  if (
+    profile.declaredAbsences &&
+    profile.declaredAbsences.some((abs) => isMatch(requirement, abs))
+  ) {
     return {
       competency: requirement,
       status: "DEMONSTRATED_ABSENCE",

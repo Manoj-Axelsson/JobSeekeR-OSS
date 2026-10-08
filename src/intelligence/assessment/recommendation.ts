@@ -51,12 +51,14 @@ export function evaluateRecommendation(
   // Product Rule: UNKNOWN mandatory requirements do NOT declare INELIGIBLE,
   // but cannot enter PRIMARY without verification (routed to DISCOVERY for review).
   const unverifiedMandatoryReqs = eligibility.hardRequirements.filter(
-    req => req.priority === "REQUIRED" && req.state === "UNKNOWN"
+    (req) => req.priority === "REQUIRED" && req.state === "UNKNOWN"
   );
 
   if (unverifiedMandatoryReqs.length > 0) {
-    const unverifiedNames = unverifiedMandatoryReqs.map(r => r.name).join(", ");
-    reasons.push(`Routed to Discovery Feed for review: Unverified mandatory requirement (${unverifiedNames}).`);
+    const unverifiedNames = unverifiedMandatoryReqs.map((r) => r.name).join(", ");
+    reasons.push(
+      `Routed to Discovery Feed for review: Unverified mandatory requirement (${unverifiedNames}).`
+    );
     return {
       type: "DISCOVERY",
       primaryFit: false,
@@ -73,7 +75,9 @@ export function evaluateRecommendation(
   const hasSufficientConfidence = confidence.assessmentConfidence !== "LOW" || match.score >= 75;
 
   if (isStrongMatch && isMeaningfulIntent && hasSufficientConfidence) {
-    reasons.push(`Primary recommendation: Strong match (${match.score}%), solid intent (${intent.score}%), grade ${match.grade}.`);
+    reasons.push(
+      `Primary recommendation: Strong match (${match.score}%), solid intent (${intent.score}%), grade ${match.grade}.`
+    );
     return {
       type: "PRIMARY",
       primaryFit: true,
@@ -89,9 +93,13 @@ export function evaluateRecommendation(
 
   if (isDiscoveryEligible) {
     if (intent.score < 50 && match.score >= 70) {
-      reasons.push(`Discovery recommendation: High technical match (${match.score}%) but lower intent alignment (${intent.score}%).`);
+      reasons.push(
+        `Discovery recommendation: High technical match (${match.score}%) but lower intent alignment (${intent.score}%).`
+      );
     } else {
-      reasons.push(`Discovery recommendation: Stretch opportunity with high transferable capability (${match.transferability}%).`);
+      reasons.push(
+        `Discovery recommendation: Stretch opportunity with high transferable capability (${match.transferability}%).`
+      );
     }
     return {
       type: "DISCOVERY",

@@ -31,28 +31,36 @@ export interface CandidateEvidenceModel {
 }
 
 const TRANSFERABLE_MAPPINGS: Record<string, string[]> = {
-  "Stakeholder Collaboration": ["Project Management", "Production Development", "Lean", "Requirements Engineering"],
-  "Problem Solving": ["Software Architecture", "Systems Engineering", "DMAIC", "Root Cause Analysis"],
+  "Stakeholder Collaboration": [
+    "Project Management",
+    "Production Development",
+    "Lean",
+    "Requirements Engineering",
+  ],
+  "Problem Solving": [
+    "Software Architecture",
+    "Systems Engineering",
+    "DMAIC",
+    "Root Cause Analysis",
+  ],
   "Quality Assurance": ["Verification", "Validation", "Six Sigma", "FMEA", "Testing"],
   "System Architecture": ["Fullstack Developer", "Systems Engineer", "Backend", "API Design"],
   "Continuous Improvement": ["Lean Manufacturing", "Standard Work", "Poka-Yoke", "Agile"],
 };
 
-export function createCandidateEvidenceModel(
-  rawProfile: {
-    name?: string;
-    headline?: string;
-    citizenship?: string;
-    citizenships?: string[];
-    languages?: string[];
-    skills?: string[];
-    targetRoles?: string[];
-    preferredLocations?: string[];
-    workingModelPreference?: "REMOTE" | "HYBRID" | "ON_SITE";
-    experience?: Array<{ title: string; company?: string; description?: string }>;
-    certifications?: string[];
-  }
-): CandidateEvidenceModel {
+export function createCandidateEvidenceModel(rawProfile: {
+  name?: string;
+  headline?: string;
+  citizenship?: string;
+  citizenships?: string[];
+  languages?: string[];
+  skills?: string[];
+  targetRoles?: string[];
+  preferredLocations?: string[];
+  workingModelPreference?: "REMOTE" | "HYBRID" | "ON_SITE";
+  experience?: Array<{ title: string; company?: string; description?: string }>;
+  certifications?: string[];
+}): CandidateEvidenceModel {
   const capabilities = new Map<string, CapabilityEvidence>();
 
   const name = rawProfile.name || "Manoj John Axelsson";
@@ -61,14 +69,49 @@ export function createCandidateEvidenceModel(
   const citizenships = rawProfile.citizenships || [primaryCitizenship];
   const hasWorkAuthorization = true;
   const languages = rawProfile.languages || ["Swedish", "English", "Malayalam"];
-  const targetRoles = rawProfile.targetRoles || ["Fullstack Developer", "Systems Engineer", "Production Developer"];
-  const preferredLocations = rawProfile.preferredLocations || ["Stockholm", "Linköping", "Norrköping", "Göteborg", "Sweden", "Remote"];
+  const targetRoles = rawProfile.targetRoles || [
+    "Fullstack Developer",
+    "Systems Engineer",
+    "Production Developer",
+  ];
+  const preferredLocations = rawProfile.preferredLocations || [
+    "Stockholm",
+    "Linköping",
+    "Norrköping",
+    "Göteborg",
+    "Sweden",
+    "Remote",
+  ];
 
   const explicitSkills = rawProfile.skills || [
-    "React", "TypeScript", "Next.js", "Node.js", "Express", "PostgreSQL", "SQL", "REST APIs", "Git", "GitHub", "Tailwind CSS",
-    "Systems Engineering", "Software Architecture", "Requirements Engineering", "Validation & Verification", "PLM",
-    "Six Sigma Green Belt", "DMAIC", "FMEA", "Poka-Yoke", "Root Cause Analysis", "Quality Assurance", "Process Optimization",
-    "Manufacturing Engineering", "Production Development", "Lean Manufacturing", "Automation", "CAD/CAM"
+    "React",
+    "TypeScript",
+    "Next.js",
+    "Node.js",
+    "Express",
+    "PostgreSQL",
+    "SQL",
+    "REST APIs",
+    "Git",
+    "GitHub",
+    "Tailwind CSS",
+    "Systems Engineering",
+    "Software Architecture",
+    "Requirements Engineering",
+    "Validation & Verification",
+    "PLM",
+    "Six Sigma Green Belt",
+    "DMAIC",
+    "FMEA",
+    "Poka-Yoke",
+    "Root Cause Analysis",
+    "Quality Assurance",
+    "Process Optimization",
+    "Manufacturing Engineering",
+    "Production Development",
+    "Lean Manufacturing",
+    "Automation",
+    "CAD/CAM",
   ];
 
   for (const skill of explicitSkills) {
@@ -100,7 +143,9 @@ export function createCandidateEvidenceModel(
   for (const [transferableSkill, requiredPrereqs] of Object.entries(TRANSFERABLE_MAPPINGS)) {
     const sKey = transferableSkill.toLowerCase();
     if (!capabilities.has(sKey)) {
-      const matchedPrereq = requiredPrereqs.find(prereq => capabilities.has(prereq.toLowerCase()));
+      const matchedPrereq = requiredPrereqs.find((prereq) =>
+        capabilities.has(prereq.toLowerCase())
+      );
       if (matchedPrereq) {
         capabilities.set(sKey, {
           capability: transferableSkill,
@@ -130,16 +175,36 @@ export function createCandidateEvidenceModel(
 
 function classifyCategory(skill: string): CapabilityEvidence["category"] {
   const sLower = skill.toLowerCase();
-  if (sLower.includes("react") || sLower.includes("typescript") || sLower.includes("node") || sLower.includes("sql") || sLower.includes("git")) {
+  if (
+    sLower.includes("react") ||
+    sLower.includes("typescript") ||
+    sLower.includes("node") ||
+    sLower.includes("sql") ||
+    sLower.includes("git")
+  ) {
     return "SOFTWARE";
   }
-  if (sLower.includes("system") || sLower.includes("requirement") || sLower.includes("architecture")) {
+  if (
+    sLower.includes("system") ||
+    sLower.includes("requirement") ||
+    sLower.includes("architecture")
+  ) {
     return "SYSTEMS";
   }
-  if (sLower.includes("six sigma") || sLower.includes("dmaic") || sLower.includes("fmea") || sLower.includes("quality")) {
+  if (
+    sLower.includes("six sigma") ||
+    sLower.includes("dmaic") ||
+    sLower.includes("fmea") ||
+    sLower.includes("quality")
+  ) {
     return "QUALITY";
   }
-  if (sLower.includes("manufacturing") || sLower.includes("production") || sLower.includes("automation") || sLower.includes("cad")) {
+  if (
+    sLower.includes("manufacturing") ||
+    sLower.includes("production") ||
+    sLower.includes("automation") ||
+    sLower.includes("cad")
+  ) {
     return "INDUSTRIAL";
   }
   return "GENERAL";
@@ -161,10 +226,18 @@ export function findEvidence(
     }
   }
 
-  if (reqLower === "nextjs" && candidate.capabilities.has("next.js")) return candidate.capabilities.get("next.js")!;
-  if (reqLower === "nodejs" && candidate.capabilities.has("node.js")) return candidate.capabilities.get("node.js")!;
-  if (reqLower === "postgres" && candidate.capabilities.has("postgresql")) return candidate.capabilities.get("postgresql")!;
-  if (reqLower === "swedish" && candidate.languages.some(l => l.toLowerCase().includes("swedish") || l.toLowerCase().includes("svenska"))) {
+  if (reqLower === "nextjs" && candidate.capabilities.has("next.js"))
+    return candidate.capabilities.get("next.js")!;
+  if (reqLower === "nodejs" && candidate.capabilities.has("node.js"))
+    return candidate.capabilities.get("node.js")!;
+  if (reqLower === "postgres" && candidate.capabilities.has("postgresql"))
+    return candidate.capabilities.get("postgresql")!;
+  if (
+    reqLower === "swedish" &&
+    candidate.languages.some(
+      (l) => l.toLowerCase().includes("swedish") || l.toLowerCase().includes("svenska")
+    )
+  ) {
     return {
       capability: "Swedish Language",
       category: "GENERAL",

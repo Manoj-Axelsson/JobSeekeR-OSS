@@ -3,7 +3,8 @@
  * JobSeekR Intelligence Framework v3.0
  */
 
-export type RequirementStatus = "SATISFIED" | "UNSATISFIED" | "UNKNOWN" | "TRANSFERABLE" | "NOT_APPLICABLE";
+export type RequirementStatus =
+  "SATISFIED" | "UNSATISFIED" | "UNKNOWN" | "TRANSFERABLE" | "NOT_APPLICABLE";
 export type RequirementPriority = "REQUIRED" | "PREFERRED" | "DESIRED" | "ACCEPTED";
 export type EvidenceStrength = "HIGH" | "MEDIUM" | "LOW";
 export type AssessmentConfidence = "HIGH" | "MEDIUM" | "LOW";

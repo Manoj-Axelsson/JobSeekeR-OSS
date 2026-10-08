@@ -30,7 +30,9 @@ describe("Opportunity Assessment Engine v3.0", () => {
     const eligibility = evaluateEligibility(reqs, candidate);
 
     expect(eligibility.status).toBe("ELIGIBLE");
-    const citizenshipEval = eligibility.hardRequirements.find(r => r.name.includes("Citizenship"));
+    const citizenshipEval = eligibility.hardRequirements.find((r) =>
+      r.name.includes("Citizenship")
+    );
     expect(citizenshipEval).toBeDefined();
     expect(citizenshipEval?.state).toBe("SATISFIED");
   });
@@ -43,7 +45,9 @@ describe("Opportunity Assessment Engine v3.0", () => {
 
     const eligibility = evaluateEligibility(reqs, candidate);
 
-    const germanEval = eligibility.hardRequirements.find(r => r.name.toLowerCase().includes("german") || r.name.toLowerCase().includes("tyska"));
+    const germanEval = eligibility.hardRequirements.find(
+      (r) => r.name.toLowerCase().includes("german") || r.name.toLowerCase().includes("tyska")
+    );
     expect(germanEval).toBeDefined();
     expect(germanEval?.category).toBe("LANGUAGE");
     expect(germanEval?.state).toBe("UNKNOWN");
@@ -82,7 +86,8 @@ describe("Opportunity Assessment Engine v3.0", () => {
   it("should enforce product contract: High capability match with poor intent MUST NOT be a Primary recommendation", () => {
     const jobAd = {
       title: "Senior Legacy Architect",
-      description: "Krav: React, TypeScript, Node.js, Systems Engineering. Mandatory on-site in Kiruna.",
+      description:
+        "Krav: React, TypeScript, Node.js, Systems Engineering. Mandatory on-site in Kiruna.",
       location: "Kiruna",
     };
     const candidate = createCandidateEvidenceModel({
@@ -104,7 +109,8 @@ describe("Opportunity Assessment Engine v3.0", () => {
   it("should correctly assess a strong candidate as a PRIMARY recommendation", () => {
     const jobAd = {
       title: "Fullstack Developer",
-      description: "Krav: React, TypeScript, Next.js. Meriterande: PostgreSQL, Tailwind. Hybrid i Stockholm.",
+      description:
+        "Krav: React, TypeScript, Next.js. Meriterande: PostgreSQL, Tailwind. Hybrid i Stockholm.",
       location: "Stockholm",
     };
     const candidate = createCandidateEvidenceModel({

@@ -12,7 +12,10 @@
 
 import { CALIBRATION_DATASET } from "./calibrationRunner";
 import { ADVERSARIAL_DATASET } from "./adversarialRunner";
-import { evaluateOpportunitySideBySide, SideBySideEvaluation } from "../integration/phase11Integration";
+import {
+  evaluateOpportunitySideBySide,
+  SideBySideEvaluation,
+} from "../integration/phase11Integration";
 
 export interface MasterBenchmarkMetrics {
   totalCasesEvaluated: number;
@@ -54,16 +57,17 @@ export function runPhase11MasterBenchmark(): Phase11MasterResult {
 
   // Combine 12 Phase 1A + 18 Phase 1B calibration cases (30 total)
   const masterDataset = [
-    ...CALIBRATION_DATASET.map(c => ({
+    ...CALIBRATION_DATASET.map((c) => ({
       id: c.id,
       name: c.caseName,
       category: c.categoryDescription,
       jobAd: c.jobAd,
       candidateProfile: c.candidateProfile,
       history: c.history,
-      isLegitimatePrimaryOpportunity: c.id === "case-1" || c.id === "case-4" || c.id === "case-5" || c.id === "case-7",
+      isLegitimatePrimaryOpportunity:
+        c.id === "case-1" || c.id === "case-4" || c.id === "case-5" || c.id === "case-7",
     })),
-    ...ADVERSARIAL_DATASET.map(c => ({
+    ...ADVERSARIAL_DATASET.map((c) => ({
       id: c.id,
       name: c.caseName,
       category: c.boundaryType,
@@ -90,7 +94,11 @@ export function runPhase11MasterBenchmark(): Phase11MasterResult {
       totalLegitimateOpportunities++;
     }
 
-    const sideBySide = evaluateOpportunitySideBySide(item.jobAd, item.candidateProfile, item.history || []);
+    const sideBySide = evaluateOpportunitySideBySide(
+      item.jobAd,
+      item.candidateProfile,
+      item.history || []
+    );
 
     if (sideBySide.comparison.isMaterialDifference) {
       materialDifferencesCount++;
@@ -125,11 +133,14 @@ export function runPhase11MasterBenchmark(): Phase11MasterResult {
     });
   }
 
-  const legacyPrecision = legacyTotalPrimary > 0 ? (legacyTruePrimary / legacyTotalPrimary) * 100 : 0;
-  const legacyRecall = totalLegitimateOpportunities > 0 ? (legacyTruePrimary / totalLegitimateOpportunities) * 100 : 0;
+  const legacyPrecision =
+    legacyTotalPrimary > 0 ? (legacyTruePrimary / legacyTotalPrimary) * 100 : 0;
+  const legacyRecall =
+    totalLegitimateOpportunities > 0 ? (legacyTruePrimary / totalLegitimateOpportunities) * 100 : 0;
 
   const newPrecision = newTotalPrimary > 0 ? (newTruePrimary / newTotalPrimary) * 100 : 0;
-  const newRecall = totalLegitimateOpportunities > 0 ? (newTruePrimary / totalLegitimateOpportunities) * 100 : 0;
+  const newRecall =
+    totalLegitimateOpportunities > 0 ? (newTruePrimary / totalLegitimateOpportunities) * 100 : 0;
 
   const materialDifferenceRatePct = (materialDifferencesCount / masterDataset.length) * 100;
 

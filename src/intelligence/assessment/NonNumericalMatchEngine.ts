@@ -52,17 +52,20 @@ const DOMAIN_TRANSFER_MAPPINGS: Array<{
   {
     sourceKeyword: "systems engineering",
     targetRequirement: "IoT Sensor Data",
-    transferRationale: "Systems Engineering background provides helpful domain context for sensor networks, but does NOT replace core backend programming depth.",
+    transferRationale:
+      "Systems Engineering background provides helpful domain context for sensor networks, but does NOT replace core backend programming depth.",
   },
   {
     sourceKeyword: "six sigma",
     targetRequirement: "Firmware Quality Assurance",
-    transferRationale: "Quality assurance and root cause analysis methodologies transfer across engineering domains, but cannot replace core C++ execution.",
+    transferRationale:
+      "Quality assurance and root cause analysis methodologies transfer across engineering domains, but cannot replace core C++ execution.",
   },
   {
     sourceKeyword: "dmaic",
     targetRequirement: "Quality Improvement",
-    transferRationale: "Structured DMAIC root cause analysis methodologies transfer directly across engineering domains.",
+    transferRationale:
+      "Structured DMAIC root cause analysis methodologies transfer directly across engineering domains.",
   },
 ];
 
@@ -96,7 +99,8 @@ export function computeMatchDiagnostics(
         status: verification.status,
         depthRating: verification.depthRating,
         provenance: verification.provenance,
-        demonstratedIn: verification.demonstratedIn.length > 0 ? verification.demonstratedIn : undefined,
+        demonstratedIn:
+          verification.demonstratedIn.length > 0 ? verification.demonstratedIn : undefined,
       });
 
       // Generate action notice if essential requirement is unverified (UNKNOWN or BARE_KEYWORD_ASSERTION)
@@ -118,7 +122,8 @@ export function computeMatchDiagnostics(
         competency: reqName,
         priority: classification.priority === "NICE_TO_HAVE" ? "NICE_TO_HAVE" : "PREFERRED",
         isMatched,
-        demonstratedIn: verification.demonstratedIn.length > 0 ? verification.demonstratedIn : undefined,
+        demonstratedIn:
+          verification.demonstratedIn.length > 0 ? verification.demonstratedIn : undefined,
       });
     }
   }
@@ -131,7 +136,8 @@ export function computeMatchDiagnostics(
         competency: prefName,
         priority: "PREFERRED",
         isMatched: verification.status === "DEMONSTRATED_PRESENCE",
-        demonstratedIn: verification.demonstratedIn.length > 0 ? verification.demonstratedIn : undefined,
+        demonstratedIn:
+          verification.demonstratedIn.length > 0 ? verification.demonstratedIn : undefined,
       });
     }
   }
@@ -139,7 +145,9 @@ export function computeMatchDiagnostics(
   // 2. Identify Transferable Capabilities (Strict Non-Transferability Guard)
   // Transferable narrative is generated for candidate context, but strictly NEVER alters essential core requirement states
   if (profile.skills) {
-    const flatSkills = Array.isArray(profile.skills) ? profile.skills : Object.values(profile.skills).flat();
+    const flatSkills = Array.isArray(profile.skills)
+      ? profile.skills
+      : Object.values(profile.skills).flat();
     for (const rule of DOMAIN_TRANSFER_MAPPINGS) {
       if (flatSkills.some((s) => s.toLowerCase().includes(rule.sourceKeyword))) {
         transferableCapabilities.push({
@@ -156,7 +164,8 @@ export function computeMatchDiagnostics(
   const requiredEqf = job.requiredEqfLevel || "EQF_LEVEL_7";
   const candidateEqf = profile.eqfLevel || "EQF_LEVEL_7";
 
-  let alignmentStatus: "MATCHED" | "AUTONOMY_STEP_UP" | "EXCEEDS_REQUIREMENT" | "UNSPECIFIED" = "MATCHED";
+  let alignmentStatus: "MATCHED" | "AUTONOMY_STEP_UP" | "EXCEEDS_REQUIREMENT" | "UNSPECIFIED" =
+    "MATCHED";
   let autonomyDescriptor = `Position matches candidate recorded autonomy level (${candidateEqf}).`;
 
   if (requiredEqf > candidateEqf) {

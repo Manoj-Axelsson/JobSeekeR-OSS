@@ -18,7 +18,13 @@ describe("Matcher Feature Flag Integration (v3.1.1)", () => {
     delete process.env.USE_NEW_ASSESSMENT_ENGINE;
 
     const result = evaluateOpportunityAssessment(
-      { id: "1", title: "Fullstack Developer", company: "Tech AB", location: "Stockholm", description: "React, Node.js" },
+      {
+        id: "1",
+        title: "Fullstack Developer",
+        company: "Tech AB",
+        location: "Stockholm",
+        description: "React, Node.js",
+      },
       { skills: ["React", "Node.js"] }
     );
 
@@ -31,7 +37,13 @@ describe("Matcher Feature Flag Integration (v3.1.1)", () => {
     process.env.USE_NON_NUMERICAL_ASSESSMENT_ENGINE = "true";
 
     const result = evaluateOpportunityAssessment(
-      { id: "1", title: "Fullstack Developer", company: "Tech AB", location: "Stockholm", description: "React, Node.js" },
+      {
+        id: "1",
+        title: "Fullstack Developer",
+        company: "Tech AB",
+        location: "Stockholm",
+        description: "React, Node.js",
+      },
       { skills: ["React", "Node.js"] }
     );
 
@@ -45,7 +57,13 @@ describe("Matcher Feature Flag Integration (v3.1.1)", () => {
     process.env.SHADOW_MODE_NON_NUMERICAL = "true";
 
     const result = evaluateOpportunityAssessment(
-      { id: "1", title: "Fullstack Developer", company: "Tech AB", location: "Stockholm", description: "React, Node.js" },
+      {
+        id: "1",
+        title: "Fullstack Developer",
+        company: "Tech AB",
+        location: "Stockholm",
+        description: "React, Node.js",
+      },
       { skills: ["React", "Node.js"] }
     );
 

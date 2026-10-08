@@ -82,7 +82,8 @@ export function generateCandidatePositioning(
 
   // 2. Identify Potential Concern with Explicit Confidence Level
   let potentialConcern: PositioningConcern | null = null;
-  let howToAddressConcern = "Emphasize core technical capability match and engineering adaptability.";
+  let howToAddressConcern =
+    "Emphasize core technical capability match and engineering adaptability.";
 
   if (assessment.match.missingRequirements.length > 0) {
     const mainMissing = assessment.match.missingRequirements[0];
@@ -107,21 +108,23 @@ export function generateCandidatePositioning(
 
   // 3. Select CV Points to Emphasize
   const cvPointsToEmphasize: string[] = strongestEvidence.map(
-    ev => `Emphasize experience in ${ev.competency} (${ev.evidenceText})`
+    (ev) => `Emphasize experience in ${ev.competency} (${ev.evidenceText})`
   );
 
   // 4. Evidence-Driven Cover Letter Hook (Facts & Reasoning, NO generic prose)
   const primaryCompetency = strongestEvidence[0]?.competency || "Software & Systems Engineering";
   const coverLetterHook: EvidenceDrivenCoverLetterHook = {
     theme: `Bridging ${primaryCompetency} with production engineering goals at ${jobAd.company}`,
-    supportingEvidence: strongestEvidence.map(e => `${e.competency}: ${e.evidenceText}`),
+    supportingEvidence: strongestEvidence.map((e) => `${e.competency}: ${e.evidenceText}`),
   };
 
   // 5. Salary Expectation
   const salaryExpectation = {
     estimatedMinSEK: enrichment?.research.marketSalaryBenchmark.estimatedMinSEK || 45000,
     estimatedMaxSEK: enrichment?.research.marketSalaryBenchmark.estimatedMaxSEK || 65000,
-    benchmarkText: enrichment?.research.marketSalaryBenchmark.benchmarkNote || "Market benchmark for role and location.",
+    benchmarkText:
+      enrichment?.research.marketSalaryBenchmark.benchmarkNote ||
+      "Market benchmark for role and location.",
   };
 
   // 6. Recommended Positioning Strategy

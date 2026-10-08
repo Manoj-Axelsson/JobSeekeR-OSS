@@ -76,7 +76,11 @@ function normalizeLanguageName(raw: string): string {
   return raw.charAt(0).toUpperCase() + raw.slice(1);
 }
 
-function extractGenericLanguages(text: string): { required: string[]; preferred: string[]; reqItems: RequirementItem[] } {
+function extractGenericLanguages(text: string): {
+  required: string[];
+  preferred: string[];
+  reqItems: RequirementItem[];
+} {
   const required: string[] = [];
   const preferred: string[] = [];
   const reqItems: RequirementItem[] = [];
@@ -97,7 +101,19 @@ function extractGenericLanguages(text: string): { required: string[]; preferred:
     let match: RegExpExecArray | null;
     while ((match = pattern.exec(textLower)) !== null) {
       const candidateWord = match[1].trim();
-      if (candidateWord.length >= 4 && !["god", "goda", "både", "samt", "eller", "säkerhet", "säkerhetsklassinplacering", "visst"].includes(candidateWord)) {
+      if (
+        candidateWord.length >= 4 &&
+        ![
+          "god",
+          "goda",
+          "både",
+          "samt",
+          "eller",
+          "säkerhet",
+          "säkerhetsklassinplacering",
+          "visst",
+        ].includes(candidateWord)
+      ) {
         foundLangs.add(candidateWord);
       }
     }
@@ -131,7 +147,11 @@ function extractGenericLanguages(text: string): { required: string[]; preferred:
   return { required, preferred, reqItems };
 }
 
-function extractGenericCitizenships(text: string): { required: string[]; preferred: string[]; reqItems: RequirementItem[] } {
+function extractGenericCitizenships(text: string): {
+  required: string[];
+  preferred: string[];
+  reqItems: RequirementItem[];
+} {
   const required: string[] = [];
   const preferred: string[] = [];
   const reqItems: RequirementItem[] = [];
@@ -208,9 +228,17 @@ export function extractJobRequirements(
 
   // 1. Detect Seniority
   let seniority: StructuredJobRequirementModel["seniority"] = "Unspecified";
-  if (textLower.includes("junior") || textLower.includes("entry level") || textLower.includes("nyutexaminerad")) {
+  if (
+    textLower.includes("junior") ||
+    textLower.includes("entry level") ||
+    textLower.includes("nyutexaminerad")
+  ) {
     seniority = "Junior";
-  } else if (textLower.includes("senior") || textLower.includes("lead") || textLower.includes("principal")) {
+  } else if (
+    textLower.includes("senior") ||
+    textLower.includes("lead") ||
+    textLower.includes("principal")
+  ) {
     seniority = textLower.includes("lead") ? "Lead" : "Senior";
   } else if (textLower.includes("mid-level") || textLower.includes("erfaren")) {
     seniority = "Mid";
@@ -254,14 +282,46 @@ export function extractJobRequirements(
   };
 
   const knownTech = [
-    "react", "typescript", "javascript", "next.js", "nextjs", "node.js", "nodejs",
-    "express", "postgresql", "postgres", "sql", "rest", "api", "git", "github",
-    "python", "docker", "kubernetes", "aws", "azure", "gcp", "tailwind", "c#",
-    "java", "c++", "plc", "cad", "cnc", "six sigma", "lean"
+    "react",
+    "typescript",
+    "javascript",
+    "next.js",
+    "nextjs",
+    "node.js",
+    "nodejs",
+    "express",
+    "postgresql",
+    "postgres",
+    "sql",
+    "rest",
+    "api",
+    "git",
+    "github",
+    "python",
+    "docker",
+    "kubernetes",
+    "aws",
+    "azure",
+    "gcp",
+    "tailwind",
+    "c#",
+    "java",
+    "c++",
+    "plc",
+    "cad",
+    "cnc",
+    "six sigma",
+    "lean",
   ];
 
-  const reqSection = textLower.includes("krav") || textLower.includes("requirements") ? textLower : "";
-  const preferSection = textLower.includes("meriterande") || textLower.includes("nice to have") || textLower.includes("preferred") ? textLower : "";
+  const reqSection =
+    textLower.includes("krav") || textLower.includes("requirements") ? textLower : "";
+  const preferSection =
+    textLower.includes("meriterande") ||
+    textLower.includes("nice to have") ||
+    textLower.includes("preferred")
+      ? textLower
+      : "";
 
   for (const tech of knownTech) {
     const displayTech = capitalizeTech(tech);
@@ -270,9 +330,14 @@ export function extractJobRequirements(
     const isExplicitKrav =
       (reqSection.includes(`krav:`) || reqSection.includes("skall")) &&
       reqSection.indexOf(tech) !== -1 &&
-      (preferSection === "" || reqSection.indexOf(tech) < (textLower.indexOf("meriterande") !== -1 ? textLower.indexOf("meriterande") : 999999));
+      (preferSection === "" ||
+        reqSection.indexOf(tech) <
+          (textLower.indexOf("meriterande") !== -1 ? textLower.indexOf("meriterande") : 999999));
 
-    if (isExplicitKrav || (title.toLowerCase().includes(tech) && !textLower.includes(`meriterande: ${tech}`))) {
+    if (
+      isExplicitKrav ||
+      (title.toLowerCase().includes(tech) && !textLower.includes(`meriterande: ${tech}`))
+    ) {
       reqTech.required.push(displayTech);
       requirements.push({
         id: `req-tech-${tech}`,
@@ -280,7 +345,10 @@ export function extractJobRequirements(
         category: "TECHNOLOGY",
         priority: "REQUIRED",
       });
-    } else if (textLower.includes(`meriterande`) && textLower.indexOf(tech) > textLower.indexOf("meriterande")) {
+    } else if (
+      textLower.includes(`meriterande`) &&
+      textLower.indexOf(tech) > textLower.indexOf("meriterande")
+    ) {
       reqTech.desired.push(displayTech);
       requirements.push({
         id: `req-tech-${tech}`,
@@ -307,7 +375,12 @@ export function extractJobRequirements(
     textLower.includes("no remote") ||
     textLower.includes("100% på plats");
 
-  if (!isExplicitNoRemote && (textLower.includes("remote") || textLower.includes("distans") || textLower.includes("work from home"))) {
+  if (
+    !isExplicitNoRemote &&
+    (textLower.includes("remote") ||
+      textLower.includes("distans") ||
+      textLower.includes("work from home"))
+  ) {
     workingModel = textLower.includes("hybrid") ? "HYBRID" : "REMOTE";
   } else if (textLower.includes("hybrid") || textLower.includes("flexibel arbetsplats")) {
     workingModel = "HYBRID";
@@ -321,8 +394,12 @@ export function extractJobRequirements(
   }
 
   const eduPriority: RequirementPriority =
-    textLower.includes("examen") || textLower.includes("degree") || textLower.includes("högskoleutbildning")
-      ? textLower.includes("krav på examen") ? "REQUIRED" : "DESIRED"
+    textLower.includes("examen") ||
+    textLower.includes("degree") ||
+    textLower.includes("högskoleutbildning")
+      ? textLower.includes("krav på examen")
+        ? "REQUIRED"
+        : "DESIRED"
       : "ACCEPTED";
 
   return {
@@ -344,11 +421,18 @@ export function extractJobRequirements(
     },
     experience: {
       minYears,
-      level: seniority === "Senior" || seniority === "Lead" ? "Senior" : seniority === "Junior" ? "Junior" : "Mid",
+      level:
+        seniority === "Senior" || seniority === "Lead"
+          ? "Senior"
+          : seniority === "Junior"
+            ? "Junior"
+            : "Mid",
     },
     education: {
       priority: eduPriority,
-      field: textLower.includes("datateknik") ? "Computer Science / Engineering" : "Engineering / IT",
+      field: textLower.includes("datateknik")
+        ? "Computer Science / Engineering"
+        : "Engineering / IT",
     },
     securityClearanceRequired,
     workingModel,

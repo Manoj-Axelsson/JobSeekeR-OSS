@@ -17,35 +17,49 @@ describe("Behavioral Test Suite 2: Evidence Provenance & Structural Anchoring", 
       mandatoryGates: { overallStatus: "ELIGIBLE", evaluations: [], blockers: [] },
       competencyFit: {
         essentialCompetencies: [
-          { competency: "Go", status: "UNKNOWN_INSUFFICIENT_EVIDENCE", depthRating: "BARE_KEYWORD_ASSERTION" },
-          { competency: "PostgreSQL", status: "DEMONSTRATED_PRESENCE", depthRating: "ANCHORED_EVIDENCE" }
+          {
+            competency: "Go",
+            status: "UNKNOWN_INSUFFICIENT_EVIDENCE",
+            depthRating: "BARE_KEYWORD_ASSERTION",
+          },
+          {
+            competency: "PostgreSQL",
+            status: "DEMONSTRATED_PRESENCE",
+            depthRating: "ANCHORED_EVIDENCE",
+          },
         ],
         optionalCompetencies: [],
-        transferableCapabilities: []
+        transferableCapabilities: [],
       },
       unverifiedNotices: [
         {
           requirementName: "Go",
           category: "TECHNICAL_SPECIALTY",
-          userActionPrompt: "Verify your production Go backend experience before applying. Go is listed in your profile as an unanchored keyword assertion without deliverable project context."
-        }
+          userActionPrompt:
+            "Verify your production Go backend experience before applying. Go is listed in your profile as an unanchored keyword assertion without deliverable project context.",
+        },
       ],
       decisionSupport: {
         recommendation: {
           verdict: "OPPORTUNITY_VERIFY_BEFORE_APPLYING",
-          headline: "OPPORTUNITY — VERIFY BEFORE APPLYING: One or more relevant requirements cannot currently be verified from your profile. Check these items before deciding whether to apply.",
+          headline:
+            "OPPORTUNITY — VERIFY BEFORE APPLYING: One or more relevant requirements cannot currently be verified from your profile. Check these items before deciding whether to apply.",
           candidateActionContext: "VERIFY_REQUIREMENTS_BEFORE_DECIDING",
           summaryRationale: [
             "Go is listed as a bare keyword assertion without project context.",
-            "PostgreSQL is verified in profile work history."
-          ]
-        }
-      }
+            "PostgreSQL is verified in profile work history.",
+          ],
+        },
+      },
     };
 
     // Invariant I4: Bare keyword assertion MUST route to OPPORTUNITY_VERIFY_BEFORE_APPLYING
-    expect(mockAssessmentPayload.decisionSupport.recommendation.verdict).toBe("OPPORTUNITY_VERIFY_BEFORE_APPLYING");
-    expect(mockAssessmentPayload.decisionSupport.recommendation.candidateActionContext).toBe("VERIFY_REQUIREMENTS_BEFORE_DECIDING");
+    expect(mockAssessmentPayload.decisionSupport.recommendation.verdict).toBe(
+      "OPPORTUNITY_VERIFY_BEFORE_APPLYING"
+    );
+    expect(mockAssessmentPayload.decisionSupport.recommendation.candidateActionContext).toBe(
+      "VERIFY_REQUIREMENTS_BEFORE_DECIDING"
+    );
     expect(mockAssessmentPayload.unverifiedNotices).toContainEqual(
       expect.objectContaining({ requirementName: "Go", category: "TECHNICAL_SPECIALTY" })
     );

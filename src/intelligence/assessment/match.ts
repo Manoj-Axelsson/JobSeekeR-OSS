@@ -31,11 +31,15 @@ export function evaluateMatch(
 
   // Core title/function match
   const titleMatch = candidate.targetRoles.some(
-    r => jobReqs.title.toLowerCase().includes(r.toLowerCase()) || r.toLowerCase().includes(jobReqs.title.toLowerCase())
+    (r) =>
+      jobReqs.title.toLowerCase().includes(r.toLowerCase()) ||
+      r.toLowerCase().includes(jobReqs.title.toLowerCase())
   );
   if (titleMatch) {
     coreHits++;
-    evidenceRationale.push(`Direct alignment between candidate target role and position title (${jobReqs.title}).`);
+    evidenceRationale.push(
+      `Direct alignment between candidate target role and position title (${jobReqs.title}).`
+    );
   }
 
   for (const tech of jobReqs.technologies.required) {
@@ -43,9 +47,13 @@ export function evaluateMatch(
     if (ev && !ev.isTransferable) {
       coreHits++;
       matchedRequirements.push(tech);
-      evidenceRationale.push(`Verified direct capability evidence for required core technology ${tech} (${ev.source}).`);
+      evidenceRationale.push(
+        `Verified direct capability evidence for required core technology ${tech} (${ev.source}).`
+      );
     } else if (ev && ev.isTransferable) {
-      evidenceRationale.push(`Transferable capability identified for ${tech} via ${ev.capability}.`);
+      evidenceRationale.push(
+        `Transferable capability identified for ${tech} via ${ev.capability}.`
+      );
     } else {
       missingRequirements.push(tech);
     }
@@ -70,9 +78,10 @@ export function evaluateMatch(
     }
   }
 
-  const requirementCoverage = secondaryReqs.length === 0
-    ? 85
-    : Math.min(100, Math.round((coverageHits / coverageTotal) * 100));
+  const requirementCoverage =
+    secondaryReqs.length === 0
+      ? 85
+      : Math.min(100, Math.round((coverageHits / coverageTotal) * 100));
 
   // 3. Transferability Score (20%)
   // Evaluates how well adjacent experience fills any missing gaps
@@ -84,9 +93,8 @@ export function evaluateMatch(
     }
   }
 
-  const transferabilityRatio = missingRequirements.length > 0
-    ? transferableCount / missingRequirements.length
-    : 0.8;
+  const transferabilityRatio =
+    missingRequirements.length > 0 ? transferableCount / missingRequirements.length : 0.8;
   const transferability = Math.min(100, Math.round((0.5 + transferabilityRatio * 0.5) * 100));
 
   // 4. Seniority Alignment Score (15%)
@@ -106,13 +114,26 @@ export function evaluateMatch(
   // Software, Systems, Quality, Industrial domain fit
   let domainAlignment = 70;
   const textLower = `${jobReqs.title} ${jobReqs.coreWorkDescription}`.toLowerCase();
-  const softwareFit = textLower.includes("software") || textLower.includes("fullstack") || textLower.includes("web") || textLower.includes("developer");
-  const systemsFit = textLower.includes("system") || textLower.includes("requirement") || textLower.includes("architecture");
-  const industrialFit = textLower.includes("manufacturing") || textLower.includes("production") || textLower.includes("quality") || textLower.includes("automation");
+  const softwareFit =
+    textLower.includes("software") ||
+    textLower.includes("fullstack") ||
+    textLower.includes("web") ||
+    textLower.includes("developer");
+  const systemsFit =
+    textLower.includes("system") ||
+    textLower.includes("requirement") ||
+    textLower.includes("architecture");
+  const industrialFit =
+    textLower.includes("manufacturing") ||
+    textLower.includes("production") ||
+    textLower.includes("quality") ||
+    textLower.includes("automation");
 
   if (softwareFit && systemsFit) {
     domainAlignment = 95;
-    evidenceRationale.push("Dual Software + Systems domain alignment matches candidate background.");
+    evidenceRationale.push(
+      "Dual Software + Systems domain alignment matches candidate background."
+    );
   } else if (softwareFit || systemsFit || industrialFit) {
     domainAlignment = 85;
   }
@@ -120,11 +141,11 @@ export function evaluateMatch(
   // 6. Compute Weighted Overall Match Score
   // Weights: Core Capability (30%) + Coverage (25%) + Transferability (20%) + Seniority (15%) + Domain (10%)
   const rawScore =
-    coreCapability * 0.30 +
+    coreCapability * 0.3 +
     requirementCoverage * 0.25 +
-    transferability * 0.20 +
+    transferability * 0.2 +
     seniorityAlignment * 0.15 +
-    domainAlignment * 0.10;
+    domainAlignment * 0.1;
 
   const score = Math.min(100, Math.max(10, Math.round(rawScore)));
 

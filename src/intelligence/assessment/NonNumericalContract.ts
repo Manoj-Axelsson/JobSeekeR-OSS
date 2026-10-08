@@ -7,33 +7,20 @@
 
 /** Tri-state requirement status semantics */
 export type RequirementState =
-  | "DEMONSTRATED_PRESENCE"
-  | "DEMONSTRATED_ABSENCE"
-  | "UNKNOWN_INSUFFICIENT_EVIDENCE";
+  "DEMONSTRATED_PRESENCE" | "DEMONSTRATED_ABSENCE" | "UNKNOWN_INSUFFICIENT_EVIDENCE";
 
 /** Structural verifiability / provenance classification for candidate evidence */
-export type VerifiabilityClass =
-  | "ANCHORED_EVIDENCE"
-  | "BARE_KEYWORD_ASSERTION"
-  | "NO_MATCH";
+export type VerifiabilityClass = "ANCHORED_EVIDENCE" | "BARE_KEYWORD_ASSERTION" | "NO_MATCH";
 
 /** Aggregate structural evidence condition for essential competencies */
 export type StructuralEvidenceCondition =
-  | "ALL_ESSENTIAL_ANCHORED"
-  | "UNVERIFIED_ESSENTIALS_PRESENT"
-  | "EVIDENCE_PROVENANCE_INSUFFICIENT";
+  "ALL_ESSENTIAL_ANCHORED" | "UNVERIFIED_ESSENTIALS_PRESENT" | "EVIDENCE_PROVENANCE_INSUFFICIENT";
 
 /** Individual mandatory statutory gate evaluation status */
-export type GateStatus =
-  | "SATISFIED"
-  | "UNSATISFIED"
-  | "VERIFICATION_REQUIRED";
+export type GateStatus = "SATISFIED" | "UNSATISFIED" | "VERIFICATION_REQUIRED";
 
 /** Aggregate status across all mandatory statutory gates */
-export type AggregateGateStatus =
-  | "ELIGIBLE"
-  | "INELIGIBLE"
-  | "VERIFICATION_REQUIRED";
+export type AggregateGateStatus = "ELIGIBLE" | "INELIGIBLE" | "VERIFICATION_REQUIRED";
 
 /** Qualitative opportunity assessment verdicts */
 export type OpportunityVerdict =
@@ -93,7 +80,12 @@ export interface EQFAutonomyAlignment {
 /** Explicit candidate action notice for unverified or unanchored requirements */
 export interface UnverifiedRequirementNotice {
   requirementName: string;
-  category: "TECHNICAL_SPECIALTY" | "LANGUAGE" | "CERTIFICATION" | "LEGAL_AUTHORIZATION" | "EXPERIENCE_SCOPE";
+  category:
+    | "TECHNICAL_SPECIALTY"
+    | "LANGUAGE"
+    | "CERTIFICATION"
+    | "LEGAL_AUTHORIZATION"
+    | "EXPERIENCE_SCOPE";
   userActionPrompt: string;
 }
 

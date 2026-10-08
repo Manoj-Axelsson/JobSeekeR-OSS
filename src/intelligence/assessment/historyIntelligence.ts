@@ -32,7 +32,7 @@ export function computeJobWords(title: string, description: string): Set<string>
   const words = text
     .replace(/[^a-zäöå0-9\s]/g, "")
     .split(/\s+/)
-    .filter(w => w.length > 3);
+    .filter((w) => w.length > 3);
   return new Set(words);
 }
 
@@ -70,7 +70,11 @@ export function evaluateHistoryIntelligence(
       };
     }
 
-    if (app.status === "APPLIED" && isSameCompany && app.title.toLowerCase() === job.title.toLowerCase()) {
+    if (
+      app.status === "APPLIED" &&
+      isSameCompany &&
+      app.title.toLowerCase() === job.title.toLowerCase()
+    ) {
       return {
         hasHistoryConflict: true,
         conflictType: "ALREADY_APPLIED",
@@ -86,7 +90,7 @@ export function evaluateHistoryIntelligence(
       const descSimilarity = computeJaccardSimilarity(descTarget, descApp);
       const overallSimilarity = computeJaccardSimilarity(targetWords, appWords);
 
-      if ((descSimilarity >= 0.70 || overallSimilarity >= 0.55) && app.status === "APPLIED") {
+      if ((descSimilarity >= 0.7 || overallSimilarity >= 0.55) && app.status === "APPLIED") {
         return {
           hasHistoryConflict: true,
           conflictType: "REISSUED_AD",
@@ -108,7 +112,7 @@ export function evaluateHistoryIntelligence(
         const descSimilarity = computeJaccardSimilarity(descTarget, descApp);
         const overallSimilarity = computeJaccardSimilarity(targetWords, appWords);
 
-        if (descSimilarity >= 0.65 || overallSimilarity >= 0.50) {
+        if (descSimilarity >= 0.65 || overallSimilarity >= 0.5) {
           return {
             hasHistoryConflict: true,
             conflictType: "RECENT_REJECTION",

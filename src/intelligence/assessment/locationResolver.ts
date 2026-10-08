@@ -138,7 +138,11 @@ export function resolveCanonicalLocation(
   let confidence: "HIGH" | "MEDIUM" | "LOW" = "HIGH";
   let resolutionSource: CanonicalLocationResolution["resolutionSource"] = "METADATA";
 
-  if (primaryTitleCity && primaryMetadataCity && primaryTitleCity.toLowerCase() !== primaryMetadataCity.toLowerCase()) {
+  if (
+    primaryTitleCity &&
+    primaryMetadataCity &&
+    primaryTitleCity.toLowerCase() !== primaryMetadataCity.toLowerCase()
+  ) {
     hasConflict = true;
     conflictDetails = `Location conflict detected: Job title explicitly specifies '${primaryTitleCity}' while source metadata specifies '${primaryMetadataCity}'. Title given priority for canonical resolution.`;
     canonicalLocation = primaryTitleCity;

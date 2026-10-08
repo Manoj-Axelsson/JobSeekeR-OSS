@@ -23,7 +23,9 @@ describe("NonNumericalMatchEngine (v3.1.1 Unit Tests)", () => {
 
     const result = computeMatchDiagnostics(job, profile);
     expect(result.aggregateEvidenceCondition).toBe("ALL_ESSENTIAL_ANCHORED");
-    expect(result.essentialCompetencies.every((c) => c.status === "DEMONSTRATED_PRESENCE")).toBe(true);
+    expect(result.essentialCompetencies.every((c) => c.status === "DEMONSTRATED_PRESENCE")).toBe(
+      true
+    );
     expect(result.unverifiedNotices).toHaveLength(0);
   });
 

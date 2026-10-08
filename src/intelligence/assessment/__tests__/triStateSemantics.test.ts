@@ -18,32 +18,45 @@ describe("Behavioral Test Suite 3: Tri-State Semantics & Incomplete Profiles", (
       mandatoryGates: {
         overallStatus: "VERIFICATION_REQUIRED",
         evaluations: [
-          { name: "Swedish Language", gateStatus: "VERIFICATION_REQUIRED", explanation: "Requirement unmentioned in candidate profile" }
+          {
+            name: "Swedish Language",
+            gateStatus: "VERIFICATION_REQUIRED",
+            explanation: "Requirement unmentioned in candidate profile",
+          },
         ],
-        blockers: []
+        blockers: [],
       },
       competencyFit: {
         essentialCompetencies: [
-          { competency: "React", status: "DEMONSTRATED_PRESENCE", depthRating: "ANCHORED_EVIDENCE" },
-          { competency: "TypeScript", status: "UNKNOWN_INSUFFICIENT_EVIDENCE", depthRating: "UNVERIFIED" }
+          {
+            competency: "React",
+            status: "DEMONSTRATED_PRESENCE",
+            depthRating: "ANCHORED_EVIDENCE",
+          },
+          {
+            competency: "TypeScript",
+            status: "UNKNOWN_INSUFFICIENT_EVIDENCE",
+            depthRating: "UNVERIFIED",
+          },
         ],
         optionalCompetencies: [],
-        transferableCapabilities: []
+        transferableCapabilities: [],
       },
       unverifiedNotices: [
         {
           requirementName: "Swedish Language",
           category: "LANGUAGE",
-          userActionPrompt: "Verify Swedish language fluency before applying."
-        }
+          userActionPrompt: "Verify Swedish language fluency before applying.",
+        },
       ],
       decisionSupport: {
         recommendation: {
           verdict: "OPPORTUNITY_VERIFY_BEFORE_APPLYING",
-          headline: "OPPORTUNITY — VERIFY BEFORE APPLYING: One or more relevant requirements cannot currently be verified from your profile.",
-          candidateActionContext: "VERIFY_REQUIREMENTS_BEFORE_DECIDING"
-        }
-      }
+          headline:
+            "OPPORTUNITY — VERIFY BEFORE APPLYING: One or more relevant requirements cannot currently be verified from your profile.",
+          candidateActionContext: "VERIFY_REQUIREMENTS_BEFORE_DECIDING",
+        },
+      },
     };
 
     // Invariant I3: Aggregate gate status MUST be VERIFICATION_REQUIRED, never ELIGIBLE or INELIGIBLE
@@ -52,8 +65,12 @@ describe("Behavioral Test Suite 3: Tri-State Semantics & Incomplete Profiles", (
     expect(mockAssessmentPayload.mandatoryGates.overallStatus).not.toBe("INELIGIBLE");
 
     // Decision Support routes to VERIFY BEFORE APPLYING
-    expect(mockAssessmentPayload.decisionSupport.recommendation.verdict).toBe("OPPORTUNITY_VERIFY_BEFORE_APPLYING");
-    expect(mockAssessmentPayload.decisionSupport.recommendation.candidateActionContext).toBe("VERIFY_REQUIREMENTS_BEFORE_DECIDING");
+    expect(mockAssessmentPayload.decisionSupport.recommendation.verdict).toBe(
+      "OPPORTUNITY_VERIFY_BEFORE_APPLYING"
+    );
+    expect(mockAssessmentPayload.decisionSupport.recommendation.candidateActionContext).toBe(
+      "VERIFY_REQUIREMENTS_BEFORE_DECIDING"
+    );
   });
 
   it("should enforce evaluation precedence (Invariant I6): unresolved statutory eligibility (VERIFICATION_REQUIRED) strictly overrides 100% anchored technical skills", () => {
@@ -66,40 +83,63 @@ describe("Behavioral Test Suite 3: Tri-State Semantics & Incomplete Profiles", (
       mandatoryGates: {
         overallStatus: "VERIFICATION_REQUIRED",
         evaluations: [
-          { name: "Work Authorization", gateStatus: "VERIFICATION_REQUIRED", explanation: "Work permit status unmentioned in candidate profile" }
+          {
+            name: "Work Authorization",
+            gateStatus: "VERIFICATION_REQUIRED",
+            explanation: "Work permit status unmentioned in candidate profile",
+          },
         ],
-        blockers: []
+        blockers: [],
       },
       competencyFit: {
         essentialCompetencies: [
-          { competency: "React", status: "DEMONSTRATED_PRESENCE", depthRating: "ANCHORED_EVIDENCE" },
-          { competency: "TypeScript", status: "DEMONSTRATED_PRESENCE", depthRating: "ANCHORED_EVIDENCE" },
-          { competency: "Node.js", status: "DEMONSTRATED_PRESENCE", depthRating: "ANCHORED_EVIDENCE" }
+          {
+            competency: "React",
+            status: "DEMONSTRATED_PRESENCE",
+            depthRating: "ANCHORED_EVIDENCE",
+          },
+          {
+            competency: "TypeScript",
+            status: "DEMONSTRATED_PRESENCE",
+            depthRating: "ANCHORED_EVIDENCE",
+          },
+          {
+            competency: "Node.js",
+            status: "DEMONSTRATED_PRESENCE",
+            depthRating: "ANCHORED_EVIDENCE",
+          },
         ],
         optionalCompetencies: [],
-        transferableCapabilities: []
+        transferableCapabilities: [],
       },
       unverifiedNotices: [
         {
           requirementName: "Work Authorization",
           category: "LEGAL_AUTHORIZATION",
-          userActionPrompt: "Verify work authorization status before applying."
-        }
+          userActionPrompt: "Verify work authorization status before applying.",
+        },
       ],
       decisionSupport: {
         recommendation: {
           verdict: "OPPORTUNITY_VERIFY_BEFORE_APPLYING",
-          headline: "OPPORTUNITY — VERIFY BEFORE APPLYING: Work authorization cannot currently be verified from your profile.",
-          candidateActionContext: "VERIFY_REQUIREMENTS_BEFORE_DECIDING"
-        }
-      }
+          headline:
+            "OPPORTUNITY — VERIFY BEFORE APPLYING: Work authorization cannot currently be verified from your profile.",
+          candidateActionContext: "VERIFY_REQUIREMENTS_BEFORE_DECIDING",
+        },
+      },
     };
 
     // Precedence Invariant I6 Audit: Gate VERIFICATION_REQUIRED forces verdict to OPPORTUNITY_VERIFY_BEFORE_APPLYING
     // even though 100% of essential competencies are DEMONSTRATED_PRESENCE with ANCHORED_EVIDENCE.
     expect(mockAssessmentPayload.mandatoryGates.overallStatus).toBe("VERIFICATION_REQUIRED");
-    expect(mockAssessmentPayload.decisionSupport.recommendation.verdict).toBe("OPPORTUNITY_VERIFY_BEFORE_APPLYING");
-    expect(mockAssessmentPayload.decisionSupport.recommendation.verdict).not.toBe("STRONG_OPPORTUNITY_VERIFIED");
-    expect(mockAssessmentPayload.decisionSupport.recommendation.candidateActionContext).toBe("VERIFY_REQUIREMENTS_BEFORE_DECIDING");
+    expect(mockAssessmentPayload.decisionSupport.recommendation.verdict).toBe(
+      "OPPORTUNITY_VERIFY_BEFORE_APPLYING"
+    );
+    expect(mockAssessmentPayload.decisionSupport.recommendation.verdict).not.toBe(
+      "STRONG_OPPORTUNITY_VERIFIED"
+    );
+    expect(mockAssessmentPayload.decisionSupport.recommendation.candidateActionContext).toBe(
+      "VERIFY_REQUIREMENTS_BEFORE_DECIDING"
+    );
   });
 });

@@ -7,7 +7,10 @@
  * to allow A/B performance auditing, precision/recall measurement, and comparison.
  */
 
-import { evaluateJobMatch as evaluateLegacyMatch, MatchResult as LegacyMatchResult } from "../../../lib/services/matcher";
+import {
+  evaluateJobMatch as evaluateLegacyMatch,
+  MatchResult as LegacyMatchResult,
+} from "../../../lib/services/matcher";
 import { assessOpportunity } from "../evaluator";
 import { enrichOpportunity, JobEnrichment } from "../enrichmentEngine";
 import { generateCandidatePositioning, CandidatePositioning } from "../candidatePositioning";
@@ -100,19 +103,21 @@ export function evaluateOpportunitySideBySide(
 
   // Run Post-Qualification Enrichment & Positioning (Only if not suppressed)
   const reqs = extractJobRequirements(jobAd.title, jobAd.description, jobAd.location);
-  const enrichment = enrichOpportunity(
-    jobAd,
-    reqs,
-    { ...newAssessment, recommendation: { ...newAssessment.recommendation, type: effectiveRecommendation } }
-  );
+  const enrichment = enrichOpportunity(jobAd, reqs, {
+    ...newAssessment,
+    recommendation: { ...newAssessment.recommendation, type: effectiveRecommendation },
+  });
 
-  const positioning = effectiveRecommendation === "PRIMARY"
-    ? generateCandidatePositioning(jobAd, candidateModel, newAssessment, enrichment)
-    : null;
+  const positioning =
+    effectiveRecommendation === "PRIMARY"
+      ? generateCandidatePositioning(jobAd, candidateModel, newAssessment, enrichment)
+      : null;
 
   // 3. Compare Legacy vs New Outcomes
-  const legacyWouldPutInPrimary = legacy.feedType === "PRIMARY" && legacy.eligibilityStatus === "ELIGIBLE";
-  const newWouldPutInPrimary = effectiveRecommendation === "PRIMARY" && newAssessment.eligibility.status === "ELIGIBLE";
+  const legacyWouldPutInPrimary =
+    legacy.feedType === "PRIMARY" && legacy.eligibilityStatus === "ELIGIBLE";
+  const newWouldPutInPrimary =
+    effectiveRecommendation === "PRIMARY" && newAssessment.eligibility.status === "ELIGIBLE";
   const isMaterialDifference = legacyWouldPutInPrimary !== newWouldPutInPrimary;
 
   let materialDifferenceReason: string | undefined = undefined;

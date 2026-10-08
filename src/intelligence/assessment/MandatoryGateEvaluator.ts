@@ -8,11 +8,7 @@
  * the gate evaluates to VERIFICATION_REQUIRED and overallStatus evaluates to VERIFICATION_REQUIRED (never ELIGIBLE or INELIGIBLE).
  */
 
-import {
-  GateStatus,
-  AggregateGateStatus,
-  MandatoryGateEvaluation,
-} from "./NonNumericalContract";
+import { GateStatus, AggregateGateStatus, MandatoryGateEvaluation } from "./NonNumericalContract";
 
 export interface CandidateGateInput {
   location?: string;
@@ -53,7 +49,8 @@ export function evaluateMandatoryGates(
 
   // 1. Location & Working Model Gate
   if (job.location || job.workingModel) {
-    const candidateLocs = candidate.preferredLocations || (candidate.location ? [candidate.location] : []);
+    const candidateLocs =
+      candidate.preferredLocations || (candidate.location ? [candidate.location] : []);
     if (candidateLocs.length === 0 && !candidate.workingModelPreference) {
       evaluations.push({
         name: "Location & Working Model",
@@ -63,7 +60,10 @@ export function evaluateMandatoryGates(
     } else {
       const targetLoc = (job.location || "").toLowerCase();
       const locMatched = candidateLocs.some(
-        (loc) => loc.toLowerCase().includes("remote") || targetLoc.includes(loc.toLowerCase()) || loc.toLowerCase().includes("sweden")
+        (loc) =>
+          loc.toLowerCase().includes("remote") ||
+          targetLoc.includes(loc.toLowerCase()) ||
+          loc.toLowerCase().includes("sweden")
       );
 
       if (locMatched) {
@@ -122,18 +122,24 @@ export function evaluateMandatoryGates(
 
   // 3. Work Authorization & Citizenship Gate
   if (job.requiresCitizenship || job.targetCitizenship) {
-    if (candidate.hasWorkAuthorization === undefined && !candidate.citizenship && (!candidate.citizenships || candidate.citizenships.length === 0)) {
+    if (
+      candidate.hasWorkAuthorization === undefined &&
+      !candidate.citizenship &&
+      (!candidate.citizenships || candidate.citizenships.length === 0)
+    ) {
       evaluations.push({
         name: "Work Authorization",
         gateStatus: "VERIFICATION_REQUIRED",
         explanation: "Work authorization and citizenship details are unmentioned in profile.",
       });
     } else {
-      const userCitizenships = candidate.citizenships || (candidate.citizenship ? [candidate.citizenship] : []);
+      const userCitizenships =
+        candidate.citizenships || (candidate.citizenship ? [candidate.citizenship] : []);
       const targetCit = (job.targetCitizenship || "SE").toLowerCase();
 
       const hasDirectCitizenship = userCitizenships.some(
-        (c) => c.toLowerCase() === targetCit || c.toLowerCase() === "swedish" || c.toLowerCase() === "se"
+        (c) =>
+          c.toLowerCase() === targetCit || c.toLowerCase() === "swedish" || c.toLowerCase() === "se"
       );
 
       if (hasDirectCitizenship || candidate.hasWorkAuthorization) {

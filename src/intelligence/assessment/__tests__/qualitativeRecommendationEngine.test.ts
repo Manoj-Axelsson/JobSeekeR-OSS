@@ -8,14 +8,28 @@ describe("QualitativeRecommendationEngine (v3.1.1 Unit Tests)", () => {
       company: "Tech Corp",
       mandatoryGates: {
         overallStatus: "INELIGIBLE",
-        evaluations: [{ name: "Security Clearance", gateStatus: "UNSATISFIED", explanation: "Lacks clearance" }],
+        evaluations: [
+          { name: "Security Clearance", gateStatus: "UNSATISFIED", explanation: "Lacks clearance" },
+        ],
         blockers: ["Security Clearance UNSATISFIED"],
       },
       matchDiagnostics: {
-        essentialCompetencies: [{ competency: "C++", status: "DEMONSTRATED_PRESENCE", depthRating: "ANCHORED_EVIDENCE", provenance: "ANCHORED_EVIDENCE" }],
+        essentialCompetencies: [
+          {
+            competency: "C++",
+            status: "DEMONSTRATED_PRESENCE",
+            depthRating: "ANCHORED_EVIDENCE",
+            provenance: "ANCHORED_EVIDENCE",
+          },
+        ],
         optionalCompetencies: [],
         transferableCapabilities: [],
-        autonomyAlignment: { requiredLevel: "EQF_LEVEL_7", candidateLevel: "EQF_LEVEL_7", alignmentStatus: "MATCHED", autonomyDescriptor: "" },
+        autonomyAlignment: {
+          requiredLevel: "EQF_LEVEL_7",
+          candidateLevel: "EQF_LEVEL_7",
+          alignmentStatus: "MATCHED",
+          autonomyDescriptor: "",
+        },
         unverifiedNotices: [],
         aggregateEvidenceCondition: "ALL_ESSENTIAL_ANCHORED",
       },
@@ -31,14 +45,32 @@ describe("QualitativeRecommendationEngine (v3.1.1 Unit Tests)", () => {
       company: "Nordic AB",
       mandatoryGates: {
         overallStatus: "VERIFICATION_REQUIRED",
-        evaluations: [{ name: "Work Authorization", gateStatus: "VERIFICATION_REQUIRED", explanation: "Unmentioned" }],
+        evaluations: [
+          {
+            name: "Work Authorization",
+            gateStatus: "VERIFICATION_REQUIRED",
+            explanation: "Unmentioned",
+          },
+        ],
         blockers: [],
       },
       matchDiagnostics: {
-        essentialCompetencies: [{ competency: "React", status: "DEMONSTRATED_PRESENCE", depthRating: "ANCHORED_EVIDENCE", provenance: "ANCHORED_EVIDENCE" }],
+        essentialCompetencies: [
+          {
+            competency: "React",
+            status: "DEMONSTRATED_PRESENCE",
+            depthRating: "ANCHORED_EVIDENCE",
+            provenance: "ANCHORED_EVIDENCE",
+          },
+        ],
         optionalCompetencies: [],
         transferableCapabilities: [],
-        autonomyAlignment: { requiredLevel: "EQF_LEVEL_7", candidateLevel: "EQF_LEVEL_7", alignmentStatus: "MATCHED", autonomyDescriptor: "" },
+        autonomyAlignment: {
+          requiredLevel: "EQF_LEVEL_7",
+          candidateLevel: "EQF_LEVEL_7",
+          alignmentStatus: "MATCHED",
+          autonomyDescriptor: "",
+        },
         unverifiedNotices: [],
         aggregateEvidenceCondition: "ALL_ESSENTIAL_ANCHORED",
       },
@@ -54,10 +86,22 @@ describe("QualitativeRecommendationEngine (v3.1.1 Unit Tests)", () => {
       company: "Enterprise Corp",
       mandatoryGates: { overallStatus: "ELIGIBLE", evaluations: [], blockers: [] },
       matchDiagnostics: {
-        essentialCompetencies: [{ competency: "Software Architecture", status: "DEMONSTRATED_PRESENCE", depthRating: "ANCHORED_EVIDENCE", provenance: "ANCHORED_EVIDENCE" }],
+        essentialCompetencies: [
+          {
+            competency: "Software Architecture",
+            status: "DEMONSTRATED_PRESENCE",
+            depthRating: "ANCHORED_EVIDENCE",
+            provenance: "ANCHORED_EVIDENCE",
+          },
+        ],
         optionalCompetencies: [],
         transferableCapabilities: [],
-        autonomyAlignment: { requiredLevel: "EQF_LEVEL_8", candidateLevel: "EQF_LEVEL_7", alignmentStatus: "AUTONOMY_STEP_UP", autonomyDescriptor: "Step up to EQF Level 8" },
+        autonomyAlignment: {
+          requiredLevel: "EQF_LEVEL_8",
+          candidateLevel: "EQF_LEVEL_7",
+          alignmentStatus: "AUTONOMY_STEP_UP",
+          autonomyDescriptor: "Step up to EQF Level 8",
+        },
         unverifiedNotices: [],
         aggregateEvidenceCondition: "ALL_ESSENTIAL_ANCHORED",
       },
@@ -73,10 +117,22 @@ describe("QualitativeRecommendationEngine (v3.1.1 Unit Tests)", () => {
       company: "Nordic Tech",
       mandatoryGates: { overallStatus: "ELIGIBLE", evaluations: [], blockers: [] },
       matchDiagnostics: {
-        essentialCompetencies: [{ competency: "React", status: "DEMONSTRATED_PRESENCE", depthRating: "ANCHORED_EVIDENCE", provenance: "ANCHORED_EVIDENCE" }],
+        essentialCompetencies: [
+          {
+            competency: "React",
+            status: "DEMONSTRATED_PRESENCE",
+            depthRating: "ANCHORED_EVIDENCE",
+            provenance: "ANCHORED_EVIDENCE",
+          },
+        ],
         optionalCompetencies: [],
         transferableCapabilities: [],
-        autonomyAlignment: { requiredLevel: "EQF_LEVEL_7", candidateLevel: "EQF_LEVEL_7", alignmentStatus: "MATCHED", autonomyDescriptor: "" },
+        autonomyAlignment: {
+          requiredLevel: "EQF_LEVEL_7",
+          candidateLevel: "EQF_LEVEL_7",
+          alignmentStatus: "MATCHED",
+          autonomyDescriptor: "",
+        },
         unverifiedNotices: [],
         aggregateEvidenceCondition: "ALL_ESSENTIAL_ANCHORED",
       },

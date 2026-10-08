@@ -37,7 +37,9 @@ export function routeQualitativeRecommendation(
 
   // 1. Priority 1 (Ineligibility & Direct Statutory / Core Conflict)
   const isGateIneligible = mandatoryGates.overallStatus === "INELIGIBLE";
-  const hasDemonstratedAbsence = essentialCompetencies.some((c) => c.status === "DEMONSTRATED_ABSENCE");
+  const hasDemonstratedAbsence = essentialCompetencies.some(
+    (c) => c.status === "DEMONSTRATED_ABSENCE"
+  );
 
   if (isGateIneligible || hasDemonstratedAbsence) {
     const rationale: string[] = [];
@@ -46,14 +48,18 @@ export function routeQualitativeRecommendation(
     }
     const absentSkills = essentialCompetencies.filter((c) => c.status === "DEMONSTRATED_ABSENCE");
     for (const absent of absentSkills) {
-      rationale.push(`Mandatory core requirement "${absent.competency}" is unsatisfied (DEMONSTRATED_ABSENCE).`);
+      rationale.push(
+        `Mandatory core requirement "${absent.competency}" is unsatisfied (DEMONSTRATED_ABSENCE).`
+      );
     }
 
     return {
       verdict: "INELIGIBLE_REQUIREMENT_UNSATISFIED",
-      headline: "INELIGIBLE — REQUIREMENT UNSATISFIED: A mandatory statutory requirement or essential core capability is unsatisfied.",
+      headline:
+        "INELIGIBLE — REQUIREMENT UNSATISFIED: A mandatory statutory requirement or essential core capability is unsatisfied.",
       candidateActionContext: "NO_ACTION_INELIGIBLE",
-      summaryRationale: rationale.length > 0 ? rationale : ["Statutory gate or core requirement unsatisfied."],
+      summaryRationale:
+        rationale.length > 0 ? rationale : ["Statutory gate or core requirement unsatisfied."],
     };
   }
 
@@ -68,14 +74,22 @@ export function routeQualitativeRecommendation(
 
   if (isGateVerificationRequired || hasUnverifiedEssentials || isEvidenceConditionUnverified) {
     const rationale: string[] = [];
-    const verifiedSkills = essentialCompetencies.filter((c) => c.status === "DEMONSTRATED_PRESENCE");
-    const unverifiedSkills = essentialCompetencies.filter((c) => c.status === "UNKNOWN_INSUFFICIENT_EVIDENCE");
+    const verifiedSkills = essentialCompetencies.filter(
+      (c) => c.status === "DEMONSTRATED_PRESENCE"
+    );
+    const unverifiedSkills = essentialCompetencies.filter(
+      (c) => c.status === "UNKNOWN_INSUFFICIENT_EVIDENCE"
+    );
 
     if (verifiedSkills.length > 0) {
-      rationale.push(`${verifiedSkills.map((c) => c.competency).join(", ")} demonstrated in profile experience.`);
+      rationale.push(
+        `${verifiedSkills.map((c) => c.competency).join(", ")} demonstrated in profile experience.`
+      );
     }
     if (unverifiedSkills.length > 0) {
-      rationale.push(`${unverifiedSkills.map((c) => c.competency).join(", ")} requirement unrecorded in profile (UNKNOWN_INSUFFICIENT_EVIDENCE).`);
+      rationale.push(
+        `${unverifiedSkills.map((c) => c.competency).join(", ")} requirement unrecorded in profile (UNKNOWN_INSUFFICIENT_EVIDENCE).`
+      );
     }
     if (isGateVerificationRequired) {
       rationale.push("One or more statutory eligibility gates require candidate verification.");
@@ -83,9 +97,13 @@ export function routeQualitativeRecommendation(
 
     return {
       verdict: "OPPORTUNITY_VERIFY_BEFORE_APPLYING",
-      headline: "OPPORTUNITY — VERIFY BEFORE APPLYING: One or more relevant requirements cannot currently be verified from your profile. Check these items before deciding whether to apply.",
+      headline:
+        "OPPORTUNITY — VERIFY BEFORE APPLYING: One or more relevant requirements cannot currently be verified from your profile. Check these items before deciding whether to apply.",
       candidateActionContext: "VERIFY_REQUIREMENTS_BEFORE_DECIDING",
-      summaryRationale: rationale.length > 0 ? rationale : ["One or more requirements require candidate verification."],
+      summaryRationale:
+        rationale.length > 0
+          ? rationale
+          : ["One or more requirements require candidate verification."],
     };
   }
 
@@ -98,7 +116,8 @@ export function routeQualitativeRecommendation(
 
     return {
       verdict: "STRETCH_OPPORTUNITY_GROWTH",
-      headline: "STRETCH OPPORTUNITY — AUTONOMY / SCOPE STEP-UP: This role represents an increase in autonomy or strategic scope compared to your recorded experience history.",
+      headline:
+        "STRETCH OPPORTUNITY — AUTONOMY / SCOPE STEP-UP: This role represents an increase in autonomy or strategic scope compared to your recorded experience history.",
       candidateActionContext: "EVALUATE_GROWTH_STRETCH",
       summaryRationale: rationale,
     };
@@ -112,13 +131,16 @@ export function routeQualitativeRecommendation(
 
   return {
     verdict: "STRONG_OPPORTUNITY_VERIFIED",
-    headline: "STRONG OPPORTUNITY — VERIFIED EVIDENCE: Your profile provides strong, attributable evidence for this position's core requirements. This opportunity appears worthy of your consideration.",
+    headline:
+      "STRONG OPPORTUNITY — VERIFIED EVIDENCE: Your profile provides strong, attributable evidence for this position's core requirements. This opportunity appears worthy of your consideration.",
     candidateActionContext: "CONSIDER_APPLICATION",
     summaryRationale: rationale,
   };
 }
 
-function autonomyDescriptorText(autonomy: RecommendationEngineInput["matchDiagnostics"]["autonomyAlignment"]): string {
+function autonomyDescriptorText(
+  autonomy: RecommendationEngineInput["matchDiagnostics"]["autonomyAlignment"]
+): string {
   return autonomy.autonomyDescriptor || `Requires ${autonomy.requiredLevel} autonomy scope.`;
 }
 
@@ -130,8 +152,12 @@ export function evaluateNonNumericalAssessmentPayload(
 ): NonNumericalOpportunityAssessment {
   const recommendation = routeQualitativeRecommendation(input);
 
-  const coverLetterHookTheme = deriveCoverLetterHookTheme(input.matchDiagnostics.essentialCompetencies);
-  const interviewTalkingPoints = deriveInterviewTalkingPoints(input.matchDiagnostics.essentialCompetencies);
+  const coverLetterHookTheme = deriveCoverLetterHookTheme(
+    input.matchDiagnostics.essentialCompetencies
+  );
+  const interviewTalkingPoints = deriveInterviewTalkingPoints(
+    input.matchDiagnostics.essentialCompetencies
+  );
 
   return {
     assessmentVersion: "3.1.1-non-numerical",
@@ -154,19 +180,27 @@ export function evaluateNonNumericalAssessmentPayload(
   };
 }
 
-function deriveCoverLetterHookTheme(competencies: RecommendationEngineInput["matchDiagnostics"]["essentialCompetencies"]): string {
-  const verifiedNames = competencies.filter((c) => c.status === "DEMONSTRATED_PRESENCE").map((c) => c.competency);
+function deriveCoverLetterHookTheme(
+  competencies: RecommendationEngineInput["matchDiagnostics"]["essentialCompetencies"]
+): string {
+  const verifiedNames = competencies
+    .filter((c) => c.status === "DEMONSTRATED_PRESENCE")
+    .map((c) => c.competency);
   if (verifiedNames.length > 0) {
     return `${verifiedNames.slice(0, 2).join(" & ")} Engineering Excellence`;
   }
   return "Software Architecture & Systems Engineering Excellence";
 }
 
-function deriveInterviewTalkingPoints(competencies: RecommendationEngineInput["matchDiagnostics"]["essentialCompetencies"]): string[] {
+function deriveInterviewTalkingPoints(
+  competencies: RecommendationEngineInput["matchDiagnostics"]["essentialCompetencies"]
+): string[] {
   const points: string[] = [];
   const verified = competencies.filter((c) => c.status === "DEMONSTRATED_PRESENCE");
   if (verified.length > 0) {
-    points.push(`Lead with your verified ${verified.map((c) => c.competency).join(", ")} experience.`);
+    points.push(
+      `Lead with your verified ${verified.map((c) => c.competency).join(", ")} experience.`
+    );
   }
   points.push("Discuss your systems engineering background for technical context.");
   return points;
