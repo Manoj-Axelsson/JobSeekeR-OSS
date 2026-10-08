@@ -23,22 +23,52 @@ async function main() {
     ]),
     skills: JSON.stringify({
       software: [
-        "React", "TypeScript", "Next.js", "Node.js", "Express", "PostgreSQL", 
-        "SQL", "REST APIs", "Git", "GitHub", "Tailwind CSS", "Vercel", "Render", "Telemetry"
+        "React",
+        "TypeScript",
+        "Next.js",
+        "Node.js",
+        "Express",
+        "PostgreSQL",
+        "SQL",
+        "REST APIs",
+        "Git",
+        "GitHub",
+        "Tailwind CSS",
+        "Vercel",
+        "Render",
+        "Telemetry",
       ],
       systems: [
-        "Systems Thinking", "Systems Engineering", "Software Architecture", 
-        "Requirements Engineering", "Validation & Verification", "Technical Documentation", 
-        "Documentation-as-Architecture", "PLM"
+        "Systems Thinking",
+        "Systems Engineering",
+        "Software Architecture",
+        "Requirements Engineering",
+        "Validation & Verification",
+        "Technical Documentation",
+        "Documentation-as-Architecture",
+        "PLM",
       ],
       quality: [
-        "Six Sigma Green Belt", "DMAIC", "FMEA", "Poka-Yoke", "Root Cause Analysis", 
-        "Quality Assurance", "Process Optimization", "Standard Work", "Continuous Improvement"
+        "Six Sigma Green Belt",
+        "DMAIC",
+        "FMEA",
+        "Poka-Yoke",
+        "Root Cause Analysis",
+        "Quality Assurance",
+        "Process Optimization",
+        "Standard Work",
+        "Continuous Improvement",
       ],
       industrial: [
-        "Manufacturing Engineering", "Production Development", "Lean Manufacturing", 
-        "Industrial Digitalization", "Automation", "CNC Programming", "CAD/CAM", "Preventive Maintenance"
-      ]
+        "Manufacturing Engineering",
+        "Production Development",
+        "Lean Manufacturing",
+        "Industrial Digitalization",
+        "Automation",
+        "CNC Programming",
+        "CAD/CAM",
+        "Preventive Maintenance",
+      ],
     }),
     minMatchScore: 45,
   };

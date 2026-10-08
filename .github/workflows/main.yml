@@ -2,9 +2,9 @@ name: JobseekeR CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, Develop ]
+    branches: [main, Develop]
   pull_request:
-    branches: [ main, Develop ]
+    branches: [main, Develop]
 
 env:
   DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/jobseeker_ci?schema=public"
@@ -37,7 +37,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 26
-          cache: 'npm'
+          cache: "npm"
 
       - name: Install dependencies
         run: npm ci
