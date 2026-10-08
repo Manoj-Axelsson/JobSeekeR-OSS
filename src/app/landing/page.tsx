@@ -28,11 +28,15 @@ export default function LandingPage() {
         setAudioPlaying(false);
       } else {
         setAudioPlaying(true);
-        const speechLang = selectedLang === "en" ? "en-US" : selectedLang === "no" ? "no-NO" : selectedLang === "da" ? "da-DK" : "sv-SE";
-        speakText(
-          `${t.landingTitle}. ${t.landingDescription}`,
-          speechLang
-        );
+        const speechLang =
+          selectedLang === "en"
+            ? "en-US"
+            : selectedLang === "no"
+              ? "no-NO"
+              : selectedLang === "da"
+                ? "da-DK"
+                : "sv-SE";
+        speakText(`${t.landingTitle}. ${t.landingDescription}`, speechLang);
       }
     }
   };
@@ -47,7 +51,10 @@ export default function LandingPage() {
         {/* Animated Diagonal Film Strip Track 1 */}
         <div className="absolute -top-32 -left-32 w-[160%] h-32 bg-[#4a1f04]/60 border-y-4 border-dashed border-amber-400/40 rotate-[-12deg] animate-[slideTape_25s_linear_infinite] flex items-center space-x-12 px-8">
           {Array.from({ length: 20 }).map((_, i) => (
-            <div key={i} className="w-16 h-20 border-2 border-amber-300/40 rounded flex items-center justify-center font-mono text-[10px] text-amber-200">
+            <div
+              key={i}
+              className="w-16 h-20 border-2 border-amber-300/40 rounded flex items-center justify-center font-mono text-[10px] text-amber-200"
+            >
               [ 0{i + 1} ]
             </div>
           ))}
@@ -56,7 +63,10 @@ export default function LandingPage() {
         {/* Animated Diagonal Film Strip Track 2 */}
         <div className="absolute top-[35%] -left-32 w-[160%] h-40 bg-[#3d1802]/70 border-y-4 border-dotted border-amber-300/50 rotate-[-12deg] animate-[slideTapeReverse_30s_linear_infinite] flex items-center space-x-16 px-8">
           {Array.from({ length: 15 }).map((_, i) => (
-            <div key={i} className="w-24 h-24 border-2 border-amber-400/50 rounded-lg p-2 font-mono text-[9px] text-amber-200 flex flex-col justify-between shadow-inner">
+            <div
+              key={i}
+              className="w-24 h-24 border-2 border-amber-400/50 rounded-lg p-2 font-mono text-[9px] text-amber-200 flex flex-col justify-between shadow-inner"
+            >
               <div className="w-full h-1 bg-amber-400/60"></div>
               <div className="w-3/4 h-1 bg-amber-400/40"></div>
               <div className="w-1/2 h-1 bg-amber-400/30"></div>
@@ -68,7 +78,10 @@ export default function LandingPage() {
         {/* Animated Diagonal Timeline Ruler Track 3 */}
         <div className="absolute -bottom-20 -left-32 w-[160%] h-28 bg-[#522407]/60 border-t-4 border-amber-400/50 rotate-[-12deg] flex items-end justify-around px-8">
           {Array.from({ length: 40 }).map((_, i) => (
-            <div key={i} className={`bg-amber-300/60 ${i % 5 === 0 ? "h-12 w-1" : "h-6 w-0.5"}`}></div>
+            <div
+              key={i}
+              className={`bg-amber-300/60 ${i % 5 === 0 ? "h-12 w-1" : "h-6 w-0.5"}`}
+            ></div>
           ))}
         </div>
       </div>
@@ -80,11 +93,16 @@ export default function LandingPage() {
           <Link href="/" className="flex items-center gap-3.5 group">
             <div className="flex items-center space-x-3">
               <span className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-white drop-shadow-md group-hover:scale-[1.02] transition-transform duration-200">
-                JobseekeR<span className="text-amber-400 text-base sm:text-lg align-super font-bold">™</span>
+                JobseekeR
+                <span className="text-amber-400 text-base sm:text-lg align-super font-bold">™</span>
               </span>
               <div className="hidden sm:inline-flex flex-col px-3 py-1 rounded-xl bg-[#361804]/90 border border-amber-400/60 shadow-md text-left group-hover:border-amber-300 transition-colors">
-                <span className="text-[11px] font-extrabold tracking-wide text-amber-300">Open Source Scanner</span>
-                <span className="text-[10px] font-semibold text-amber-200/90 border-t border-amber-500/30 pt-0.5 mt-0.5">SE Job Tech API</span>
+                <span className="text-[11px] font-extrabold tracking-wide text-amber-300">
+                  Open Source Scanner
+                </span>
+                <span className="text-[10px] font-semibold text-amber-200/90 border-t border-amber-500/30 pt-0.5 mt-0.5">
+                  SE Job Tech API
+                </span>
               </div>
             </div>
           </Link>
@@ -118,10 +136,18 @@ export default function LandingPage() {
                 className="bg-transparent text-xs font-bold text-amber-200 focus:outline-none cursor-pointer"
                 aria-label="Välj språk / Choose Language"
               >
-                <option value="sv" className="bg-[#230f03] text-amber-100">🇸🇪 Svenska</option>
-                <option value="en" className="bg-[#230f03] text-amber-100">🇬🇧 English</option>
-                <option value="no" className="bg-[#230f03] text-amber-100">🇳🇴 Norsk</option>
-                <option value="da" className="bg-[#230f03] text-amber-100">🇩🇰 Dansk</option>
+                <option value="sv" className="bg-[#230f03] text-amber-100">
+                  🇸🇪 Svenska
+                </option>
+                <option value="en" className="bg-[#230f03] text-amber-100">
+                  🇬🇧 English
+                </option>
+                <option value="no" className="bg-[#230f03] text-amber-100">
+                  🇳🇴 Norsk
+                </option>
+                <option value="da" className="bg-[#230f03] text-amber-100">
+                  🇩🇰 Dansk
+                </option>
               </select>
             </div>
 
@@ -154,9 +180,19 @@ export default function LandingPage() {
           >
             <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               {isMobileMenuOpen ? (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2.5}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6h16M4 12h16M4 18h16" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2.5}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
               )}
             </svg>
           </button>
@@ -239,7 +275,8 @@ export default function LandingPage() {
 
         {/* Hero Title */}
         <h1 className="text-5xl sm:text-7xl md:text-8xl font-black tracking-tight text-white leading-none drop-shadow-2xl">
-          JobseekeR<span className="text-amber-400 text-3xl sm:text-4xl align-super font-bold">™</span>
+          JobseekeR
+          <span className="text-amber-400 text-3xl sm:text-4xl align-super font-bold">™</span>
         </h1>
 
         <h2 className="mt-4 text-2xl sm:text-3xl md:text-4xl font-extrabold text-amber-200 tracking-tight max-w-4xl leading-tight">
@@ -247,7 +284,9 @@ export default function LandingPage() {
         </h2>
 
         <p className="mt-6 text-lg sm:text-xl text-amber-100/90 max-w-2xl font-normal leading-relaxed">
-          JobseekeR™ evaluates real-time Swedish job postings daily at 12:00 PM against your uploaded CVs &amp; competence certificates, calculates weighted match scores, and maintains an automated rolling application tracker.
+          JobseekeR™ evaluates real-time Swedish job postings daily at 12:00 PM against your
+          uploaded CVs &amp; competence certificates, calculates weighted match scores, and
+          maintains an automated rolling application tracker.
         </p>
 
         {/* Hero Action Buttons with Hover Design */}
@@ -274,9 +313,12 @@ export default function LandingPage() {
               🔗
             </div>
             <div>
-              <h3 className="text-xl font-black text-white">Direct Job Link Importer (LinkedIn, Teamtailor, Workday, ATS)</h3>
+              <h3 className="text-xl font-black text-white">
+                Direct Job Link Importer (LinkedIn, Teamtailor, Workday, ATS)
+              </h3>
               <p className="text-xs sm:text-sm text-amber-300/90 font-medium">
-                Found a job posting on LinkedIn or any external career site? Paste any URL to parse &amp; score it instantly!
+                Found a job posting on LinkedIn or any external career site? Paste any URL to parse
+                &amp; score it instantly!
               </p>
             </div>
           </div>
@@ -296,19 +338,24 @@ export default function LandingPage() {
             </Link>
           </div>
           <p className="mt-2.5 text-xs text-amber-200/70 font-medium italic">
-            *Imports job details from external career pages, parses required competences, and calculates automated candidate match scores.
+            *Imports job details from external career pages, parses required competences, and
+            calculates automated candidate match scores.
           </p>
         </div>
 
         {/* Feature Cards Grid */}
-        <div id="features" className="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 text-left w-full">
+        <div
+          id="features"
+          className="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 text-left w-full"
+        >
           <div className="p-6 rounded-2xl bg-[#311403]/80 border-2 border-amber-500/40 backdrop-blur-md hover:border-amber-300 hover:scale-[1.02] hover:bg-[#3d1904] transition-all shadow-xl cursor-pointer group">
             <div className="w-12 h-12 rounded-xl bg-amber-400/20 border border-amber-400/40 text-amber-300 flex items-center justify-center text-2xl mb-4 font-bold group-hover:scale-110 transition-transform">
               🎯
             </div>
             <h3 className="text-xl font-extrabold text-white">Dynamic AI Match Engine</h3>
             <p className="mt-2 text-sm text-amber-200/80 leading-relaxed">
-              Evaluates job ad requirements against your uploaded CVs, candidate profile, and target competencies using weighted matching algorithms.
+              Evaluates job ad requirements against your uploaded CVs, candidate profile, and target
+              competencies using weighted matching algorithms.
             </p>
           </div>
 
@@ -318,7 +365,8 @@ export default function LandingPage() {
             </div>
             <h3 className="text-xl font-extrabold text-white">Direct URL Importer</h3>
             <p className="mt-2 text-sm text-amber-200/80 leading-relaxed">
-              Import job postings directly from LinkedIn, Sellpy, Teamtailor, or corporate ATS portals to calculate instant candidate match scores.
+              Import job postings directly from LinkedIn, Sellpy, Teamtailor, or corporate ATS
+              portals to calculate instant candidate match scores.
             </p>
           </div>
 
@@ -328,7 +376,8 @@ export default function LandingPage() {
             </div>
             <h3 className="text-xl font-extrabold text-white">CV &amp; Certificate Extraction</h3>
             <p className="mt-2 text-sm text-amber-200/80 leading-relaxed">
-              Upload PDF or text CVs and educational diplomas to automatically parse technical competences into your search taxonomy.
+              Upload PDF or text CVs and educational diplomas to automatically parse technical
+              competences into your search taxonomy.
             </p>
           </div>
 
@@ -338,28 +387,50 @@ export default function LandingPage() {
             </div>
             <h3 className="text-xl font-extrabold text-white">12-Month Auto Retention</h3>
             <p className="mt-2 text-sm text-amber-200/80 leading-relaxed">
-              Automated data pruning service purges non-saved job ads older than 365 days, maintaining a clean 12-month rolling search database.
+              Automated data pruning service purges non-saved job ads older than 365 days,
+              maintaining a clean 12-month rolling search database.
             </p>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer id="open-source" className="relative z-10 border-t border-amber-500/30 py-8 px-4 text-center text-xs text-amber-200/70 bg-[#1c0c03]/80 backdrop-blur-md">
+      <footer
+        id="open-source"
+        className="relative z-10 border-t border-amber-500/30 py-8 px-4 text-center text-xs text-amber-200/70 bg-[#1c0c03]/80 backdrop-blur-md"
+      >
         <p>
-          © {new Date().getFullYear()} RubberDuckWorks • Developed by Manoj Axelsson. JobseekeR™ is Open Source software released under the <a href="https://opensource.org/licenses/MIT" target="_blank" rel="noreferrer" className="underline hover:text-white transition-colors">MIT License</a>.
+          © {new Date().getFullYear()} RubberDuckWorks • Developed by Manoj Axelsson. JobseekeR™ is
+          Open Source software released under the{" "}
+          <a
+            href="https://opensource.org/licenses/MIT"
+            target="_blank"
+            rel="noreferrer"
+            className="underline hover:text-white transition-colors"
+          >
+            MIT License
+          </a>
+          .
         </p>
       </footer>
 
       {/* Tailwind Keyframe CSS Animations */}
       <style jsx global>{`
         @keyframes slideTape {
-          0% { transform: translateX(0) rotate(-12deg); }
-          100% { transform: translateX(-50%) rotate(-12deg); }
+          0% {
+            transform: translateX(0) rotate(-12deg);
+          }
+          100% {
+            transform: translateX(-50%) rotate(-12deg);
+          }
         }
         @keyframes slideTapeReverse {
-          0% { transform: translateX(-50%) rotate(-12deg); }
-          100% { transform: translateX(0) rotate(-12deg); }
+          0% {
+            transform: translateX(-50%) rotate(-12deg);
+          }
+          100% {
+            transform: translateX(0) rotate(-12deg);
+          }
         }
       `}</style>
     </div>
