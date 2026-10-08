@@ -110,7 +110,7 @@ export async function runRealFeedSimulation(): Promise<SimulationReportData> {
       company: app.job?.company || "Unknown Company",
       title: app.job?.title || "Unknown Title",
       description: app.job?.description || "",
-      status: app.status as any,
+      status: app.status as ApplicationRecord["status"],
       appliedAt: app.appliedAt,
     }));
 
